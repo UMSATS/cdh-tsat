@@ -11,7 +11,7 @@ Contains software for the TSAT6 (2020-2022) Command and Data Handling (CDH) boar
 
 -2. Test your code using the Nucleo development board. If you can not test the code using only the Nucleo development board and require the CDH custom PCB, just ensure the code builds with no errors. For example, this may be the case if you need to test a driver file for a peripheral not on the Nucleo development board.
 
--3. Once your code works as expected, copy and paste the files you have written, or any changes you have made into the CDH custom PCB project (**cdh-tsat6-stm32project-boardV1**). You generally won't need to modify the code since both projects use the same STM32 part. However, you may need to modify some configuration values. For example, you may need to change the CAN baud rate configuration if the baud rate used on the Nucleo development board is different than the baud rate used on the CDH custom PCB. 
+-3. Once your code works as expected, copy and paste the files you have written, or any changes you have made into the CDH custom PCB project (**cdh-tsat6-stm32project-boardV1**). You generally won't need to modify the code since both projects use the same STM32 part. However, you may need to modify some configuration values. For example, you may need to change the CAN baud rate configuration value if the baud rate used on the Nucleo development board is different than the baud rate used on the CDH custom PCB. 
 
 -4. Submit a pull request.
 
