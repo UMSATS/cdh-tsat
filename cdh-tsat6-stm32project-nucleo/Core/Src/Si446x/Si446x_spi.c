@@ -52,5 +52,5 @@ uint8_t spi_transfer(uint8_t data)
 
 void spi_transfer_nr(uint8_t data)
 {
-	spi_transfer(data);
+	(void) spi_transfer(data);
 }

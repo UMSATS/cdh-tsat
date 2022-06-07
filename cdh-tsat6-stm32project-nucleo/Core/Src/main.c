@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Si446x/Si446x.h"
 
 /* USER CODE END Includes */
 
@@ -93,12 +94,20 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
+  /* Test code to check if comms on the si446x board is working. -NJR */
+  si446x_info_t info = {0};
+
+  Si446x_init();
+
+  Si446x_getInfo(&info);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	/* Set a breakpoint here to view data grabbed from si446x module. -NJR */
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 	HAL_Delay(1000);
     /* USER CODE END WHILE */

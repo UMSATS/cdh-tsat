@@ -62,6 +62,8 @@
 // Everything below here is for non-Arduino stuff
 // --------------------------------------
 
+/* TODO: Move this to a different header file, where we can centralize pin assignment defines. -NJR */
+/* TODO: Or better yet, make this an argument of Si446x_Init(). -NJR */
 // SPI slave select pin
 #define SI446X_CSN_PORT		A
 #define SI446X_CSN_BIT		4
