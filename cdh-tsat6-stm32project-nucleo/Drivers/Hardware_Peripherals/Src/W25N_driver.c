@@ -5,4 +5,7 @@
  *      Author: Owner
  */
 
-
+void testGitHub(void)
+{
+	printf("Hey Rodrigo!");
+}
