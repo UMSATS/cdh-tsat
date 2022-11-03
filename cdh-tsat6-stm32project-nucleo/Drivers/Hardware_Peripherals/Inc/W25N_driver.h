@@ -8,6 +8,7 @@
 #ifndef HARDWARE_PERIPHERALS_INC_W25N_DRIVER_H_
 #define HARDWARE_PERIPHERALS_INC_W25N_DRIVER_H_
 
+//Define Directives
 #define W25N_SPI          hspi1
 
 #define W25N_nCS_GPIO     GPIOB
@@ -18,6 +19,8 @@
 
 #define W25N_nHOLD_GPIO   GPIOC
 #define W25N_nHOLD_PIN    GPIO_PIN_7
+
+#define W25N_DUMMY_BYTE                    0x00
 
 #define OPCODE_DEVICE_RESET                0xFF
 #define OPCODE_READ_JEDEC_ID               0x9F
@@ -33,5 +36,13 @@
 #define OPCODE_PROGRAM_EXECUTE             0x10
 #define OPCODE_PAGE_DATA_READ              0x13
 #define OPCODE_READ_DATA                   0x03
+
+//Global Variable Declarations
+extern SPI_HandleTypeDef W25N_SPI;
+
+//Function Prototypes
+void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+
+void W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
 
 #endif /* HARDWARE_PERIPHERALS_INC_W25N_DRIVER_H_ */

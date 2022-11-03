@@ -40,7 +40,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
- CAN_HandleTypeDef hcan1;
+CAN_HandleTypeDef hcan1;
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
