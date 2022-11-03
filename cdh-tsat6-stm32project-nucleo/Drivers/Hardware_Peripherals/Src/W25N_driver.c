@@ -23,6 +23,8 @@ void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_
     HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, HAL_MAX_DELAY);
 
     HAL_SPI_Receive(&W25N_SPI, p_buffer, num_of_bytes, HAL_MAX_DELAY);
+
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 }
 
 
