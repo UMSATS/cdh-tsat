@@ -1,8 +1,13 @@
 /*
- * W25N_driver.c
+ * FILENAME: W25N_driver.c
  *
- *  Created on: Oct. 30, 2022
- *      Author: Owner
+ * DESCRIPTION: STM32L4 driver source file for the W25N01GVZEIG NAND Flash.
+ *
+ * AUTHORS:
+ *  - Daigh Burgess (daigh.burgess@umsats.ca)
+ *  - Rodrigo Alegria (rodrigo.alegria@umsats.ca)
+ *
+ * CREATED ON: Oct. 30, 2022
  */
 
 #include <stdint.h>
@@ -11,6 +16,9 @@
 #include "W25N_driver.h"
 
 
+//###############################################################################################
+//Driver Functions
+//###############################################################################################
 void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address)
 {
     uint8_t opcode = OPCODE_BAD_BLOCK_MANAGEMENT;
@@ -112,8 +120,9 @@ void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 }
 
-
-//helper functions
+//###############################################################################################
+//Helper Functions
+//###############################################################################################
 void W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit)
 {
     uint8_t word_16bit_high_byte = word_16bit >> 8; //value is truncated & high byte stored
