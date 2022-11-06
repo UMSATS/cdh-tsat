@@ -30,17 +30,24 @@
 #define OPCODE_WRITE_DISABLE               0x04
 #define OPCODE_BAD_BLOCK_MANAGEMENT        0xA1
 #define OPCODE_READ_BBM_LUT                0xA5
-#define OPCODE_LAST_ECC_FAILURE_PAGE_ADR   0xA9
 #define OPCODE_BLOCK_ERASE_128KB           0xD8
-#define OPCODE_RANDOM_LOAD_PROGRAM_DATA    0x84
+#define OPCODE_LOAD_PROGRAM_DATA           0x02
 #define OPCODE_PROGRAM_EXECUTE             0x10
 #define OPCODE_PAGE_DATA_READ              0x13
 #define OPCODE_READ_DATA                   0x03
+
+#define BBM_LUT_NUM_OF_BYTES    80 //(4 bytes per entry) * (20 entries) = 80 bytes
 
 //Global Variable Declarations
 extern SPI_HandleTypeDef W25N_SPI;
 
 //Function Prototypes
+void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
+void W25N_Read_BBM_LUT(uint8_t *p_buffer);
+void W25N_Block_Erase_128KB(uint16_t page_address);
+void W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+void W25N_Program_Execute(uint16_t page_address);
+void W25N_Page_Data_Read(uint16_t page_address);
 void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 void W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
