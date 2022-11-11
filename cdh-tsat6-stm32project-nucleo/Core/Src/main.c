@@ -114,6 +114,10 @@ int main(void)
 
   Si446x_getInfo(&info);
 
+  /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
+  //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
+  //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
