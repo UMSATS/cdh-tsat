@@ -27,6 +27,8 @@
 #define W25N_nHOLD_GPIO   GPIOC
 #define W25N_nHOLD_PIN    GPIO_PIN_7
 
+#define W25N_SPI_DELAY    HAL_MAX_DELAY
+
 #define W25N_DUMMY_BYTE                         0x00
 
 #define W25N_OPCODE_DEVICE_RESET                0xFF

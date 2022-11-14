@@ -25,7 +25,7 @@ void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
     W25N_SPI_Transmit_Word_16Bit(logical_block_address);
     W25N_SPI_Transmit_Word_16Bit(physical_block_address);
 
@@ -39,10 +39,10 @@ void W25N_Read_BBM_LUT(uint8_t *p_buffer)
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
 
-    HAL_SPI_Receive(&W25N_SPI, p_buffer, W25N_BBM_LUT_NUM_OF_BYTES, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&W25N_SPI, p_buffer, W25N_BBM_LUT_NUM_OF_BYTES, W25N_SPI_DELAY);
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 }
@@ -56,8 +56,8 @@ void W25N_Block_Erase_128KB(uint16_t page_address)
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
     W25N_SPI_Transmit_Word_16Bit(page_address);
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
@@ -69,9 +69,9 @@ void W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
     W25N_SPI_Transmit_Word_16Bit(column_address);
-    HAL_SPI_Transmit(&W25N_SPI, p_buffer, num_of_bytes, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, p_buffer, num_of_bytes, W25N_SPI_DELAY);
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 }
@@ -83,8 +83,8 @@ void W25N_Program_Execute(uint16_t page_address)
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
     W25N_SPI_Transmit_Word_16Bit(page_address);
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
@@ -97,8 +97,8 @@ void W25N_Page_Data_Read(uint16_t page_address)
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
     W25N_SPI_Transmit_Word_16Bit(page_address);
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
@@ -111,11 +111,11 @@ void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
     W25N_SPI_Transmit_Word_16Bit(column_address);
-    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
 
-    HAL_SPI_Receive(&W25N_SPI, p_buffer, num_of_bytes, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&W25N_SPI, p_buffer, num_of_bytes, W25N_SPI_DELAY);
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 }
@@ -128,6 +128,6 @@ void W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit)
     uint8_t word_16bit_high_byte = word_16bit >> 8; //value is truncated & high byte stored
     uint8_t word_16bit_low_byte = word_16bit; //value is truncated & low byte stored
 
-    HAL_SPI_Transmit(&W25N_SPI, &word_16bit_high_byte, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&W25N_SPI, &word_16bit_low_byte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &word_16bit_high_byte, 1, W25N_SPI_DELAY);
+    HAL_SPI_Transmit(&W25N_SPI, &word_16bit_low_byte, 1, W25N_SPI_DELAY);
 }
