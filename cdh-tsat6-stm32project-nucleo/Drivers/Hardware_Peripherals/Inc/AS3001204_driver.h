@@ -19,26 +19,23 @@
 //###############################################################################################
 #define AS3001024_SPI			hspi2
 
-// TODO: update GPIO pins as required below
-#define W25N_nCS_GPIO			GPIOB
-#define W25N_nCS_PIN			GPIO_PIN_15
+#define AS3001024_nCS_GPIO		GPIOC
+#define AS3001024_nCS_PIN		GPIO_PIN_8
 
-#define W25N_nWP_GPIO			GPIOC
-#define W25N_nWP_PIN			GPIO_PIN_6
-
-#define W25N_nHOLD_GPIO			GPIOC
-#define W25N_nHOLD_PIN			GPIO_PIN_7
-
-
+#define AS3001024_nWP_GPIO		GPIOC
+#define AS3001024_nWP_PIN		GPIO_PIN_9
 
 #define AS3001024_SPI_DELAY		HAL_MAX_DELAY
 
-// TODO: Remove if not required
-#define AS3001024_DUMMY_BYTE	0x00
 
-// TODO: All opcodes here...
-#define AS3001024_OPCODE_...	0xFF
-
+// Register addresses (datasheet p.22)
+#define AS3001024_REGIST_STATUS		0x00
+#define AS3001024_REGIST_CONFIG1	0x02
+#define AS3001024_REGIST_CONFIG2	0x03
+#define AS3001024_REGIST_CONFIG3	0x04
+#define AS3001024_REGIST_CONFIG4	0x05
+#define AS3001024_REGIST_DEVICEID	0x30
+#define AS3001024_REGIST_UNIQUEID	0x40
 
 
 //###############################################################################################
