@@ -9,7 +9,7 @@
  * Created on: Nov. 14, 2022
  */
 
-#include "stm32l4xx_hal.h"
+
 #include "AS3001024_driver.h"
 
 

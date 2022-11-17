@@ -5,6 +5,7 @@
  *
  * AUTHORS:
  *  - Gabriel Young (gabriel.young@umsats.ca)
+ *  - Om Sevak (Om.Sevak@umsats.ca)
  *
  * Created on: Nov. 14, 2022
  */
@@ -12,6 +13,10 @@
 #ifndef HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
 #define HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
 
+//###############################################################################################
+// Includes
+//###############################################################################################
+#include "stm32l4xx_hal.h"
 
 //###############################################################################################
 // Define Directives
