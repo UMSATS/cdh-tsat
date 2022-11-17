@@ -21,70 +21,73 @@
 //###############################################################################################
 // Define Directives
 //###############################################################################################
-#define AS3001024_SPI			hspi2
+#define AS3001204_SPI			hspi2
 
-#define AS3001024_nCS_GPIO		GPIOC
-#define AS3001024_nCS_PIN		GPIO_PIN_8
+#define AS3001204_nCS_GPIO		GPIOC
+#define AS3001204_nCS_PIN		GPIO_PIN_8
 
-#define AS3001024_nWP_GPIO		GPIOC
-#define AS3001024_nWP_PIN		GPIO_PIN_9
+#define AS3001204_nWP_GPIO		GPIOC
+#define AS3001204_nWP_PIN		GPIO_PIN_9
 
-#define AS3001024_SPI_DELAY		HAL_MAX_DELAY
+#define AS3001204_SPI_DELAY		HAL_MAX_DELAY
 
 
 // Opcodes (datasheet pp. 32-36)
 // Control operations (1-0-0 type)
 // TODO: Write a helper function that handles all 1-0-0 type commands,
 // then simple, one-line functions for each of the opcodes below which call the helper function
-#define AS3001024_OPCODE_NO_OPERATION		0x00
-#define AS3001024_OPCODE_WRITE_ENABLE		0x06
-#define AS3001024_OPCODE_WRITE_DISABLE		0x04
-#define AS3001024_OPCODE_ENTER_DEEP_PWDOWN	0xb9
-#define AS3001024_OPCODE_ENTER_HIBERNATE	0xba
-#define AS3001024_OPCODE_EXIT_DEEP_PWDOWN	0xab
-#define AS3001024_OPCODE_SOFT_RESET_ENABLE	0x66
-#define AS3001024_OPCODE_SOFT_RESET			0x99
+#define AS3001204_OPCODE_NO_OPERATION		0x00
+#define AS3001204_OPCODE_WRITE_ENABLE		0x06
+#define AS3001204_OPCODE_WRITE_DISABLE		0x04
+#define AS3001204_OPCODE_ENTER_DEEP_PWDOWN	0xb9
+#define AS3001204_OPCODE_ENTER_HIBERNATE	0xba
+#define AS3001204_OPCODE_EXIT_DEEP_PWDOWN	0xab
+#define AS3001204_OPCODE_SOFT_RESET_ENABLE	0x66
+#define AS3001204_OPCODE_SOFT_RESET			0x99
 
 // TODO: Write one function for each of the opcodes below
 // Read register operations (1-0-1 type)
-#define AS3001024_OPCODE_READ_STATUS_REG	0x05
-#define AS3001024_OPCODE_READ_CONFIG_REGS	0x46
-#define AS3001024_OPCODE_READ_DEVICE_ID		0x9f
-#define AS3001024_OPCODE_READ_UNIQUE_ID		0x4c
-#define AS3001024_OPCODE_READ_AAP_REG		0x14
+#define AS3001204_OPCODE_READ_STATUS_REG	0x05
+#define AS3001204_OPCODE_READ_CONFIG_REGS	0x46
+#define AS3001204_OPCODE_READ_DEVICE_ID		0x9f
+#define AS3001204_OPCODE_READ_UNIQUE_ID		0x4c
+#define AS3001204_OPCODE_READ_AAP_REG		0x14
 
 // Write register operations (1-0-1 type)
-#define AS3001024_OPCODE_WRITE_STATUS_REG	0x01
-#define AS3001024_OPCODE_WRITE_CONFIG_REGS	0x87
-#define AS3001024_OPCODE_WRITE_AAP_REG		0x1a
+#define AS3001204_OPCODE_WRITE_STATUS_REG	0x01
+#define AS3001204_OPCODE_WRITE_CONFIG_REGS	0x87
+#define AS3001204_OPCODE_WRITE_AAP_REG		0x1a
 
 // Memory operations (1-1-1 type)
-#define AS3001024_OPCODE_READ_MEMORY		0x03
-#define AS3001024_OPCODE_WRITE_MEMORY		0x02
-#define AS3001024_OPCODE_READ_AUG_STORAGE	0x4b
-#define AS3001024_OPCODE_WRITE_AUG_STORAGE	0x42
+#define AS3001204_OPCODE_READ_MEMORY		0x03
+#define AS3001204_OPCODE_WRITE_MEMORY		0x02
+#define AS3001204_OPCODE_READ_AUG_STORAGE	0x4b
+#define AS3001204_OPCODE_WRITE_AUG_STORAGE	0x42
 
 
 //###############################################################################################
 // Global Variable Declarations
 //###############################################################################################
-extern SPI_HandleTypeDef AS3001024_SPI;
+extern SPI_HandleTypeDef AS3001204_SPI;
 
 
 //###############################################################################################
 // Driver Function Prototypes
 //###############################################################################################
 
-// driver functions go here
-
-
+HAL_StatusTypeDef AS3001204_Write_Enable();
+HAL_StatusTypeDef AS3001204_Write_Disable();
+HAL_StatusTypeDef AS3001204_Enter_Hibernate();
+HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down();
+HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down();
+HAL_StatusTypeDef AS3001204_Software_Reset_Enable();
+HAL_StatusTypeDef AS3001204_Software_Reset();
 
 //###############################################################################################
 // Helper Function Prototypes
 //###############################################################################################
 
-// helper functions go here
-
+HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode);
 
 
 
