@@ -28,7 +28,9 @@
 
 
 // Opcodes (datasheet pp. 32-36)
-// Control operations (1-0-0 mode)
+// Control operations (1-0-0 type)
+// TODO: Write a helper function that handles all 1-0-0 type commands,
+// then simple, one-line functions for each of the opcodes below which call the helper function
 #define AS3001024_OPCODE_NO_OPERATION		0x00
 #define AS3001024_OPCODE_WRITE_ENABLE		0x06
 #define AS3001024_OPCODE_WRITE_DISABLE		0x04
@@ -38,22 +40,22 @@
 #define AS3001024_OPCODE_SOFT_RESET_ENABLE	0x66
 #define AS3001024_OPCODE_SOFT_RESET			0x99
 
-// Read register operations (1-0-1 mode)
+// TODO: Write one function for each of the opcodes below
+// Read register operations (1-0-1 type)
 #define AS3001024_OPCODE_READ_STATUS_REG	0x05
 #define AS3001024_OPCODE_READ_CONFIG_REGS	0x46
 #define AS3001024_OPCODE_READ_DEVICE_ID		0x9f
 #define AS3001024_OPCODE_READ_UNIQUE_ID		0x4c
 #define AS3001024_OPCODE_READ_AAP_REG		0x14
 
-// Write register operations (1-0-1 mode)
+// Write register operations (1-0-1 type)
 #define AS3001024_OPCODE_WRITE_STATUS_REG	0x01
 #define AS3001024_OPCODE_WRITE_CONFIG_REGS	0x87
 #define AS3001024_OPCODE_WRITE_AAP_REG		0x1a
 
-// Memory operations (1-1-1 mode) (assuming we're using SDR and SPI)
+// Memory operations (1-1-1 type)
 #define AS3001024_OPCODE_READ_MEMORY		0x03
 #define AS3001024_OPCODE_WRITE_MEMORY		0x02
-// omitted fast read & write options (50 vs 108 MHz max)
 #define AS3001024_OPCODE_READ_AUG_STORAGE	0x4b
 #define AS3001024_OPCODE_WRITE_AUG_STORAGE	0x42
 
