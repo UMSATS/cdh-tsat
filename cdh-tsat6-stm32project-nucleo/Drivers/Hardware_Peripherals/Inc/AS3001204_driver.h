@@ -33,7 +33,6 @@
 
 // Opcodes (datasheet pp. 32-36)
 // Control operations (1-0-0 type)
-#define AS3001204_OPCODE_NO_OPERATION		0x00
 #define AS3001204_OPCODE_WRITE_ENABLE		0x06
 #define AS3001204_OPCODE_WRITE_DISABLE		0x04
 #define AS3001204_OPCODE_ENTER_DEEP_PWDOWN	0xb9
@@ -67,6 +66,8 @@
 #define AS3001204_OPCODE_READ_AUG_STORAGE	0x4b
 #define AS3001204_OPCODE_WRITE_AUG_STORAGE	0x42
 
+#define AS3001204_WRITE_AUG_STORAGE_DELAY   0x0000 0000 0000 0000
+
 
 //###############################################################################################
 // Global Variable Declarations
@@ -78,6 +79,18 @@ extern SPI_HandleTypeDef AS3001204_SPI;
 // Driver Function Prototypes
 //###############################################################################################
 
+/*
+ * FUNCTION: AS3001204_Write_Enable, AS3001204_Write_Disable, AS3001204_Enter_Hibernate,
+ *           AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power,
+ *           AS3001204_Software_Reset_Enable, AS3001204_Software_Reset
+ *
+ * DESCRIPTION: ...
+ *
+ * NOTES:
+ *  - notes go here
+ *  - ....
+ *
+ */
 HAL_StatusTypeDef AS3001204_Write_Enable();
 HAL_StatusTypeDef AS3001204_Write_Disable();
 HAL_StatusTypeDef AS3001204_Enter_Hibernate();
@@ -96,13 +109,12 @@ HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer);
 
-//###############################################################################################
-// Helper Function Prototypes
-//###############################################################################################
+HAL_StatusTypeDef AS3001204_Read_Memory(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
+HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
 
-HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode);
-HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
-HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
+HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
+HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
 
 
-#endif  HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_ 
+
+#endif  HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
