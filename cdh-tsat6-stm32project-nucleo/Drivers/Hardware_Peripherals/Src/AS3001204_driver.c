@@ -27,6 +27,7 @@ HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address);
 //###############################################################################################
 
 // Basic commands
+
 HAL_StatusTypeDef AS3001204_Write_Enable() {
     AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
 }
@@ -55,7 +56,9 @@ HAL_StatusTypeDef AS3001204_Software_Reset() {
     AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
 }
 
+
 // Read register functions
+
 HAL_StatusTypeDef AS3001204_Read_Status_Register(uint8_t *p_buffer) {
     AS3001204_Read_Register(AS3001204_OPCODE_READ_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
 }
@@ -76,7 +79,9 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_
     AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
 }
 
+
 // Write register functions
+
 HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer) {
     AS3001204_Write_Enable();
     AS3001204_Write_Register(AS3001204_OPCODE_WRITE_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
@@ -94,6 +99,7 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p
 
 
 // Read/write memory functions
+
 HAL_StatusTypeDef AS3001204_Read_Memory(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes) {
 
     HAL_StatusTypeDef isError;
@@ -139,10 +145,12 @@ error:
 
 
 // Read/write augmented storage array functions
+
 HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes) {
 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_READ_AUG_STORAGE;
+    uint8_t delay = AS3001204_READ_AUG_STORAGE_DELAY;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
@@ -150,6 +158,10 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
     if (isError != HAL_OK) goto error;
 
     isError = AS3001204_SPI_Transmit_Memory_Address(address);
+    if (isError != HAL_OK) goto error;
+	
+	// Transmitting 8 bytes of zeros to wait for output from aug. storage array
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &delay, sizeof(delay), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
     
     isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
@@ -164,7 +176,6 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_WRITE_AUG_STORAGE;
-    uint8_t delay = AS3001204_WRITE_AUG_STORAGE_DELAY;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
@@ -174,10 +185,6 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
     if (isError != HAL_OK) goto error;
 
     isError = AS3001204_SPI_Transmit_Memory_Address(address);
-    if (isError != HAL_OK) goto error;
-
-    // Transmitting 8 bytes of zeros to wait for output
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &delay, sizeof(delay), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
     
     isError = HAL_SPI_Transmit(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);

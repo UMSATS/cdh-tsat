@@ -13,83 +13,79 @@
 #ifndef HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
 #define HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
 
-//###############################################################################################
-// Includes
-//###############################################################################################
+// ###############################################################################################
+//  Includes
+// ###############################################################################################
 #include "stm32l4xx_hal.h"
 
-//###############################################################################################
-// Define Directives
-//###############################################################################################
-#define AS3001204_SPI			hspi2
-#define AS3001204_SPI_DELAY		HAL_MAX_DELAY
+// ###############################################################################################
+//  Define Directives
+// ###############################################################################################
 
-#define AS3001204_nCS_GPIO		GPIOC
-#define AS3001204_nCS_PIN		GPIO_PIN_8
+#define AS3001204_SPI hspi2
+#define AS3001204_SPI_DELAY HAL_MAX_DELAY
 
-#define AS3001204_nWP_GPIO		GPIOC
-#define AS3001204_nWP_PIN		GPIO_PIN_9
+#define AS3001204_nCS_GPIO GPIOC
+#define AS3001204_nCS_PIN GPIO_PIN_8
 
+#define AS3001204_nWP_GPIO GPIOC
+#define AS3001204_nWP_PIN GPIO_PIN_9
 
 // Opcodes (datasheet pp. 32-36)
 // Control operations (1-0-0 type)
-#define AS3001204_OPCODE_WRITE_ENABLE		0x06
-#define AS3001204_OPCODE_WRITE_DISABLE		0x04
-#define AS3001204_OPCODE_ENTER_DEEP_PWDOWN	0xb9
-#define AS3001204_OPCODE_ENTER_HIBERNATE	0xba
-#define AS3001204_OPCODE_EXIT_DEEP_PWDOWN	0xab
-#define AS3001204_OPCODE_SOFT_RESET_ENABLE	0x66
-#define AS3001204_OPCODE_SOFT_RESET			0x99
+#define AS3001204_OPCODE_WRITE_ENABLE 0x06
+#define AS3001204_OPCODE_WRITE_DISABLE 0x04
+#define AS3001204_OPCODE_ENTER_DEEP_PWDOWN 0xb9
+#define AS3001204_OPCODE_ENTER_HIBERNATE 0xba
+#define AS3001204_OPCODE_EXIT_DEEP_PWDOWN 0xab
+#define AS3001204_OPCODE_SOFT_RESET_ENABLE 0x66
+#define AS3001204_OPCODE_SOFT_RESET 0x99
 
 // Read register operations (1-0-1 type)
-#define AS3001204_OPCODE_READ_STATUS_REG	0x05
-#define AS3001204_OPCODE_READ_CONFIG_REGS	0x46
-#define AS3001204_OPCODE_READ_DEVICE_ID		0x9f
-#define AS3001204_OPCODE_READ_UNIQUE_ID		0x4c
-#define AS3001204_OPCODE_READ_AAP_REG		0x14
+#define AS3001204_OPCODE_READ_STATUS_REG 0x05
+#define AS3001204_OPCODE_READ_CONFIG_REGS 0x46
+#define AS3001204_OPCODE_READ_DEVICE_ID 0x9f
+#define AS3001204_OPCODE_READ_UNIQUE_ID 0x4c
+#define AS3001204_OPCODE_READ_AAP_REG 0x14
 
 // Write register operations (1-0-1 type)
-#define AS3001204_OPCODE_WRITE_STATUS_REG	0x01
-#define AS3001204_OPCODE_WRITE_CONFIG_REGS	0x87
-#define AS3001204_OPCODE_WRITE_AAP_REG		0x1a
+#define AS3001204_OPCODE_WRITE_STATUS_REG 0x01
+#define AS3001204_OPCODE_WRITE_CONFIG_REGS 0x87
+#define AS3001204_OPCODE_WRITE_AAP_REG 0x1a
 
 // Register lengths (in bytes)
-#define AS3001204_STATUS_REG_LENGTH         1
-#define AS3001204_CONFIG_REGS_LENGTH        4
-#define AS3001204_DEVICE_ID_LENGTH          4
-#define AS3001204_UNIQUE_ID_LENGTH          8
-#define AS3001204_AAP_REG_LENGTH            1
+#define AS3001204_STATUS_REG_LENGTH 1
+#define AS3001204_CONFIG_REGS_LENGTH 4
+#define AS3001204_DEVICE_ID_LENGTH 4
+#define AS3001204_UNIQUE_ID_LENGTH 8
+#define AS3001204_AAP_REG_LENGTH 1
 
 // Memory operations (1-1-1 type)
-#define AS3001204_OPCODE_READ_MEMORY		0x03
-#define AS3001204_OPCODE_WRITE_MEMORY		0x02
-#define AS3001204_OPCODE_READ_AUG_STORAGE	0x4b
-#define AS3001204_OPCODE_WRITE_AUG_STORAGE	0x42
+#define AS3001204_OPCODE_READ_MEMORY 0x03
+#define AS3001204_OPCODE_WRITE_MEMORY 0x02
+#define AS3001204_OPCODE_READ_AUG_STORAGE 0x4b
+#define AS3001204_OPCODE_WRITE_AUG_STORAGE 0x42
 
-#define AS3001204_WRITE_AUG_STORAGE_DELAY   0x0000000000000000
+// Delay bytes to await response from augmented storage array
+// (see timing diagram, datasheet pp. 38-39)
+#define AS3001204_READ_AUG_STORAGE_DELAY 0x0000 0000 0000 0000
 
-
-//###############################################################################################
-// Global Variable Declarations
-//###############################################################################################
+// ###############################################################################################
+//  Global Variable Declarations
+// ###############################################################################################
 extern SPI_HandleTypeDef AS3001204_SPI;
 
-
-//###############################################################################################
-// Driver Function Prototypes
-//###############################################################################################
+// ###############################################################################################
+//  Driver Function Prototypes
+// ###############################################################################################
 
 /*
- * FUNCTION: AS3001204_Write_Enable, AS3001204_Write_Disable, AS3001204_Enter_Hibernate,
- *           AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power,
- *           AS3001204_Software_Reset_Enable, AS3001204_Software_Reset
+ * FUNCTIONS:   AS3001204_Write_Enable, AS3001204_Write_Disable,
+ * AS3001204_Enter_Hibernate, AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power,
+ *           	AS3001204_Software_Reset_Enable, AS3001204_Software_Reset
  *
- * DESCRIPTION: ...
- *
- * NOTES:
- *  - notes go here
- *  - ....
- *
+ * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
+ *              of an opcode (no memory addresses or datastreams to read/write).
  */
 HAL_StatusTypeDef AS3001204_Write_Enable();
 HAL_StatusTypeDef AS3001204_Write_Disable();
@@ -99,22 +95,98 @@ HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down();
 HAL_StatusTypeDef AS3001204_Software_Reset_Enable();
 HAL_StatusTypeDef AS3001204_Software_Reset();
 
+/*
+ * FUNCTIONS:   AS3001204_Read_Status_Register, AS3001204_Read_Config_Registers,
+                AS3001204_Read_Device_ID, AS3001204_Read_Unique_ID,
+                AS3001204_Read_Augmented_Array_Protection_Register
+ *
+ * DESCRIPTION: These functions read reserved registers from the MRAM device.
+ *              Refer to the definitions above for the length of each register.
+ *              The functionality of these registers can be found at datasheet
+ *              pp. 23-31.
+ *
+ * PARAMETERS:
+ *  - p_buffer: Pointer to a C buffer of type uint8_t into which the byte(s)
+ *              of the MRAM device register will be read.
+ */
 HAL_StatusTypeDef AS3001204_Read_Status_Register(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Config_Registers(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Device_ID(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_buffer);
 
+/*
+ * FUNCTIONS:   AS3001204_Write_Status_Register, AS3001204_Write_Config_Registers,
+                AS3001204_Write_Augmented_Array_Protection_Register
+ *
+ * DESCRIPTION: These functions write reserved registers to the MRAM device.
+ *              Refer to the definitions above for the length of each register.
+ *              The functionality of these registers can be found at datasheet
+ *              pp. 23-31.
+ *
+ * PARAMETERS:
+ *  - p_buffer: Pointer to a C buffer of type uint8_t whose contents will be
+ *              written into the MRAM device register.
+ *
+ * NOTES:
+ *  - The Write Enable (WREN) directive must be sent to the MRAM device before
+ *    data can be written to any registers. This form of write protection is
+ *    separate from the Write Protect (WP) pin, and the Top/Bottom Memory Array
+ *    Protection option (see datasheet pp. 23-24). WREN requirements can be
+ *    configured in Config Register 4 (see datasheet p. 31).
+ */
 HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer);
 
-HAL_StatusTypeDef AS3001204_Read_Memory(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
-HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
+/*
+ * FUNCTIONS:   AS3001204_Read_Memory, AS3001204_Write_Memory
+ *
+ * DESCRIPTION: These functions read from (write to) the memory array of
+ *              the MRAM device.
+ *
+ * PARAMETERS:
+ *  - p_buffer:     Pointer to a C buffer of type uint8_t into (from) which
+ *                  data will be read from (written to) the MRAM memory array.
+ *  - address:      The 24-bit memory array address to read from (write to).
+ *  - num_of_bytes: The number of bytes to read/write.
+ *
+ * NOTES:
+ *  - The Write Enable (WREN) directive must be sent to the MRAM device before
+ *    data can be written to the memory array. This form of write protection is
+ *    separate from the Write Protect (WP) pin, and the Top/Bottom Memory Array
+ *    Protection option (see datasheet pp. 23-24). WREN requirements can be
+ *    configured in Config Register 4 (see datasheet p. 31).
+ */
+HAL_StatusTypeDef AS3001204_Read_Memory(uint8_t *p_buffer, uint32_t address,
+                                        uint16_t num_of_bytes);
+HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address,
+                                         uint16_t num_of_bytes);
 
-HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
-HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes);
+/*
+ * FUNCTIONS:   AS3001204_Read_Augmented_Storage,
+ *              AS3001204_Write_Augmented_Storage
+ *
+ * DESCRIPTION: These functions read from (write to) the Augmented Storage
+ *              Array portion of the MRAM memory array.
+ *
+ * PARAMETERS:
+ *  - p_buffer:     Pointer to a C buffer of type uint8_t into (from) which
+ *                  data will be read from (written to) the MRAM memory array.
+ *  - address:      The 24-bit memory array address to read from (write to).
+ *  - num_of_bytes: The number of bytes to read/write.
+ *
+ * NOTES:
+ *  - The Augmented Storage Array is the first 256 bytes (0x000000..0x0000FF)
+ *    of the MRAM memory array. It is divided into eight 32-byte segments which
+ *    can be independently write-protected by way of the Augmented Array
+ *    Protection Register.
+ *  - Unlike reading from the standard memory array, reading from the ASA
+ *    is an operation with latency. (see timing diagram, datasheet pp. 38-39)
+ */
+HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t address,
+                                                   uint16_t num_of_bytes);
+HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t address,
+                                                    uint16_t num_of_bytes);
 
-
-
-#endif  HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
+#endif HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
