@@ -82,7 +82,7 @@ extern SPI_HandleTypeDef AS3001204_SPI;
 /*
  * FUNCTIONS:   AS3001204_Write_Enable, AS3001204_Write_Disable,
  * AS3001204_Enter_Hibernate, AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power,
- *           	AS3001204_Software_Reset_Enable, AS3001204_Software_Reset
+ *              AS3001204_Software_Reset_Enable, AS3001204_Software_Reset
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).

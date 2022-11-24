@@ -159,8 +159,8 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 
     isError = AS3001204_SPI_Transmit_Memory_Address(address);
     if (isError != HAL_OK) goto error;
-	
-	// Transmitting 8 bytes of zeros to wait for output from aug. storage array
+
+    // Transmitting 8 bytes of zeros to wait for output from aug. storage array
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &delay, sizeof(delay), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
     
