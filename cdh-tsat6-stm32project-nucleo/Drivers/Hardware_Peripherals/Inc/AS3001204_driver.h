@@ -68,7 +68,7 @@
 
 // Delay bytes to await response from augmented storage array
 // (see timing diagram, datasheet pp. 38-39)
-#define AS3001204_READ_AUG_STORAGE_DELAY 0x0000 0000 0000 0000
+#define AS3001204_READ_AUG_STORAGE_DELAY {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // ###############################################################################################
 //  Global Variable Declarations
@@ -189,4 +189,4 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t address,
                                                     uint16_t num_of_bytes);
 
-#endif HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
+#endif  // HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_

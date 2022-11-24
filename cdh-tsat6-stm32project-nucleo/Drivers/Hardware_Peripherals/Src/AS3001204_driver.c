@@ -29,72 +29,94 @@ HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address);
 // Basic commands
 
 HAL_StatusTypeDef AS3001204_Write_Enable() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
 }
 
 HAL_StatusTypeDef AS3001204_Write_Disable() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
+	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
 }
 
 HAL_StatusTypeDef AS3001204_Enter_Hibernate() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_HIBERNATE);
+	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_HIBERNATE);
 }
 
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_DEEP_PWDOWN);
+	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_DEEP_PWDOWN);
 }
 
 HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_EXIT_DEEP_PWDOWN);
+	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_EXIT_DEEP_PWDOWN);
 }
 
 HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
+	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
 }
 
 HAL_StatusTypeDef AS3001204_Software_Reset() {
-    AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
+	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
 }
 
 
 // Read register functions
 
+// TODO: Should we null-check here, or at a lower/higher level? -NJR
 HAL_StatusTypeDef AS3001204_Read_Status_Register(uint8_t *p_buffer) {
-    AS3001204_Read_Register(AS3001204_OPCODE_READ_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
+	return AS3001204_Read_Register(AS3001204_OPCODE_READ_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Config_Registers(uint8_t *p_buffer) {
-    AS3001204_Read_Register(AS3001204_OPCODE_READ_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
+	return AS3001204_Read_Register(AS3001204_OPCODE_READ_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Device_ID(uint8_t *p_buffer) {
-    AS3001204_Read_Register(AS3001204_OPCODE_READ_DEVICE_ID, p_buffer, AS3001204_DEVICE_ID_LENGTH);
+	return AS3001204_Read_Register(AS3001204_OPCODE_READ_DEVICE_ID, p_buffer, AS3001204_DEVICE_ID_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer) {
-    AS3001204_Read_Register(AS3001204_OPCODE_READ_UNIQUE_ID, p_buffer, AS3001204_UNIQUE_ID_LENGTH);
+	return AS3001204_Read_Register(AS3001204_OPCODE_READ_UNIQUE_ID, p_buffer, AS3001204_UNIQUE_ID_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_buffer) {
-    AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
+	return AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
 }
 
 
 // Write register functions
 
 HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer) {
-    AS3001204_Write_Enable();
-    AS3001204_Write_Register(AS3001204_OPCODE_WRITE_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
+    HAL_StatusTypeDef isError = HAL_OK;
+
+	isError = AS3001204_Write_Enable();
+	if (isError != HAL_OK) goto error;
+
+    isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
+
+error:
+    return isError;
 }
 
 HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer) {
-    AS3001204_Write_Enable();
-    AS3001204_Write_Register(AS3001204_OPCODE_WRITE_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
+    HAL_StatusTypeDef isError = HAL_OK;
+
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) goto error;
+
+    isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
+
+error:
+    return isError;
 }
 
 HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer) {
-    AS3001204_Write_Enable();
-    AS3001204_Write_Register(AS3001204_OPCODE_WRITE_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
+    HAL_StatusTypeDef isError = HAL_OK;
+
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) goto error;
+
+    isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
+
+error:
+    return isError;
 }
 
 
@@ -150,7 +172,7 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_READ_AUG_STORAGE;
-    uint8_t delay = AS3001204_READ_AUG_STORAGE_DELAY;
+    uint8_t delay[] = AS3001204_READ_AUG_STORAGE_DELAY;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
@@ -160,8 +182,9 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
     isError = AS3001204_SPI_Transmit_Memory_Address(address);
     if (isError != HAL_OK) goto error;
 
+    // TODO: Check the behaviour of the wait time here with a logic analyzer. -NJR
     // Transmitting 8 bytes of zeros to wait for output from aug. storage array
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &delay, sizeof(delay), AS3001204_SPI_DELAY);
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, delay, sizeof(delay), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
     
     isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
@@ -251,10 +274,11 @@ HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
 
     HAL_StatusTypeDef isError;
     // Addresses for this device are only 3 bytes
-    uint8_t word_24bit_high_byte = address >> 16;
-    uint8_t word_24bit_mid_byte  = address >> 8;
-    uint8_t word_16bit_low_byte  = address;
+    uint8_t word_24bit_high_byte = (address >> 16) & 0xff;
+    uint8_t word_24bit_mid_byte  = (address >> 8) & 0xff;
+    uint8_t word_24bit_low_byte  = (address) & 0xff;
 
+    // TODO: Will there be too much delay between SPI Calls here? Could we send more than one byte at once? -NJR
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_high_byte, 1, AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_mid_byte, 1, AS3001204_SPI_DELAY);
