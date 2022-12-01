@@ -215,7 +215,7 @@ HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uin
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
     
-    isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY)
+    isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
 
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
@@ -252,7 +252,7 @@ HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
     if (isError != HAL_OK) goto error;
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_mid_byte, 1, AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_low_byte, 1, AS3001204_SPI_DELAY);
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_16bit_low_byte, 1, AS3001204_SPI_DELAY);
 
 error:
     return isError;

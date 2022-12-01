@@ -66,7 +66,7 @@
 #define AS3001204_OPCODE_READ_AUG_STORAGE	0x4b
 #define AS3001204_OPCODE_WRITE_AUG_STORAGE	0x42
 
-#define AS3001204_WRITE_AUG_STORAGE_DELAY   0x0000 0000 0000 0000
+#define AS3001204_WRITE_AUG_STORAGE_DELAY   0x0000000000000000
 
 
 //###############################################################################################
