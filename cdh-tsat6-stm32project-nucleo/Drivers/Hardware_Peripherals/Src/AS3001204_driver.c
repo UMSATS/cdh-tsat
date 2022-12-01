@@ -283,7 +283,7 @@ HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
     if (isError != HAL_OK) goto error;
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_mid_byte, 1, AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_16bit_low_byte, 1, AS3001204_SPI_DELAY);
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_low_byte, 1, AS3001204_SPI_DELAY);
 
 error:
     return isError;
