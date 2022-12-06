@@ -33,27 +33,27 @@ HAL_StatusTypeDef AS3001204_Write_Enable() {
 }
 
 HAL_StatusTypeDef AS3001204_Write_Disable() {
-	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
 }
 
 HAL_StatusTypeDef AS3001204_Enter_Hibernate() {
-	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_HIBERNATE);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_HIBERNATE);
 }
 
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down() {
-	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_DEEP_PWDOWN);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_DEEP_PWDOWN);
 }
 
 HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down() {
-	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_EXIT_DEEP_PWDOWN);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_EXIT_DEEP_PWDOWN);
 }
 
 HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
-	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
 }
 
 HAL_StatusTypeDef AS3001204_Software_Reset() {
-	return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
 }
 
 
@@ -61,23 +61,23 @@ HAL_StatusTypeDef AS3001204_Software_Reset() {
 
 // TODO: Should we null-check here, or at a lower/higher level? -NJR
 HAL_StatusTypeDef AS3001204_Read_Status_Register(uint8_t *p_buffer) {
-	return AS3001204_Read_Register(AS3001204_OPCODE_READ_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
+    return AS3001204_Read_Register(AS3001204_OPCODE_READ_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Config_Registers(uint8_t *p_buffer) {
-	return AS3001204_Read_Register(AS3001204_OPCODE_READ_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
+    return AS3001204_Read_Register(AS3001204_OPCODE_READ_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Device_ID(uint8_t *p_buffer) {
-	return AS3001204_Read_Register(AS3001204_OPCODE_READ_DEVICE_ID, p_buffer, AS3001204_DEVICE_ID_LENGTH);
+    return AS3001204_Read_Register(AS3001204_OPCODE_READ_DEVICE_ID, p_buffer, AS3001204_DEVICE_ID_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer) {
-	return AS3001204_Read_Register(AS3001204_OPCODE_READ_UNIQUE_ID, p_buffer, AS3001204_UNIQUE_ID_LENGTH);
+    return AS3001204_Read_Register(AS3001204_OPCODE_READ_UNIQUE_ID, p_buffer, AS3001204_UNIQUE_ID_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_buffer) {
-	return AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
+    return AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
 }
 
 
@@ -86,8 +86,8 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_
 HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer) {
     HAL_StatusTypeDef isError = HAL_OK;
 
-	isError = AS3001204_Write_Enable();
-	if (isError != HAL_OK) goto error;
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) goto error;
 
     isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
 
