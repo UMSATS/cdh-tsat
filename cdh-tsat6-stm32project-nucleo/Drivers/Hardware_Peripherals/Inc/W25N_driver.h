@@ -99,7 +99,7 @@ void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical
  *  p_buffer: Pointer to the buffer which will contain the BBM LUT. This buffer should have a
  *            size of at least 80 bytes in order to store the entire BBM LUT.
  */
-void W25N_Read_BBM_LUT(uint8_t *p_buffer);
+HAL_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
 
 //NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
 //OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)

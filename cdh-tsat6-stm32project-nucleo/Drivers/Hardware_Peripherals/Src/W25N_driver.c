@@ -32,19 +32,25 @@ void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 }
 
-void W25N_Read_BBM_LUT(uint8_t *p_buffer)
+HAL_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer)
 {
+    HAL_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_READ_BBM_LUT;
     uint8_t dummy_byte = W25N_DUMMY_BYTE;
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
-    HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
+    operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    if (operation_status != HAL_OK) goto error;
+    operation_status = HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
+    if (operation_status != HAL_OK) goto error;
 
-    HAL_SPI_Receive(&W25N_SPI, p_buffer, W25N_BBM_LUT_NUM_OF_BYTES, W25N_SPI_DELAY);
+    operation_status = HAL_SPI_Receive(&W25N_SPI, p_buffer, W25N_BBM_LUT_NUM_OF_BYTES, W25N_SPI_DELAY);
+    //if (operation_status != HAL_OK) goto error; --don't need this last one
 
+error:
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    return operation_status;
 }
 
 //NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
