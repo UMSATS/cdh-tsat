@@ -19,6 +19,106 @@
 //###############################################################################################
 //Driver Functions
 //###############################################################################################
+
+
+HAL_StatusTypeDef W25N_Device_Reset(){
+
+	HAL_StatusTypeDef operation_status;
+	uint8_t opcode = W25N_OPCODE_DEVICE_RESET;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status=HAL_SPI_Transmit(&W25N,&opcode,1,W25N_SPI_DELAY);
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+}
+
+
+HAL_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer){
+
+	HAL_StatusTypeDef operation_status;
+	uint8_t opcode = W25N_OPCODE_READ_JEDEC_ID;
+	uint8_t dummy_byte = W25N_DUMMY_BYTE;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+	if (operation_status != HAL_OK) goto error;
+	operation_status = HAL_SPI_Transmit(&W25N_SPI,&dummy_byte, 1, W25N_SPI_DELAY);
+	if (operation_status != HAL_OK) goto error;
+
+
+	operation_status = HAL_SPI_Receive(&W25N_SPI, p_buffer,3, W25N_SPI_DELAY);
+
+	error:
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+}
+
+
+HAL_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer){
+
+	HAL_StatusTypeDef operation_status;
+	uint8_t opcode = W25N_OPCODE_READ_STATUS_REGISTER;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status = HAL_SPI_Transmit(&W25N_SPI,&opcode,1,W25N_SPI_DELAY);
+	if (operation_status != HAL_OK) goto error;
+	operation_status = HAL_SPI_Transmit(&W25N_SPI,&register_address,1, W25N_SPI_DELAY);
+	if (operation_status != HAL_OK) goto error;
+
+	operation_status = HAL_SPI_Receive(&W25N_SPI,p_buffer,1,W25N_SPI_DELAY);
+
+	error:
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+}
+
+
+HAL_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value, uint8_t *p_buffer){
+
+HAL_StatusTypeDef operation_status;
+	uint8_t opcode = W25N_OPCODE_READ_STATUS_REGISTER;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+	if (operation_status != HAL_OK) goto error;
+	operation_status = W25N_SPI_Transmit(&W25N_SPI, &register_address,1,W25N_SPI_DELAY);
+	if (operation_status != HAL_OK) goto error;
+	operation_status = W25N_SPI_Transmit(&W25N_SPI, &register_value,1,W25N_SPI_DELAY);
+
+
+	error:
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+}
+
+
+HAL_StatusTypeDef W25N_Write_Enable(){
+
+HAL_StatusTypeDef operation_status;
+	uint8_t opcode = W25N_OPCODE_WRITE_ENABLE;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status = HAL_SPI_Transmit(&W25N,&opcode,1,W25N_SPI_DELAY);
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+}
+
+
+HAL_StatusTypeDef W25N_Write_Disable(){
+
+HAL_StatusTypeDef operation_status;
+uint8_t opcode = W25N_OPCODE_WRITE_DISABLE;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status = HAL_SPI_Transmit(&W25N,&opcode,1,W25N_SPI_DELAY);
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+}
+
+
 void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address)
 {
     uint8_t opcode = W25N_OPCODE_BAD_BLOCK_MANAGEMENT;
