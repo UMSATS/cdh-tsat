@@ -75,7 +75,7 @@ extern SPI_HandleTypeDef W25N_SPI;
  *  logical_block_address: Address of the bad block which will be replaced by the good block.
  *  physical_block_address: Address of the good block which will replace the bad block.
  */
-void W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
+HAL_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
 
 /*
  * FUNCTION: W25N_Read_BBM_LUT
@@ -125,7 +125,7 @@ HAL_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
  * PARAMETERS:
  *  page_address:
  */
-void W25N_Block_Erase_128KB(uint16_t page_address);
+HAL_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Load_Program_Data
@@ -147,7 +147,7 @@ void W25N_Block_Erase_128KB(uint16_t page_address);
  *  column_address: W25N Data Buffer memory address for the 0th byte to load.
  *  num_of_bytes: Number of bytes to load from the C buffer into the W25N Data Buffer.
  */
-void W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+HAL_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
  * FUNCTION: W25N_Program_Execute
@@ -177,7 +177,7 @@ void W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t
  * PARAMETERS:
  *  page_address: Address of the physical memory page to program the W25N Data Buffer into.
  */
-void W25N_Program_Execute(uint16_t page_address);
+HAL_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Page_Data_Read
@@ -194,7 +194,7 @@ void W25N_Program_Execute(uint16_t page_address);
  * PARAMETERS:
  *  page_address: Address of the physical memory page to transfer into the W25N Data Buffer.
  */
-void W25N_Page_Data_Read(uint16_t page_address);
+HAL_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Read_Data
@@ -216,7 +216,7 @@ void W25N_Page_Data_Read(uint16_t page_address);
  *  column_address: W25N Data Buffer memory address for the 0th byte to output.
  *  num_of_bytes: Number of bytes to output from the W25N Data Buffer into the C buffer.
  */
-void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+HAL_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 //###############################################################################################
 //Helper Function Prototypes
@@ -229,6 +229,6 @@ void W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_
  * PARAMETERS:
  *  word_16bit: The 16-bit word to transmit to the W25N Flash.
  */
-void W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
+HAL_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
 
 #endif /* HARDWARE_PERIPHERALS_INC_W25N_DRIVER_H_ */
