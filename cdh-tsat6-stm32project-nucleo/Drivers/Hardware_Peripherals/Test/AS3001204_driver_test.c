@@ -12,6 +12,8 @@
 
 
 #include "../Inc/AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -66,6 +68,7 @@ unsigned int AS3001204_Test_RW_Config_Registers() {
     if (memcmp(p_buffer, CONFIG_REGS_TEST, AS3001204_CONFIG_REGS_LENGTH) == 0) return 0;
 
 error:
+	free(p_buffer);
     return 1;
     
 }
@@ -107,6 +110,7 @@ unsigned int AS3001204_Test_RW_Memory() {
 	if (memcmp(p_buffer, SAMPLE_DATA, strlen(SAMPLE_DATA)) == 0) return 0;
 	
 error:
+	free(p_buffer);
     return 1;
 }
 
@@ -125,6 +129,60 @@ unsigned int AS3001204_Test_RW_Augmented_Storage() {
 	if (memcmp(p_buffer, SAMPLE_DATA, strlen(SAMPLE_DATA) == 0)) return 0;
 	
 error:
+	free(p_buffer);
     return 1;
 	
 }
+
+void AS3001204_Test_Read_ID_Registers() {
+
+	HAL_StatusTypeDef isError;
+	uint8_t *devIDBuffer = malloc(AS3001204_DEVICE_ID_LENGTH);
+	uint8_t *uniIDBuffer = malloc(AS3001204_UNIQUE_ID_LENGTH);
+
+	isError = AS3001204_Read_Device_ID(devIDBuffer);
+	if (isError != HAL_OK) goto error;
+
+	isError = AS3001204_Read_Unique_ID(uniIDBuffer);
+	if (isError != HAL_OK) goto error;
+
+	printf("Device ID: %hhn\nUnique ID: %hhn\n", devIDBuffer, uniIDBuffer);
+
+error:
+	free(devIDBuffer);
+	free(uniIDBuffer);
+	printf("Failed to read device/unique IDs\n");
+}
+
+
+//###############################################################################################
+// Testing routine
+//###############################################################################################
+
+int main() {
+
+	int numFailed = 0;
+
+	AS3001204_Test_Read_ID_Registers();
+
+	numFailed += AS3001204_Test_RW_Status_Register();
+	numFailed += AS3001204_Test_RW_Config_Registers();
+	numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
+	numFailed += AS3001204_Test_RW_Memory();
+	numFailed += AS3001204_Test_RW_Augmented_Storage();
+
+	// Functions not tested in the above (note WREN is indirectly tested)
+//	AS3001204_Write_Disable();
+//	AS3001204_Enter_Hibernate();
+//	AS3001204_Enter_Deep_Power_Down();
+//	AS3001204_Exit_Deep_Power_Down();
+//	AS3001204_Software_Reset_Enable();
+//	AS3001204_Software_Reset();
+
+	return numFailed;
+}
+
+
+
+
+
