@@ -83,28 +83,6 @@ void Test_W25N_Write_Enable();
 void Test_W25N_Write_Disable();
 
 /*
- * FUNCTION: Test_W25N_Bad_Block_Management
- *
- * DESCRIPTION: Unit test function for the W25N_Bad_Block_Management function.
- *
- * NOTES:
- *  - Note1
- *  - Note2
- */
-void Test_W25N_Bad_Block_Management();
-
-/*
- * FUNCTION: Test_W25N_Read_BBM_LUT
- *
- * DESCRIPTION: Unit test function for the W25N_Read_BBM_LUT function.
- *
- * NOTES:
- *  - Note1
- *  - Note2
- */
-void Test_W25N_Read_BBM_LUT();
-
-/*
  * FUNCTION: Test_W25N_Block_Erase_128KB
  *
  * DESCRIPTION: Unit test function for the W25N_Block_Erase_128KB function.
@@ -138,26 +116,15 @@ void Test_W25N_Load_Program_Data();
 void Test_W25N_Program_Execute();
 
 /*
- * FUNCTION: Test_W25N_Page_Data_Read
+ * FUNCTION: Test_W25N_Read
  *
- * DESCRIPTION: Unit test function for the W25N_Page_Data_Read function.
- *
- * NOTES:
- *  - Note1
- *  - Note2
- */
-void Test_W25N_Page_Data_Read();
-
-/*
- * FUNCTION: Test_W25N_Read_Data
- *
- * DESCRIPTION: Unit test function for the W25N_Read_Data function.
+ * DESCRIPTION: Unit test function for the W25N_Page_Data_Read & W25N_Read_Data functions.
  *
  * NOTES:
  *  - Note1
  *  - Note2
  */
-void Test_W25N_Read_Data();
+void Test_W25N_Read();
 
 //###############################################################################################
 //Complete Unit Test Function Prototype
