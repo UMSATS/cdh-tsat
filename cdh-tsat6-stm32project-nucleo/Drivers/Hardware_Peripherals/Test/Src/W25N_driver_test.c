@@ -11,7 +11,10 @@
  */
 
 #include <stdint.h>
+#include <assert.h>
+#include <string.h>
 
+#include "stm32l4xx_hal.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 

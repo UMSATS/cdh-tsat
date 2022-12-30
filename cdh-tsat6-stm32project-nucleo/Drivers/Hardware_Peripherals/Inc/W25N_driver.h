@@ -219,6 +219,26 @@ HAL_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
 HAL_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 //###############################################################################################
+//High-Level Driver Function Prototypes
+//###############################################################################################
+/*
+ * FUNCTION: W25N_One_Time_Init
+ *
+ * DESCRIPTION:
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ *
+ * PARAMETERS:
+ *  parameter1:
+ *  parameter2:
+ *  parameter3:
+ */
+void W25N_One_Time_Init();
+
+//###############################################################################################
 //Helper Function Prototypes
 //###############################################################################################
 /*
