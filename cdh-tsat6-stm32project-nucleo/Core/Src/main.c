@@ -21,7 +21,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Si446x/Si446x.h"
 
 /* USER CODE END Includes */
 
@@ -106,17 +105,6 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-
-  /* Test code to check if comms on the si446x board is working. -NJR */
-  si446x_info_t info = {0};
-
-  Si446x_init();
-
-  Si446x_getInfo(&info);
-
-  /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
-  //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
-  //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
 
   /* USER CODE END 2 */
 
@@ -470,11 +458,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : UHF_nIRQ_Pin */
-  GPIO_InitStruct.Pin = UHF_nIRQ_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : UHF_irq_Pin */
+  GPIO_InitStruct.Pin = UHF_irq_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(UHF_irq_GPIO_Port, &GPIO_InitStruct);
 
 }
 
