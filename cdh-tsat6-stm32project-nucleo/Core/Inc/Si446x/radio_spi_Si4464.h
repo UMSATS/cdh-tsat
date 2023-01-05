@@ -25,10 +25,10 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi2);
 void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef * hspi2);
 
 // Transmit and Receive Functions
-void Transmit_Message(uint8_t * pDatae);
+HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
 
-void Receive_Message(uint8_t * pData);
+HAL_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive);
 
-void Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData);
+HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData, size_t numTransmittedReceived);
 
 #endif /* INC_SI446X_RADIO_SPI_SI4464_H_ */
