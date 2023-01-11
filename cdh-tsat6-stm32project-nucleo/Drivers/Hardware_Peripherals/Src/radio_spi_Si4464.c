@@ -7,7 +7,7 @@
  *      Nikolaus J. Reichert <nikolaus.reichert@umsats.ca>
  */
 #include <stdio.h>
-#include "Si446x/radio_spi_Si4464.h"
+#include "radio_spi_Si4464.h"
 
 
 /**
