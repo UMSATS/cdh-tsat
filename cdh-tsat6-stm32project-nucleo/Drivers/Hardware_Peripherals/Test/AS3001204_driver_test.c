@@ -6,6 +6,7 @@
  *
  * AUTHORS:
  *  - Gabriel Young (gabriel.young@umsats.ca)
+ *  - Om Sevak (om.sevak@umsats.ca)
  *
  * Created on: Dec. 6, 2022
  */
@@ -16,6 +17,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+//###############################################################################################
+// Defining test functions
+//###############################################################################################
+
+
+
+//########################################
+// Read/write register tests
+//########################################
+
+/*
+ * FUNCTIONS:   AS3001204_Test_RW_Status_Register, AS3001204_Test_RW_Config_Registers,
+ * 	            AS3001204_Test_RW_Augmented_Array_Protection_Register
+ *
+ * DESCRIPTION: These functions test the AS3001204 driver's ability to read and write to the
+ * 	            MRAM unit's status register, configuration registers, and augmented array
+ * 	            protection register, respectively. These functions only write valid data to the
+ * 	            registers - writing invalid bits to registers could cause undefined behaviour.
+ *
+ * RETURN:      0 if successful, 1 if not.
+ */
+
+unsigned int AS3001204_Test_RW_Status_Register();
+unsigned int AS3001204_Test_RW_Config_Registers();
+unsigned int AS3001204_Test_RW_Augmented_Array_Protection_Register();
+
+
+//########################################
+// Read/write memory tests
+//########################################
+
+/*
+ * FUNCTIONS:   AS3001204_Test_RW_Memory, AS3001204_Test_RW_Augmented_Storage
+ *
+ * DESCRIPTION: These functions test the AS3001204 driver's ability to read and write the
+ * 	            main memory array, and the augmented storage section of memory.
+ *
+ * RETURN:      0 if successful, 1 if not.
+ */
+unsigned int AS3001204_Test_RW_Memory();
+unsigned int AS3001204_Test_RW_Augmented_Storage();
 
 //###############################################################################################
 // Defining test data
@@ -42,7 +86,10 @@ unsigned int AS3001204_Test_RW_Status_Register() {
     HAL_StatusTypeDef isError; 
     uint8_t p_buffer = 0x00;
 
-    isError = AS3001204_Write_Status_Register(&STATUS_REG_TEST);
+    isError = AS3001204_Write_Status
+	
+	
+	_Register(&STATUS_REG_TEST);
     if (isError != HAL_OK) goto error;
 
     isError = AS3001204_Read_Status_Register(&p_buffer);
@@ -154,6 +201,35 @@ error:
 	printf("Failed to read device/unique IDs\n");
 }
 
+unsigned int AS3001204_Test_Write_Disable(){
+	
+	HAL_StatusTypeDef isError;
+	
+	isError = AS3001204_Write_Disable();
+	if (isError != HAL_OK) goto error;
+	return 0;
+
+error:
+	printf("Failed to write disable\n");
+	return 1;
+}
+
+unsigned int AS3001204_Test_Software_Reset_Enable(){
+	
+	HAL_StatusTypeDef isError;
+	
+	isError = AS3001204_Software_Reset_Enable();
+	if (isError != HAL_OK) goto error;
+	return 0;
+
+error:
+	printf("Failed to enable software reset\n");
+	return 1;
+}
+
+unsigned int AS3001204_Test_Software_Reset(){
+	
+}
 
 //###############################################################################################
 // Testing routine
@@ -161,7 +237,11 @@ error:
 
 int main() {
 
-	int numFailed = 0;
+
+}
+
+int AS3001204_Test_Mram_Driver(){
+		int numFailed = 0;
 
 	AS3001204_Test_Read_ID_Registers();
 
@@ -170,9 +250,10 @@ int main() {
 	numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
 	numFailed += AS3001204_Test_RW_Memory();
 	numFailed += AS3001204_Test_RW_Augmented_Storage();
+	numFailed += AS3001204_Test_Write_Disable();
 
 	// Functions not tested in the above (note WREN is indirectly tested)
-//	AS3001204_Write_Disable();
+
 //	AS3001204_Enter_Hibernate();
 //	AS3001204_Enter_Deep_Power_Down();
 //	AS3001204_Exit_Deep_Power_Down();
