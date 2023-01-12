@@ -7,7 +7,7 @@
  *      Nikolaus J. Reichert <nikolaus.reichert@umsats.ca>
  */
 #include <stdio.h>
-#include "radio_spi_Si4464.h"
+#include <Si4464_driver.h>
 
 
 HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
@@ -32,6 +32,7 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t 
 // TODO: Add pin for SDN and HAL variables.
 HAL_StatusTypeDef Si4464_Reset_Device()
 {
+	// Page 21 of the datasheet implies that the minimum time is 10us? -NJR
 	HAL_StatusTypeDef operation_status = HAL_OK;
 	// operation_status = HAL_GPIO_WritePin();
 	if (operation_status != HAL_OK) goto error;

@@ -11,8 +11,8 @@
  * @n http://www.silabs.com
  */
 
-#ifndef RADIO_CONFIG_H_
-#define RADIO_CONFIG_H_
+#ifndef HARDWARE_PERIPHERALS_INC_SI4464_DRIVER_CONFIG_H_
+#define HARDWARE_PERIPHERALS_INC_SI4464_DRIVER_CONFIG_H_
 
 // USER DEFINED PARAMETERS
 // Define your own parameters here

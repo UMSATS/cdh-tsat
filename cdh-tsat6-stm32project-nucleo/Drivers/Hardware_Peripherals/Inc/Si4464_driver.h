@@ -5,8 +5,8 @@
  *      Author: Graham Driver
  */
 
-#ifndef INC_SI446X_RADIO_SPI_SI4464_H_
-#define INC_SI446X_RADIO_SPI_SI4464_H_
+#ifndef HARDWARE_PERIPHERALS_INC_SI4464_DRIVER_H_
+#define HARDWARE_PERIPHERALS_INC_SI4464_DRIVER_H_
 
 #include "stm32l4xx_hal.h"
 
@@ -78,3 +78,4 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t 
 HAL_StatusTypeDef Si4464_Reset_Device();
 
 #endif /* INC_SI446X_RADIO_SPI_SI4464_H_ */
+
