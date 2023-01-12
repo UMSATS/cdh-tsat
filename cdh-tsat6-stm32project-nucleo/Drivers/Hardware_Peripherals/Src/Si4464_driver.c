@@ -29,6 +29,16 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t 
 	return HAL_SPI_TransmitReceive(&hspi2, pTxData, pRxData, numTransmittedReceived, HAL_MAX_DELAY);
 }
 
+HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size)
+{
+
+}
+
+HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size)
+{
+	return Si4464_Send_Command(command_byte, argument_bytes, arg_size, NULL, 0);
+}
+
 // TODO: Add pin for SDN and HAL variables.
 HAL_StatusTypeDef Si4464_Reset_Device()
 {

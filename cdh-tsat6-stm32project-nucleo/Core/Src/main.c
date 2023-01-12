@@ -425,7 +425,7 @@ static void MX_GPIO_Init(void)
                           |MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|FLASH_nCS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -451,8 +451,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin FLASH_nCS_Pin */
-  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|FLASH_nCS_Pin;
+  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin FLASH_nCS_Pin */
+  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
