@@ -77,5 +77,27 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t 
  */
 HAL_StatusTypeDef Si4464_Reset_Device();
 
+/**
+ * @brief Send a command to the Radio module.
+ *
+ * @param command_byte The command to send.
+ * @param argument_bytes Arguments associated with the command.
+ * @param arg_size The number of argument bytes.
+ * @param returned_bytes A pointer to an empty array to place returned data in.
+ * @param return_size The number of bytes expected to be returned
+ *
+ * @returns The status code returned by the HAL.
+ *
+ * Note: if return_size is more than what the API Description states, the function will return garbage values for those bytes.
+ */
+HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size);
+
+/**
+ * @brief Wrapper for Si4464_Send_Command(), throwing out any ignored data.
+ */
+HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size);
+
+
+
 #endif /* INC_SI446X_RADIO_SPI_SI4464_H_ */
 
