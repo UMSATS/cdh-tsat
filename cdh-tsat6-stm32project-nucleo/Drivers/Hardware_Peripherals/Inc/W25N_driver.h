@@ -56,6 +56,94 @@ extern SPI_HandleTypeDef W25N_SPI;
 //Driver Function Prototypes
 //###############################################################################################
 /*
+* FUNCTION: W25N_Device_Reset
+*
+* DESCRIPTION: Terminates current internal operations and allows the device to return to
+*              its default power -on state and lose all the current volatile settings.
+*
+* NOTES:
+*  - Device will take approximately tRST to reset. (tRST can be 5us - 500us)
+*  - Recommended to check the BUSY bit in Status Register before issuing the Reset
+*    command.
+*  - Data corruption may happen if there is an ongoing internal Erase or Program operation.
+*    Its recommended by the manufacturer to check the BUSY bit in Status Register before
+*    issuing the Reset command.
+*
+* PARAMETERS: No parameters.
+*/
+HAL_StatusTypeDef W25N_Device_Reset();
+
+/*
+ * FUNCTION: W25N_Read_JEDEC_ID
+ *
+ * DESCRIPTION: Reads the JEDEC ID allowing debugging.
+ *
+ * NOTES:
+ *  - This function can only read straight bytes.
+ *
+ * PARAMETERS:
+ *  *p_buffer
+ */
+HAL_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer);
+
+/*
+ * FUNCTION: W25N_Read_Status_Register
+ *
+ * DESCRIPTION: This function allows the 8-bit Status Registers to be read. The bits inside
+ *              the status register then are shifted out on the DO pin at the falling edge
+ *              of CLK with the most significant bit (MSB).
+ *
+ * NOTES:
+ *  - This instruction may be used at any time, even while a Program or Erase Cycle is in
+ *    progress, allowing the BUSY status bit to be checked to determine when the cycle is
+ *    complete and if the device can handle another instruction.
+ *  - The Status Register can be read continuously.
+ *
+ * PARAMETERS:
+ *  register_address
+ *  *p_buffer: Pointer to the buffer which will contain the BBM LUT.
+ */
+HAL_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
+
+/*
+ * FUNCTION: W25N_Write_Status_Register
+ *
+ * DESCRIPTION: The Write Status Register Instruction allows the Status Registers to be written.
+ *
+ * NOTES:
+ *  -
+ * PARAMETERS:
+ *  register_address
+ *  register_value
+ */
+ HAL_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
+
+/*
+ * FUNCTION: W25N_Write_Enable
+ *
+ * DESCRIPTION: This function will set the Write Enable Latch.
+ *
+ * NOTES:
+ *  -    The Write Enable Latch (WEL) must be set prior to every Page Program, Quad Page Program,
+ *  	 Bad Block Management instruction.
+ * PARAMETERS:
+ *  No parameters.
+ */
+HAL_StatusTypeDef W25N_Write_Enable();
+
+/*
+ * FUNCTION: W25N_Write_Disable
+ *
+ * DESCRIPTION: This function will reset the Write Enable Latch bit in the Status Register to 0.
+ *
+ * NOTES:
+ *  -
+ * PARAMETERS:
+ *  No parameters.
+ */
+HAL_StatusTypeDef W25N_Write_Disable();
+
+/*
  * FUNCTION: W25N_Bad_Block_Management
  *
  * DESCRIPTION: Adds a link between a logical block address (LBA) and a physical block address
