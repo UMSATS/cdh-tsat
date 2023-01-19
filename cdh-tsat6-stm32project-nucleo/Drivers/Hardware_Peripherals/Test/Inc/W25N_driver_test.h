@@ -25,7 +25,7 @@
  *  - Depends on passing: Test_W25N_Write_Status_Register, Test_W25N_Read_Status_Register
  *  - Assumes OTP area is not locked & SR-1 is not locked.
  */
-void Test_W25N_Device_Reset();
+HAL_StatusTypeDef Test_W25N_Device_Reset();
 
 /*
  * FUNCTION: Test_W25N_Read_JEDEC_ID
@@ -36,7 +36,7 @@ void Test_W25N_Device_Reset();
  *  - Not dependent on passing any tests.
  *  - Note2
  */
-void Test_W25N_Read_JEDEC_ID();
+HAL_StatusTypeDef Test_W25N_Read_JEDEC_ID();
 
 /*
  * FUNCTION: Test_W25N_Read_Status_Register
@@ -48,7 +48,7 @@ void Test_W25N_Read_JEDEC_ID();
  *  - Test must be performed after power cycling the W25N.
  *  - Test must be performed before Test_W25N_Write_Status_Register.
  */
-void Test_W25N_Read_Status_Register();
+HAL_StatusTypeDef Test_W25N_Read_Status_Register();
 
 /*
  * FUNCTION: Test_W25N_Write_Status_Register
@@ -59,7 +59,7 @@ void Test_W25N_Read_Status_Register();
  *  - Depends on passing: Test_W25N_Read_Status_Register
  *  - Test must be performed after power cycling the W25N.
  */
-void Test_W25N_Write_Status_Register();
+HAL_StatusTypeDef Test_W25N_Write_Status_Register();
 
 /*
  * FUNCTION: Test_W25N_Write_Enable
@@ -70,7 +70,7 @@ void Test_W25N_Write_Status_Register();
  *  - Depends on passing: Test_W25N_Read_Status_Register
  *  - Test must be performed after power cycling the W25N.
  */
-void Test_W25N_Write_Enable();
+HAL_StatusTypeDef Test_W25N_Write_Enable();
 
 /*
  * FUNCTION: Test_W25N_Write_Disable
@@ -81,7 +81,7 @@ void Test_W25N_Write_Enable();
  *  - Depends on passing: Test_W25N_Read_Status_Register
  *  - Test must be performed directly after Test_W25N_Write_Enable
  */
-void Test_W25N_Write_Disable();
+HAL_StatusTypeDef Test_W25N_Write_Disable();
 
 /*
  * FUNCTION: Test_W25N_Load_Program_Data
@@ -92,7 +92,7 @@ void Test_W25N_Write_Disable();
  *  - Depends on passing: Test_W25N_Read
  *  - Note2
  */
-void Test_W25N_Load_Program_Data();
+HAL_StatusTypeDef Test_W25N_Load_Program_Data();
 
 /*
  * FUNCTION: Test_W25N_Execute_Erase
@@ -103,7 +103,7 @@ void Test_W25N_Load_Program_Data();
  *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Read
  *  - Multiple functions are tested since they are interdependent in terms of testing.
  */
-void Test_W25N_Execute_Erase();
+HAL_StatusTypeDef Test_W25N_Execute_Erase();
 
 /*
  * FUNCTION: Test_W25N_Read
@@ -117,13 +117,13 @@ void Test_W25N_Execute_Erase();
  *  - If the unit test exits prematurely, the W25N should be reset so that it is not in OTP 
  *    access mode.
  */
-void Test_W25N_Read();
+HAL_StatusTypeDef Test_W25N_Read();
 
 //###############################################################################################
 //Complete Unit Test Function Prototype
 //###############################################################################################
 /*
- * FUNCTION: Unit_Test_W25N
+ * FUNCTION: Test_W25N
  *
  * DESCRIPTION: Complete unit test function for the W25N01GVZEIG NAND Flash STM32L4 driver.
  *
@@ -131,6 +131,6 @@ void Test_W25N_Read();
  *  - Note1
  *  - Note2
  */
-void Unit_Test_W25N();
+void Test_W25N();
 
 #endif /* HARDWARE_PERIPHERALS_TEST_INC_W25N_DRIVER_TEST_H_ */

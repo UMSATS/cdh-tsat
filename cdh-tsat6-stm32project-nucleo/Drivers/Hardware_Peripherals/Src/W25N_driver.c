@@ -269,6 +269,8 @@ void W25N_Init()
     //unlock all blocks of the flash chip 
     //(simple is fine for now, can unlock them all and keep them that way, just note it in function description)
     //set all the other registers that need to be set
+
+    //make sure CS, WP, & HOLD GPIO are all set appropriately
 }
 
 HAL_StatusTypeDef W25N_Wait_Until_Not_Busy()
@@ -294,12 +296,63 @@ error:
     return operation_status;
 }
 
+HAL_StatusTypeDef W25N_Check_LUT_Full()
+{
+    //check status register 3
+    //return true or false (hal_ok or hal_error?)
+    //may need to reevaluate HAL_StatusTypeDef return type
+    //maybe do the enum thing Nik talked about (consult him on this) 
+    //(could have a special W25N_StatusTypeDef, & other peripherals have their own too)
+}
+
+HAL_StatusTypeDef W25N_Check_ECC_Status()
+{
+    //check status register 3
+    //return enum error message
+    //may need to reevaluate HAL_StatusTypeDef return type
+    //maybe do the enum thing Nik talked about (consult him on this) 
+    //(could have a special W25N_StatusTypeDef, & other peripherals have their own too)
+}
+
+HAL_StatusTypeDef W25N_Check_Program_Failure()
+{
+    //check status register 3
+    //return enum error message
+    //may need to reevaluate HAL_StatusTypeDef return type
+    //maybe do the enum thing Nik talked about (consult him on this) 
+    //(could have a special W25N_StatusTypeDef, & other peripherals have their own too)
+}
+
+HAL_StatusTypeDef W25N_Check_Erase_Failure()
+{
+    //check status register 3
+    //return enum error message
+    //may need to reevaluate HAL_StatusTypeDef return type
+    //maybe do the enum thing Nik talked about (consult him on this)
+    //(could have a special W25N_StatusTypeDef, & other peripherals have their own too)
+}
+
+//should check ECC status after
+//if ECC, then you need to reset the W25N
 HAL_StatusTypeDef W25N_Read()
 {
 
 }
 
+//should check program failure
+//if failure, bad block manage the block
+//should check if room in the bad block manage LUT
+//if no more room in bad block manmage LUT, return a special error
 HAL_StatusTypeDef W25N_Write()
+{
+
+}
+
+//should check erase failure
+//if failure, bad block manage the block
+//should check if room in the bad block manage LUT
+//if no more room in bad block manmage LUT, return a special error
+HAL_StatusTypeDef W25N_Block_Erase_128KB()
 {
 
 }
