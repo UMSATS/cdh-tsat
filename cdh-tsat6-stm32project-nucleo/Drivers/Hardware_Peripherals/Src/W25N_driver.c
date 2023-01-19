@@ -27,8 +27,12 @@ HAL_StatusTypeDef W25N_Device_Reset()
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    if (operation_status != HAL_OK) goto error;
 
-	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_Delay(1); //The device needs max 500us to reset (no commands accepted during this time)
+
+error:
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
 	return operation_status;
 }
 
@@ -258,6 +262,29 @@ error:
 void W25N_One_Time_Init()
 {
     //this function should be completed stepping through one step at a time with the debugger
+}
+
+HAL_StatusTypeDef W25N_Wait_Until_Not_Busy()
+{
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != HAL_OK) goto error;
+    if (!(register_contents & 0b00000001)) return HAL_OK;
+
+    for (int i = 0; i < 10; i++) //10ms is the maximum possible busy time
+    {
+        HAL_Delay(1);
+        operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+        if (operation_status != HAL_OK) goto error;
+        if (!(register_contents & 0b00000001)) return HAL_OK;
+    }
+    operation_status = HAL_ERROR;
+
+error:
+    return operation_status;
 }
 
 //###############################################################################################

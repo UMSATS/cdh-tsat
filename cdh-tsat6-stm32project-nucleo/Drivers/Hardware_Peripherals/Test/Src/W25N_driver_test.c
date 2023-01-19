@@ -24,72 +24,130 @@
 //###############################################################################################
 void Test_W25N_Device_Reset()
 {
-    //depends on passing Test_W25N_Write_Status_Register
-    //depends on passing Test_W25N_Read_Status_Register
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xB0;
+    uint8_t register_default_contents = 0b00011000;
+    uint8_t register_written_contents = 0b01011000;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Write_Status_Register(register_address, register_written_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Device_Reset();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert((register_contents & 0b11111000) == register_default_contents);
 }
 
-//no dependencies
 void Test_W25N_Read_JEDEC_ID()
 {
+    HAL_StatusTypeDef operation_status;
     uint8_t test_array[3];
     uint8_t jedec_id[3] = {0xEF, 0xAA, 0x21};
 
-    W25N_Read_JEDEC_ID(test_array);
+    operation_status = W25N_Read_JEDEC_ID(test_array);
+    if (operation_status != HAL_OK) exit(1);
 
-    assert(!memcmp(test_array, jedec_id, 3));
+    assert(memcmp(test_array, jedec_id, 3) == 0);
 }
 
 void Test_W25N_Read_Status_Register()
 {
-    //must be done after power cycling the chip
-    //must be done before Test_W25N_Write_Status_Register
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xB0;
+    uint8_t register_default_contents = 0b00011000;
 
-    //compare to known state of one of the status registers after power cycle
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert((register_contents & 0b11111000) == register_default_contents);
 }
 
 void Test_W25N_Write_Status_Register()
 {
-    //depends on passing Test_W25N_Read_Status_Register
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xB0;
+    uint8_t register_written_contents = 0b01011000;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Write_Status_Register(register_address, register_written_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert((register_contents & 0b11111000) == register_written_contents);
 }
 
 void Test_W25N_Write_Enable()
 {
-    //depends on passing Test_W25N_Read_Status_Register
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Write_Enable();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert((register_contents & 0b00000010) == 0b00000010);
 }
 
 void Test_W25N_Write_Disable()
 {
-    //depends on passing Test_W25N_Read_Status_Register
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Write_Disable();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert((register_contents & 0b00000010) == 0b00000000);
 }
 
 void Test_W25N_Block_Erase_128KB()
 {
-    //depends on passing Test_W25N_Load_Program_Data
-    //depends on passing Test_W25N_Program_Execute
-    //depends on passing Test_W25N_Read
-
     //shouldn't read data from previous tests since each test should be independent
     //this test will call its own read and write functions
 }
 
 void Test_W25N_Load_Program_Data()
 {
-    //depends on passing Test_W25N_Read
+    
 }
 
 void Test_W25N_Program_Execute()
 {
-    //depends on passing Test_W25N_Load_Program_Data
-    //depends on passing Test_W25N_Read
-
     //will have to read a different page in between to clear the data buffer
 }
 
 void Test_W25N_Read()
 {
-    //depends on passing Test_W25N_Write_Status_Register (to access read-only pages)
+    //must write to status register to access read-only pages
     //tests both W25N_Page_Data_Read & W25N_Read_Data since they are interdependent
-
     //using read-only parameter page data bc it's defined in the datasheet
     //THIS DATA HAS BEEN CHECKED, DON'T NEED TO DOUBLE CHECK IT
     uint8_t parameter_data[254] =

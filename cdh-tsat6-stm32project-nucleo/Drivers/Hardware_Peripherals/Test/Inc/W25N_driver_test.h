@@ -22,8 +22,8 @@
  * DESCRIPTION: Unit test function for the W25N_Device_Reset function.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Depends on passing: Test_W25N_Write_Status_Register, Test_W25N_Read_Status_Register
+ *  - Assumes OTP area is not locked & SR-1 is not locked.
  */
 void Test_W25N_Device_Reset();
 
@@ -33,7 +33,7 @@ void Test_W25N_Device_Reset();
  * DESCRIPTION: Unit test function for the W25N_Read_JEDEC_ID function.
  *
  * NOTES:
- *  - Note1
+ *  - Not dependent on passing any tests.
  *  - Note2
  */
 void Test_W25N_Read_JEDEC_ID();
@@ -44,8 +44,9 @@ void Test_W25N_Read_JEDEC_ID();
  * DESCRIPTION: Unit test function for the W25N_Read_Status_Register function.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Not dependent on passing any tests.
+ *  - Test must be performed after power cycling the W25N.
+ *  - Test must be performed before Test_W25N_Write_Status_Register.
  */
 void Test_W25N_Read_Status_Register();
 
@@ -55,8 +56,8 @@ void Test_W25N_Read_Status_Register();
  * DESCRIPTION: Unit test function for the W25N_Write_Status_Register function.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Depends on passing: Test_W25N_Read_Status_Register
+ *  - Test must be performed after power cycling the W25N.
  */
 void Test_W25N_Write_Status_Register();
 
@@ -66,8 +67,8 @@ void Test_W25N_Write_Status_Register();
  * DESCRIPTION: Unit test function for the W25N_Write_Enable function.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Depends on passing: Test_W25N_Read_Status_Register
+ *  - Test must be performed after power cycling the W25N.
  */
 void Test_W25N_Write_Enable();
 
@@ -77,8 +78,8 @@ void Test_W25N_Write_Enable();
  * DESCRIPTION: Unit test function for the W25N_Write_Disable function.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Depends on passing: Test_W25N_Read_Status_Register
+ *  - Test must be performed directly after Test_W25N_Write_Enable
  */
 void Test_W25N_Write_Disable();
 
@@ -88,7 +89,7 @@ void Test_W25N_Write_Disable();
  * DESCRIPTION: Unit test function for the W25N_Block_Erase_128KB function.
  *
  * NOTES:
- *  - Note1
+ *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Program_Execute, Test_W25N_Read
  *  - Note2
  */
 void Test_W25N_Block_Erase_128KB();
@@ -99,7 +100,7 @@ void Test_W25N_Block_Erase_128KB();
  * DESCRIPTION: Unit test function for the W25N_Load_Program_Data function.
  *
  * NOTES:
- *  - Note1
+ *  - Depends on passing: Test_W25N_Read
  *  - Note2
  */
 void Test_W25N_Load_Program_Data();
@@ -110,7 +111,7 @@ void Test_W25N_Load_Program_Data();
  * DESCRIPTION: Unit test function for the W25N_Program_Execute function.
  *
  * NOTES:
- *  - Note1
+ *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Read
  *  - Note2
  */
 void Test_W25N_Program_Execute();
@@ -121,8 +122,8 @@ void Test_W25N_Program_Execute();
  * DESCRIPTION: Unit test function for the W25N_Page_Data_Read & W25N_Read_Data functions.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Depends on passing: Test_W25N_Write_Status_Register
+ *  - Multiple functions are tested since they are interdependent in terms of testing.
  */
 void Test_W25N_Read();
 
