@@ -264,6 +264,13 @@ void W25N_One_Time_Init()
     //this function should be completed stepping through one step at a time with the debugger
 }
 
+void W25N_Init()
+{
+    //unlock all blocks of the flash chip 
+    //(simple is fine for now, can unlock them all and keep them that way, just note it in function description)
+    //set all the other registers that need to be set
+}
+
 HAL_StatusTypeDef W25N_Wait_Until_Not_Busy()
 {
     HAL_StatusTypeDef operation_status;
@@ -287,15 +294,20 @@ error:
     return operation_status;
 }
 
+HAL_StatusTypeDef W25N_Read()
+{
+
+}
+
 HAL_StatusTypeDef W25N_Write()
 {
 
 }
 
-HAL_StatusTypeDef W25N_Read()
-{
-    
-}
+//maybe have something for testing the block erase function to see if it's page address or not
+//write this up in main, the code won't need to ever be run again once we know.
+
+//see if you can derive higher-level functions out of the other driver functions
 
 //###############################################################################################
 //Helper Functions

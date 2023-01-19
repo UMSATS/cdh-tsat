@@ -84,17 +84,6 @@ void Test_W25N_Write_Enable();
 void Test_W25N_Write_Disable();
 
 /*
- * FUNCTION: Test_W25N_Block_Erase_128KB
- *
- * DESCRIPTION: Unit test function for the W25N_Block_Erase_128KB function.
- *
- * NOTES:
- *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Program_Execute, Test_W25N_Read
- *  - Note2
- */
-void Test_W25N_Block_Erase_128KB();
-
-/*
  * FUNCTION: Test_W25N_Load_Program_Data
  *
  * DESCRIPTION: Unit test function for the W25N_Load_Program_Data function.
@@ -106,15 +95,15 @@ void Test_W25N_Block_Erase_128KB();
 void Test_W25N_Load_Program_Data();
 
 /*
- * FUNCTION: Test_W25N_Program_Execute
+ * FUNCTION: Test_W25N_Execute_Erase
  *
- * DESCRIPTION: Unit test function for the W25N_Program_Execute function.
+ * DESCRIPTION: Unit test function for the W25N_Program_Execute & W25N_Block_Erase_128KB functions.
  *
  * NOTES:
  *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Read
- *  - Note2
+ *  - Multiple functions are tested since they are interdependent in terms of testing.
  */
-void Test_W25N_Program_Execute();
+void Test_W25N_Execute_Erase();
 
 /*
  * FUNCTION: Test_W25N_Read
@@ -124,6 +113,9 @@ void Test_W25N_Program_Execute();
  * NOTES:
  *  - Depends on passing: Test_W25N_Write_Status_Register
  *  - Multiple functions are tested since they are interdependent in terms of testing.
+ *  - Assumes OTP area is not locked & SR-1 is not locked.
+ *  - If the unit test exits prematurely, the W25N should be reset so that it is not in OTP 
+ *    access mode.
  */
 void Test_W25N_Read();
 

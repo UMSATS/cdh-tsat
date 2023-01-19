@@ -49,12 +49,13 @@ void Test_W25N_Read_JEDEC_ID()
 {
     HAL_StatusTypeDef operation_status;
     uint8_t test_array[3];
+    uint8_t test_array_size = sizeof(test_array) / sizeof(test_array[0]);
     uint8_t jedec_id[3] = {0xEF, 0xAA, 0x21};
 
     operation_status = W25N_Read_JEDEC_ID(test_array);
     if (operation_status != HAL_OK) exit(1);
 
-    assert(memcmp(test_array, jedec_id, 3) == 0);
+    assert(memcmp(test_array, jedec_id, test_array_size) == 0);
 }
 
 void Test_W25N_Read_Status_Register()
@@ -128,29 +129,111 @@ void Test_W25N_Write_Disable()
     assert((register_contents & 0b00000010) == 0b00000000);
 }
 
-void Test_W25N_Block_Erase_128KB()
-{
-    //shouldn't read data from previous tests since each test should be independent
-    //this test will call its own read and write functions
-}
-
 void Test_W25N_Load_Program_Data()
 {
+    HAL_StatusTypeDef operation_status;
+    uint16_t column_address = 0x0000;
+    uint8_t data_array[2048];
+    uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
+    uint8_t data_buffer_contents[2048];
+
+    uint8_t counter = 0x00;
+    for (int i = 0; i < data_array_size; i++)
+    {
+        data_array[i] = counter;
+        counter++;
+    }
     
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Load_Program_Data(&data_array, column_address, data_array_size);
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
 }
 
-void Test_W25N_Program_Execute()
+void Test_W25N_Execute_Erase()
 {
-    //will have to read a different page in between to clear the data buffer
+    HAL_StatusTypeDef operation_status;
+    uint16_t column_address = 0x0000;
+    uint16_t page_address = 0xFFFF
+    uint8_t zero_data_array[2048] = {0x00}; //entire array will be initialized to 0x00
+    uint8_t data_array[2048];
+    uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
+    uint8_t data_buffer_contents[2048];
+    
+    uint8_t counter = 0xFF;
+    for (int i = 0; i < data_array_size; i++)
+    {
+        data_array[i] = counter;
+        counter--;
+    }
+
+    //test inital erase
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Block_Erase_128KB(page_address);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Page_Data_Read(page_address);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
+
+    //test program execute
+    operation_status = W25N_Load_Program_Data(&data_array, column_address, data_array_size);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Program_Execute(page_address);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Page_Data_Read(page_address);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
+
+    //test erasing the newly written data
+    operation_status = W25N_Block_Erase_128KB(page_address);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Page_Data_Read(page_address);
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    if (operation_status != HAL_OK) exit(1);
+
+    assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
 }
 
 void Test_W25N_Read()
 {
-    //must write to status register to access read-only pages
-    //tests both W25N_Page_Data_Read & W25N_Read_Data since they are interdependent
-    //using read-only parameter page data bc it's defined in the datasheet
-    //THIS DATA HAS BEEN CHECKED, DON'T NEED TO DOUBLE CHECK IT
-    uint8_t parameter_data[254] =
+    HAL_StatusTypeDef operation_status;
+    uint8_t register_address = 0xB0;
+    uint8_t register_value_OTP_enter = 0b01011000;
+    uint8_t register_value_OTP_exit = 0b00011000;
+    uint16_t column_address = 0x0000;
+    uint16_t parameter_page_address = 0x0001
+    uint16_t data_buffer_size = sizeof(data_buffer_size) / sizeof(data_buffer_size[0]);
+    uint8_t data_buffer_contents[2048];
+
+    //the OTP parameter page is defined in the datasheet
+    //since the data on this page is known, it will be used to verify the read functions
+    uint8_t parameter_data_array[254] =
         {0x4F, 0x4E, 0x46, 0x49, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x57, 0x49, 0x4E, 0x42, 0x4F, 0x4E, 0x44, 0x20, 0x20, 0x20,
@@ -170,16 +253,39 @@ void Test_W25N_Read()
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00};
-    //check first 254 bytes against data
-    //ignore next 2 bytes
-    //check next 254 bytes against data
-    //ignore next 2 bytes
-    //check next 254 bytes against data
-    //ignore next 2 bytes
-    //check remaining 1280 bytes against 0x00
+    uint8_t zero_data_array[1280] = {0x00}; //entire array will be initialized to 0x00
+    
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
 
-    //note we check the 2048 data bytes, we don't worry about the ECC bytes
+    //enter OTP access mode to read parameter page
+    operation_status = W25N_Write_Status_Register(register_address, register_value_OTP_enter);
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Page_Data_Read(parameter_page_address);
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != HAL_OK) exit(1);
+
+    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_buffer_size);
+    if (operation_status != HAL_OK) exit(1);
+
+    //compare bytes 0-253 to parameter data
+    assert(memcmp(parameter_data_array, data_buffer_contents, 254) == 0);
+    //compare bytes 256-509 to parameter data
+    assert(memcmp(parameter_data_array, data_buffer_contents + 256, 254) == 0);
+    //compare bytes 512-765 to parameter data
+    assert(memcmp(parameter_data_array, data_buffer_contents + 512, 254) == 0);
+    //compare bytes 768-2047 to zero data
+    assert(memcmp(zero_data_array, data_buffer_contents + 768, 1280) == 0);
+
+    //exit OTP access mode to return to the main memory array
+    operation_status = W25N_Write_Status_Register(register_address, register_value_OTP_exit);
+    if (operation_status != HAL_OK) exit(1);
 }
+
+//you need to write enable before each write operation
 
 //###############################################################################################
 //Complete Unit Test Function
@@ -201,6 +307,5 @@ void Unit_Test_W25N()
     Test_W25N_Device_Reset();
     Test_W25N_Read();
     Test_W25N_Load_Program_Data();
-    Test_W25N_Program_Execute();
-    Test_W25N_Block_Erase_128KB();
+    Test_W25N_Execute_Erase();
 }
