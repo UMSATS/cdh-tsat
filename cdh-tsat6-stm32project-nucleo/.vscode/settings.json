@@ -1,0 +1,16 @@
+{
+    "makefile.makeDirectory": "Debug",
+    "cortex-debug.armToolchainPath.linux": "/opt/st/stm32cubeide_1.11.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.100.202210260954/tools/bin/",
+    "cortex-debug.armToolchainPrefix": "arm-none-eabi",
+    "makefile.launchConfigurations": [],
+    "files.associations": {
+        "main.h": "c",
+        "stm32l4xx_hal.h": "c"
+    },
+    "C_Cpp.default.defines": [
+        "STM32L452xx",
+        "USE_HAL_DRIVER",
+        "DEBUG"
+    ],
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+}

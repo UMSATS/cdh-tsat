@@ -1,0 +1,18 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            // Modified from https://github.com/Marus/cortex-debug/wiki
+            "cwd" : "${workspaceRoot}",
+            "executable": "Debug/cdh-tsat6-stm32project-nucleo.elf",
+            "name": "debug with STM32CubeProgrammer",
+            "servertype": "stlink",
+            "gdbTarget": "127.0.0.1:61234",
+            "request": "launch"
+        }
+    ]
+}

@@ -1,2 +1,7 @@
 # Debug/Build objects -NJR
 Debug/
+
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+
