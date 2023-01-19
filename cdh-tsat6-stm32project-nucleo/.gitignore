@@ -1,6 +1,12 @@
 # Debug/Build objects -NJR
 Debug/
+Release/
 
+# Eclipse / STM32CubeIDE Stuff
+.metadata
+.settings
+
+# Ignore all VSCode files except these two (Cortex-Debug adds a couple.
 .vscode/*
 !.vscode/launch.json
 !.vscode/settings.json
