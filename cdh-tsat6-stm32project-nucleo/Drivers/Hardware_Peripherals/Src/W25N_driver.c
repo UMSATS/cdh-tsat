@@ -352,7 +352,7 @@ HAL_StatusTypeDef W25N_Write()
 //if failure, bad block manage the block
 //should check if room in the bad block manage LUT
 //if no more room in bad block manmage LUT, return a special error
-HAL_StatusTypeDef W25N_Block_Erase_128KB()
+HAL_StatusTypeDef W25N_Erase()
 {
 
 }

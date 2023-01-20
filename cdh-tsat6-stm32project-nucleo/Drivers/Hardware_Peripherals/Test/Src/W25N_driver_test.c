@@ -147,10 +147,10 @@ HAL_StatusTypeDef Test_W25N_Load_Program_Data()
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != HAL_OK) return operation_status;
 
-    operation_status = W25N_Load_Program_Data(&data_array, column_address, data_array_size);
+    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != HAL_OK) return operation_status;
 
-    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != HAL_OK) return operation_status;
 
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
@@ -160,7 +160,7 @@ HAL_StatusTypeDef Test_W25N_Execute_Erase()
 {
     HAL_StatusTypeDef operation_status;
     uint16_t column_address = 0x0000;
-    uint16_t page_address = 0xFFFF
+    uint16_t page_address = 0xFFFF;
     uint8_t zero_data_array[2048] = {0x00}; //entire array will be initialized to 0x00
     uint8_t data_array[2048];
     uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
@@ -184,13 +184,13 @@ HAL_StatusTypeDef Test_W25N_Execute_Erase()
     if (operation_status != HAL_OK) return operation_status;
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != HAL_OK) return operation_status;
-    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != HAL_OK) return operation_status;
 
     assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
 
     //test program execute
-    operation_status = W25N_Load_Program_Data(&data_array, column_address, data_array_size);
+    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != HAL_OK) return operation_status;
     operation_status = W25N_Program_Execute(page_address);
     if (operation_status != HAL_OK) return operation_status;
@@ -200,7 +200,7 @@ HAL_StatusTypeDef Test_W25N_Execute_Erase()
     if (operation_status != HAL_OK) return operation_status;
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != HAL_OK) return operation_status;
-    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != HAL_OK) return operation_status;
 
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
@@ -214,7 +214,7 @@ HAL_StatusTypeDef Test_W25N_Execute_Erase()
     if (operation_status != HAL_OK) return operation_status;
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != HAL_OK) return operation_status;
-    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_array_size);
+    operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != HAL_OK) return operation_status;
 
     assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
@@ -227,9 +227,9 @@ HAL_StatusTypeDef Test_W25N_Read()
     uint8_t register_value_OTP_enter = 0b01011000;
     uint8_t register_value_OTP_exit = 0b00011000;
     uint16_t column_address = 0x0000;
-    uint16_t parameter_page_address = 0x0001
-    uint16_t data_buffer_size = sizeof(data_buffer_size) / sizeof(data_buffer_size[0]);
+    uint16_t parameter_page_address = 0x0001;
     uint8_t data_buffer_contents[2048];
+    uint16_t data_buffer_size = sizeof(data_buffer_contents) / sizeof(data_buffer_contents[0]);
 
     //the OTP parameter page is defined in the datasheet
     //since the data on this page is known, it will be used to verify the read functions
@@ -268,7 +268,7 @@ HAL_StatusTypeDef Test_W25N_Read()
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != HAL_OK) return operation_status;
 
-    operation_status = W25N_Read_Data(&data_buffer_contents, column_address, data_buffer_size);
+    operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_buffer_size);
     if (operation_status != HAL_OK) return operation_status;
 
     //compare bytes 0-253 to parameter data
