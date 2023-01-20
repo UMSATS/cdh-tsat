@@ -57,33 +57,43 @@ extern SPI_HandleTypeDef W25N_SPI;
 //###############################################################################################
 typedef enum
 {
-    W25N_HAL_OK      = HAL_OK,      //0x00
-    W25N_HAL_ERROR   = HAL_ERROR,   //0x01
-    W25N_HAL_BUSY    = HAL_BUSY,    //0x02
-    W25N_HAL_TIMEOUT = HAL_TIMEOUT, //0x03
-    W25N_LUT_FULL    = 0x04
+    W25N_HAL_OK                     = HAL_OK,      //0x00
+    W25N_HAL_ERROR                  = HAL_ERROR,   //0x01
+    W25N_HAL_BUSY                   = HAL_BUSY,    //0x02
+    W25N_HAL_TIMEOUT                = HAL_TIMEOUT, //0x03
+    W25N_READY                      = 0x04,
+    W25N_HANGING                    = 0x05,
+    W25N_LUT_HAS_ROOM               = 0x06,
+    W25N_LUT_FULL                   = 0x07,
+    W25N_ECC_CORRECTION_UNNECESSARY = 0x08,
+    W25N_ECC_CORRECTION_OK          = 0x09,
+    W25N_ECC_CORRECTION_ERROR       = 0x0A,
+    W25N_PROGRAM_OK                 = 0x0B,
+    W25N_PROGRAM_ERROR              = 0x0C,
+    W25N_ERASE_OK                   = 0x0D,
+    W25N_ERASE_ERROR                = 0x0E
 } W25N_StatusTypeDef;
 
 //###############################################################################################
 //Driver Function Prototypes
 //###############################################################################################
 /*
-* FUNCTION: W25N_Device_Reset
-*
-* DESCRIPTION: Terminates current internal operations and allows the device to return to
-*              its default power -on state and lose all the current volatile settings.
-*
-* NOTES:
-*  - Device will take approximately tRST to reset. (tRST can be 5us - 500us)
-*  - Recommended to check the BUSY bit in Status Register before issuing the Reset
-*    command.
-*  - Data corruption may happen if there is an ongoing internal Erase or Program operation.
-*    Its recommended by the manufacturer to check the BUSY bit in Status Register before
-*    issuing the Reset command.
-*
-* PARAMETERS: No parameters.
-*/
-HAL_StatusTypeDef W25N_Device_Reset();
+ * FUNCTION: W25N_Device_Reset
+ *
+ * DESCRIPTION: Terminates current internal operations and allows the device to return to
+ *              its default power -on state and lose all the current volatile settings.
+ *
+ * NOTES:
+ *  - Device will take approximately tRST to reset. (tRST can be 5us - 500us)
+ *  - Recommended to check the BUSY bit in Status Register before issuing the Reset
+ *    command.
+ *  - Data corruption may happen if there is an ongoing internal Erase or Program operation.
+ *    Its recommended by the manufacturer to check the BUSY bit in Status Register before
+ *    issuing the Reset command.
+ *
+ * PARAMETERS: No parameters.
+ */
+W25N_StatusTypeDef W25N_Device_Reset();
 
 /*
  * FUNCTION: W25N_Read_JEDEC_ID
@@ -96,7 +106,7 @@ HAL_StatusTypeDef W25N_Device_Reset();
  * PARAMETERS:
  *  *p_buffer
  */
-HAL_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer);
+W25N_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer);
 
 /*
  * FUNCTION: W25N_Read_Status_Register
@@ -115,7 +125,7 @@ HAL_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer);
  *  register_address
  *  *p_buffer: Pointer to the buffer which will contain the BBM LUT.
  */
-HAL_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
+W25N_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
 
 /*
  * FUNCTION: W25N_Write_Status_Register
@@ -128,7 +138,7 @@ HAL_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *
  *  register_address
  *  register_value
  */
- HAL_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
+W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
 
 /*
  * FUNCTION: W25N_Write_Enable
@@ -141,7 +151,7 @@ HAL_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *
  * PARAMETERS:
  *  No parameters.
  */
-HAL_StatusTypeDef W25N_Write_Enable();
+W25N_StatusTypeDef W25N_Write_Enable();
 
 /*
  * FUNCTION: W25N_Write_Disable
@@ -153,7 +163,7 @@ HAL_StatusTypeDef W25N_Write_Enable();
  * PARAMETERS:
  *  No parameters.
  */
-HAL_StatusTypeDef W25N_Write_Disable();
+W25N_StatusTypeDef W25N_Write_Disable();
 
 /*
  * FUNCTION: W25N_Bad_Block_Management
@@ -175,7 +185,7 @@ HAL_StatusTypeDef W25N_Write_Disable();
  *  logical_block_address: Address of the bad block which will be replaced by the good block.
  *  physical_block_address: Address of the good block which will replace the bad block.
  */
-HAL_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
+W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
 
 /*
  * FUNCTION: W25N_Read_BBM_LUT
@@ -199,7 +209,7 @@ HAL_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint
  *  p_buffer: Pointer to the buffer which will contain the BBM LUT. This buffer should have a
  *            size of at least 80 bytes in order to store the entire BBM LUT.
  */
-HAL_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
+W25N_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
 
 //NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
 //OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)
@@ -225,7 +235,7 @@ HAL_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
  * PARAMETERS:
  *  page_address:
  */
-HAL_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
+W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Load_Program_Data
@@ -247,7 +257,7 @@ HAL_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
  *  column_address: W25N Data Buffer memory address for the 0th byte to load.
  *  num_of_bytes: Number of bytes to load from the C buffer into the W25N Data Buffer.
  */
-HAL_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
  * FUNCTION: W25N_Program_Execute
@@ -277,7 +287,7 @@ HAL_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_addr
  * PARAMETERS:
  *  page_address: Address of the physical memory page to program the W25N Data Buffer into.
  */
-HAL_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
+W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Page_Data_Read
@@ -294,7 +304,7 @@ HAL_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
  * PARAMETERS:
  *  page_address: Address of the physical memory page to transfer into the W25N Data Buffer.
  */
-HAL_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
+W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Read_Data
@@ -316,7 +326,7 @@ HAL_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
  *  column_address: W25N Data Buffer memory address for the 0th byte to output.
  *  num_of_bytes: Number of bytes to output from the W25N Data Buffer into the C buffer.
  */
-HAL_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 //###############################################################################################
 //High-Level Driver Function Prototypes
@@ -349,6 +359,6 @@ void W25N_One_Time_Init();
  * PARAMETERS:
  *  word_16bit: The 16-bit word to transmit to the W25N Flash.
  */
-HAL_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
+W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
 
 #endif /* HARDWARE_PERIPHERALS_INC_W25N_DRIVER_H_ */

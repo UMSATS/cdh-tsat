@@ -24,8 +24,10 @@
  * NOTES:
  *  - Depends on passing: Test_W25N_Write_Status_Register, Test_W25N_Read_Status_Register
  *  - Assumes OTP area is not locked & SR-1 is not locked.
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the status 
+ *    register contents are reset.
  */
-HAL_StatusTypeDef Test_W25N_Device_Reset();
+W25N_StatusTypeDef Test_W25N_Device_Reset();
 
 /*
  * FUNCTION: Test_W25N_Read_JEDEC_ID
@@ -36,7 +38,7 @@ HAL_StatusTypeDef Test_W25N_Device_Reset();
  *  - Not dependent on passing any tests.
  *  - Note2
  */
-HAL_StatusTypeDef Test_W25N_Read_JEDEC_ID();
+W25N_StatusTypeDef Test_W25N_Read_JEDEC_ID();
 
 /*
  * FUNCTION: Test_W25N_Read_Status_Register
@@ -48,7 +50,7 @@ HAL_StatusTypeDef Test_W25N_Read_JEDEC_ID();
  *  - Test must be performed after power cycling the W25N.
  *  - Test must be performed before Test_W25N_Write_Status_Register.
  */
-HAL_StatusTypeDef Test_W25N_Read_Status_Register();
+W25N_StatusTypeDef Test_W25N_Read_Status_Register();
 
 /*
  * FUNCTION: Test_W25N_Write_Status_Register
@@ -58,8 +60,10 @@ HAL_StatusTypeDef Test_W25N_Read_Status_Register();
  * NOTES:
  *  - Depends on passing: Test_W25N_Read_Status_Register
  *  - Test must be performed after power cycling the W25N.
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the status 
+ *    register contents are reset.
  */
-HAL_StatusTypeDef Test_W25N_Write_Status_Register();
+W25N_StatusTypeDef Test_W25N_Write_Status_Register();
 
 /*
  * FUNCTION: Test_W25N_Write_Enable
@@ -69,8 +73,10 @@ HAL_StatusTypeDef Test_W25N_Write_Status_Register();
  * NOTES:
  *  - Depends on passing: Test_W25N_Read_Status_Register
  *  - Test must be performed after power cycling the W25N.
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
+ *    enable latch is reset.
  */
-HAL_StatusTypeDef Test_W25N_Write_Enable();
+W25N_StatusTypeDef Test_W25N_Write_Enable();
 
 /*
  * FUNCTION: Test_W25N_Write_Disable
@@ -79,9 +85,11 @@ HAL_StatusTypeDef Test_W25N_Write_Enable();
  *
  * NOTES:
  *  - Depends on passing: Test_W25N_Read_Status_Register
- *  - Test must be performed directly after Test_W25N_Write_Enable
+ *  - Test must be performed directly after Test_W25N_Write_Enable.
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
+ *    enable latch is reset.
  */
-HAL_StatusTypeDef Test_W25N_Write_Disable();
+W25N_StatusTypeDef Test_W25N_Write_Disable();
 
 /*
  * FUNCTION: Test_W25N_Load_Program_Data
@@ -92,7 +100,7 @@ HAL_StatusTypeDef Test_W25N_Write_Disable();
  *  - Depends on passing: Test_W25N_Read
  *  - Note2
  */
-HAL_StatusTypeDef Test_W25N_Load_Program_Data();
+W25N_StatusTypeDef Test_W25N_Load_Program_Data();
 
 /*
  * FUNCTION: Test_W25N_Execute_Erase
@@ -102,8 +110,11 @@ HAL_StatusTypeDef Test_W25N_Load_Program_Data();
  * NOTES:
  *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Read
  *  - Multiple functions are tested since they are interdependent in terms of testing.
+ *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
+ *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
+ *    used for this unit test.
  */
-HAL_StatusTypeDef Test_W25N_Execute_Erase();
+W25N_StatusTypeDef Test_W25N_Execute_Erase();
 
 /*
  * FUNCTION: Test_W25N_Read
@@ -114,10 +125,10 @@ HAL_StatusTypeDef Test_W25N_Execute_Erase();
  *  - Depends on passing: Test_W25N_Write_Status_Register
  *  - Multiple functions are tested since they are interdependent in terms of testing.
  *  - Assumes OTP area is not locked & SR-1 is not locked.
- *  - If the unit test exits prematurely, the W25N should be reset so that it is not in OTP 
- *    access mode.
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the status 
+ *    register contents are reset.
  */
-HAL_StatusTypeDef Test_W25N_Read();
+W25N_StatusTypeDef Test_W25N_Read();
 
 //###############################################################################################
 //Complete Unit Test Function Prototype

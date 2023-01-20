@@ -22,116 +22,134 @@
 //###############################################################################################
 //Unit Test Functions
 //###############################################################################################
-HAL_StatusTypeDef Test_W25N_Device_Reset()
+W25N_StatusTypeDef Test_W25N_Device_Reset()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
     uint8_t register_address = 0xB0;
     uint8_t register_default_contents = 0b00011000;
     uint8_t register_written_contents = 0b01011000;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Write_Status_Register(register_address, register_written_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Device_Reset();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Status_Register(register_address, &register_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert((register_contents & 0b11111000) == register_default_contents);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Read_JEDEC_ID()
+W25N_StatusTypeDef Test_W25N_Read_JEDEC_ID()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t test_array[3];
     uint8_t test_array_size = sizeof(test_array) / sizeof(test_array[0]);
     uint8_t jedec_id[3] = {0xEF, 0xAA, 0x21};
 
     operation_status = W25N_Read_JEDEC_ID(test_array);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert(memcmp(test_array, jedec_id, test_array_size) == 0);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Read_Status_Register()
+W25N_StatusTypeDef Test_W25N_Read_Status_Register()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
     uint8_t register_address = 0xB0;
     uint8_t register_default_contents = 0b00011000;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Status_Register(register_address, &register_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert((register_contents & 0b11111000) == register_default_contents);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Write_Status_Register()
+W25N_StatusTypeDef Test_W25N_Write_Status_Register()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
     uint8_t register_address = 0xB0;
     uint8_t register_written_contents = 0b01011000;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Write_Status_Register(register_address, register_written_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Status_Register(register_address, &register_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert((register_contents & 0b11111000) == register_written_contents);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Write_Enable()
+W25N_StatusTypeDef Test_W25N_Write_Enable()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
     uint8_t register_address = 0xC0;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Write_Enable();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Status_Register(register_address, &register_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert((register_contents & 0b00000010) == 0b00000010);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Write_Disable()
+W25N_StatusTypeDef Test_W25N_Write_Disable()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
     uint8_t register_address = 0xC0;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Write_Disable();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Status_Register(register_address, &register_contents);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert((register_contents & 0b00000010) == 0b00000000);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Load_Program_Data()
+W25N_StatusTypeDef Test_W25N_Load_Program_Data()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint16_t column_address = 0x0000;
     uint8_t data_array[2048];
     uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
@@ -145,20 +163,23 @@ HAL_StatusTypeDef Test_W25N_Load_Program_Data()
     }
     
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Execute_Erase()
+W25N_StatusTypeDef Test_W25N_Execute_Erase()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint16_t column_address = 0x0000;
     uint16_t page_address = 0xFFFF;
     uint8_t zero_data_array[2048] = {0x00}; //entire array will be initialized to 0x00
@@ -175,54 +196,57 @@ HAL_StatusTypeDef Test_W25N_Execute_Erase()
 
     //test inital erase
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Block_Erase_128KB(page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Page_Data_Read(page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
 
     //test program execute
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Program_Execute(page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Page_Data_Read(page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
 
     //test erasing the newly written data
     operation_status = W25N_Block_Erase_128KB(page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Page_Data_Read(page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
+
+error:
+    return operation_status;
 }
 
-HAL_StatusTypeDef Test_W25N_Read()
+W25N_StatusTypeDef Test_W25N_Read()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     uint8_t register_address = 0xB0;
     uint8_t register_value_OTP_enter = 0b01011000;
     uint8_t register_value_OTP_exit = 0b00011000;
@@ -256,20 +280,20 @@ HAL_StatusTypeDef Test_W25N_Read()
     uint8_t zero_data_array[1280] = {0x00}; //entire array will be initialized to 0x00
     
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     //enter OTP access mode to read parameter page
     operation_status = W25N_Write_Status_Register(register_address, register_value_OTP_enter);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Page_Data_Read(parameter_page_address);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_buffer_size);
-    if (operation_status != HAL_OK) return operation_status;
+    if (operation_status != W25N_HAL_OK) goto error;
 
     //compare bytes 0-253 to parameter data
     assert(memcmp(parameter_data_array, data_buffer_contents, 254) == 0);
@@ -282,7 +306,9 @@ HAL_StatusTypeDef Test_W25N_Read()
 
     //exit OTP access mode to return to the main memory array
     operation_status = W25N_Write_Status_Register(register_address, register_value_OTP_exit);
-    if (operation_status != HAL_OK) return operation_status;
+
+error:
+    return operation_status;
 }
 
 //you need to write enable before each write operation
@@ -295,7 +321,7 @@ HAL_StatusTypeDef Test_W25N_Read()
 //###############################################################################################
 void Test_W25N()
 {
-    HAL_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
 
     //DON'T FORGET ABOUT PRE-INITIALIZATION BEFORE DOING THESE UNIT TESTS
     //(NOT IN THIS UNIT TEST CODE, ONLY HAS TO BE DONE ONCE AFTER ALL)
@@ -307,23 +333,27 @@ void Test_W25N()
 
     //the following functions are executed in order of dependencies
     operation_status = Test_W25N_Read_JEDEC_ID();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Read_Status_Register();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Write_Status_Register();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Write_Enable();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Write_Disable();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Device_Reset();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Read();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Load_Program_Data();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Execute_Erase();
-    if (operation_status != HAL_OK) goto error;
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
+
+    exit(0);
 
 error:
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
