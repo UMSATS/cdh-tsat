@@ -197,6 +197,8 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     //test inital erase
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Block_Erase_128KB(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
@@ -213,6 +215,8 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     //test program execute
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Program_Execute(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
@@ -227,6 +231,8 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
 
     //test erasing the newly written data
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Block_Erase_128KB(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
@@ -310,8 +316,6 @@ W25N_StatusTypeDef Test_W25N_Read()
 error:
     return operation_status;
 }
-
-//you need to write enable before each write operation
 
 //you need to init before unit test
 //should be done in main though, not in unit test function since different things

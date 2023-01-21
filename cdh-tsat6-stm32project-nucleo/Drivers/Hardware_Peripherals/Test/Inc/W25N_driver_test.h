@@ -110,6 +110,8 @@ W25N_StatusTypeDef Test_W25N_Load_Program_Data();
  * NOTES:
  *  - Depends on passing: Test_W25N_Load_Program_Data, Test_W25N_Read
  *  - Multiple functions are tested since they are interdependent in terms of testing.
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
+ *    enable latch is reset.
  *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
  *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
  *    used for this unit test.
