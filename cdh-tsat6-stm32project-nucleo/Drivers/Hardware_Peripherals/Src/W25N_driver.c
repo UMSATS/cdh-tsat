@@ -80,6 +80,7 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_STATUS_REGISTER;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -90,6 +91,7 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
 
 error:
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -98,11 +100,13 @@ W25N_StatusTypeDef W25N_Write_Enable()
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_ENABLE;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
 
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -111,11 +115,13 @@ W25N_StatusTypeDef W25N_Write_Disable()
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_WRITE_DISABLE;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
 
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -124,6 +130,7 @@ W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uin
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_BAD_BLOCK_MANAGEMENT;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
     operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -134,6 +141,7 @@ W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uin
 
 error:
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
     return operation_status;
 }
 
@@ -165,6 +173,7 @@ W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address)
     uint8_t opcode = W25N_OPCODE_BLOCK_ERASE_128KB;
     uint8_t dummy_byte = W25N_DUMMY_BYTE;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
     operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -175,6 +184,7 @@ W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address)
 
 error:
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
     return operation_status;
 }
 
@@ -183,6 +193,7 @@ W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_add
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_LOAD_PROGRAM_DATA;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
     operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -193,6 +204,7 @@ W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_add
 
 error:
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
     return operation_status;
 }
 
@@ -202,6 +214,7 @@ W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address)
     uint8_t opcode = W25N_OPCODE_PROGRAM_EXECUTE;
     uint8_t dummy_byte = W25N_DUMMY_BYTE;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
     operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -212,6 +225,7 @@ W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address)
 
 error:
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
     return operation_status;
 }
 
@@ -264,13 +278,28 @@ void W25N_One_Time_Init()
     //this function should be completed stepping through one step at a time with the debugger
 }
 
+//make sure to note in function description that this unlocks all blocks for writing
+//make sure to note in function desciptiion what configuration is set by the status register writes
 W25N_StatusTypeDef W25N_Init()
 {
-    //unlock all blocks of the flash chip 
-    //(simple is fine for now, can unlock them all and keep them that way, just note it in function description)
-    //set all the other registers that need to be set
+    W25N_StatusTypeDef operation_status;
+    uint8_t register_1_contents = 0b00000010;
+    uint8_t register_1_address = 0xA0;
+    uint8_t register_2_contents = 0b00011000;
+    uint8_t register_2_address = 0xB0;
 
-    //make sure CS, WP, & HOLD GPIO are all set appropriately
+    HAL_Delay(1); //Ensure the W25N has completed internal initialization (~500us)
+
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET); //deselect the W25N
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET); //disable all write/program/erase functionality
+    HAL_GPIO_WritePin(W25N_nHOLD_GPIO, W25N_nHOLD_PIN, GPIO_PIN_SET); //allow device operations (disable hold state)
+
+    operation_status = W25N_Write_Status_Register(register_1_address, register_1_contents);
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Write_Status_Register(register_2_address, register_2_contents);
+
+error:
+    return operation_status;
 }
 
 W25N_StatusTypeDef W25N_Wait_Until_Not_Busy()
@@ -401,4 +430,9 @@ W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit)
 
 error:
     return operation_status;
+}
+
+uint16_t W25N_Page_Address_To_Block_Address(uint16_t page_address)
+{
+    return page_address / W25N_PAGES_PER_BLOCK;
 }

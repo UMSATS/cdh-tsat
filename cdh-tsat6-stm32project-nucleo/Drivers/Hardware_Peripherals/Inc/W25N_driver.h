@@ -45,6 +45,7 @@
 #define W25N_OPCODE_PAGE_DATA_READ              0x13
 #define W25N_OPCODE_READ_DATA                   0x03
 
+#define W25N_PAGES_PER_BLOCK         64
 #define W25N_BBM_LUT_NUM_OF_BYTES    80 //(4 bytes per entry) * (20 entries) = 80 bytes
 
 //###############################################################################################
@@ -180,6 +181,7 @@ W25N_StatusTypeDef W25N_Write_Disable();
  *    Therefore, prior to issuing the BBM command, the LUT-F bit should be checked to confirm if
  *    spare links are still available in the LUT.
  *  - Registering the same address in multiple PBAs is prohibited.
+ *  - The parameters are BLOCK ADDRESSES, not page addresses within the specific block
  *
  * PARAMETERS:
  *  logical_block_address: Address of the bad block which will be replaced by the good block.

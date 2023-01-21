@@ -356,7 +356,7 @@ void Test_W25N()
     if (operation_status != W25N_HAL_OK) goto error;
 
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
-
+    
     exit(0);
 
 error:
