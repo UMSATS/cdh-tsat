@@ -298,26 +298,71 @@ error:
 
 W25N_StatusTypeDef W25N_Check_LUT_Full()
 {
-    //check status register 3
-    //return W25N_StatusTypeDef, W25N_LUT_HAS_ROOM or W25N_LUT_FULL
+    W25N_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != W25N_HAL_OK) goto error;
+    if ((register_contents & 0b01000000) == 0b01000000) return W25N_LUT_FULL;
+    else if ((register_contents & 0b01000000) == 0b00000000) return W25N_LUT_HAS_ROOM;
+
+    operation_status = W25N_HAL_ERROR;
+
+error:
+    return operation_status;
 }
 
 W25N_StatusTypeDef W25N_Check_ECC_Status()
 {
-    //check status register 3
-    //return W25N_StatusTypeDef, W25N_ECC_CORRECTION_UNNECESSARY or W25N_ECC_CORRECTION_OK or W25N_ECC_CORRECTION_ERROR
+    W25N_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != W25N_HAL_OK) goto error;
+    if ((register_contents & 0b00110000) == 0b00000000) return W25N_ECC_CORRECTION_UNNECESSARY;
+    else if ((register_contents & 0b00110000) == 0b00010000) return W25N_ECC_CORRECTION_OK;
+    else if ((register_contents & 0b00110000) == 0b00100000) return W25N_ECC_CORRECTION_ERROR;
+
+    operation_status = W25N_HAL_ERROR;
+
+error:
+    return operation_status;
 }
 
 W25N_StatusTypeDef W25N_Check_Program_Failure()
 {
-    //check status register 3
-    //return W25N_StatusTypeDef, W25N_PROGRAM_OK or W25N_PROGRAM_ERROR
+    W25N_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != W25N_HAL_OK) goto error;
+    if ((register_contents & 0b00001000) == 0b00001000) return W25N_PROGRAM_ERROR;
+    else if ((register_contents & 0b00001000) == 0b00000000) return W25N_PROGRAM_OK;
+
+    operation_status = W25N_HAL_ERROR;
+
+error:
+    return operation_status;
 }
 
 W25N_StatusTypeDef W25N_Check_Erase_Failure()
 {
-    //check status register 3
-    //return W25N_StatusTypeDef, W25N_ERASE_OK or W25N_ERASE_ERROR
+    W25N_StatusTypeDef operation_status;
+    uint8_t register_contents;
+    uint8_t register_address = 0xC0;
+
+    operation_status = W25N_Read_Status_Register(register_address, &register_contents);
+    if (operation_status != W25N_HAL_OK) goto error;
+    if ((register_contents & 0b00000100) == 0b00000100) return W25N_ERASE_ERROR;
+    else if ((register_contents & 0b00000100) == 0b00000000) return W25N_ERASE_OK;
+
+    operation_status = W25N_HAL_ERROR;
+
+error:
+    return operation_status;
 }
 
 //should check ECC status after read operation & return status (higher level code takes care of what to do)
