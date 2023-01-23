@@ -167,6 +167,7 @@ error:
 
 //NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
 //OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)
+//change variable names accordingly
 W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
@@ -273,11 +274,6 @@ error:
 //###############################################################################################
 //High-Level Driver Functions
 //###############################################################################################
-void W25N_One_Time_Init()
-{
-    //this function should be completed stepping through one step at a time with the debugger
-}
-
 //make sure to note in function description that this unlocks all blocks for writing
 //make sure to note in function desciptiion what configuration is set by the status register writes
 W25N_StatusTypeDef W25N_Init()
@@ -395,25 +391,23 @@ error:
 }
 
 //should check ECC status after read operation & return status (higher level code takes care of what to do)
-W25N_StatusTypeDef W25N_Read()
+W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
 {
 
 }
 
 //should check program failure & return status (higher level code takes care of what to do)
-W25N_StatusTypeDef W25N_Write()
+W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
 {
 
 }
 
 //should check erase failure & return status (higher level code takes care of what to do)
-W25N_StatusTypeDef W25N_Erase()
+//change parameter name if it turns out to be block address
+W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
 {
 
 }
-
-//maybe have something for testing the block erase function to see if it's page address or not
-//write this up in main, the code won't need to ever be run again once we know.
 
 //###############################################################################################
 //Helper Functions

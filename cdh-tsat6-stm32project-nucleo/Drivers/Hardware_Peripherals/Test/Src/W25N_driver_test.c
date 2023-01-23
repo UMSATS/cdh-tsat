@@ -317,20 +317,12 @@ error:
     return operation_status;
 }
 
-//you need to init before unit test
-//should be done in main though, not in unit test function since different things
-
 //###############################################################################################
 //Complete Unit Test Function
 //###############################################################################################
-void Test_W25N()
+W25N_StatusTypeDef Test_W25N()
 {
     W25N_StatusTypeDef operation_status;
-
-    //DON'T FORGET ABOUT PRE-INITIALIZATION BEFORE DOING THESE UNIT TESTS
-    //(NOT IN THIS UNIT TEST CODE, ONLY HAS TO BE DONE ONCE AFTER ALL)
-    //YOU HAVE TO SCAN THE WHOLE THING FOR BAD BLOCKS
-    //ALSO CHECK HOW ERASE FUNCTION WORKS BEFORE YOU DO THESE UNIT TESTS
 
     //set the write protect pin low to enable writing
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
@@ -356,10 +348,10 @@ void Test_W25N()
     if (operation_status != W25N_HAL_OK) goto error;
 
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
-    
-    exit(0);
+
+    return W25N_HAL_OK;
 
 error:
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
-    exit(1);
+    return operation_status;
 }

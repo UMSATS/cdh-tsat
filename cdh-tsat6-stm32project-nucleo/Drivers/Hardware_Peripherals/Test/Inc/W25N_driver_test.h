@@ -144,6 +144,6 @@ W25N_StatusTypeDef Test_W25N_Read();
  *  - Note1
  *  - Note2
  */
-void Test_W25N();
+W25N_StatusTypeDef Test_W25N();
 
 #endif /* HARDWARE_PERIPHERALS_TEST_INC_W25N_DRIVER_TEST_H_ */
