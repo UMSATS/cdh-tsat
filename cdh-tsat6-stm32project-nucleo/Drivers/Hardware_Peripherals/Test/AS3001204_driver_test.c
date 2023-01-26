@@ -201,7 +201,7 @@ error:
 	printf("Failed to read device/unique IDs\n");
 }
 
-unsigned int AS3001204_Test_Write_Disable(){
+unsigned int AS3001204_Test_Write_Disable() {
 	
 	HAL_StatusTypeDef isError;
 	
@@ -214,7 +214,7 @@ error:
 	return 1;
 }
 
-unsigned int AS3001204_Test_Software_Reset_Enable(){
+unsigned int AS3001204_Test_Software_Reset_Enable() {
 	
 	HAL_StatusTypeDef isError;
 	
@@ -227,7 +227,7 @@ error:
 	return 1;
 }
 
-unsigned int AS3001204_Test_Software_Reset(){
+unsigned int AS3001204_Test_Software_Reset() {
 	
 }
 
@@ -236,8 +236,8 @@ unsigned int AS3001204_Test_Software_Reset(){
 //###############################################################################################
 
 
-int AS3001204_Test_Mram_Driver(){
-		int numFailed = 0;
+int AS3001204_Test_Mram_Driver() {
+	int numFailed = 0;
 
 	AS3001204_Test_Read_ID_Registers();
 //
