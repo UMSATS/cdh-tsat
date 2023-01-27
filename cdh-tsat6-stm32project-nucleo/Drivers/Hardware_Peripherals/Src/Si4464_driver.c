@@ -18,11 +18,13 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
 	return HAL_SPI_Transmit(&hspi2, pData, numToSend, HAL_MAX_DELAY);
 }
 
+
 HAL_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
 	// See note on Radio_SPI_Transmit_Message(). -NJR
 	// HAL_SPI_Receive_IT(&hspi2, pData, sizeof(pData));
 	return HAL_SPI_Receive(&hspi2, pData, numToReceive, HAL_MAX_DELAY);
 }
+
 
 HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData, size_t numTransmittedReceived){
 
@@ -43,6 +45,7 @@ bool Si4464_Get_CTS() {
 	return (response == 0xFF);
 }
 
+
 HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size)
 {
 	// HACK ALERT!!!!!!!!!!!!!!
@@ -50,7 +53,7 @@ HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_by
 	// OUR CURRENT ERROR TYPEDEFS DO NOT ALLOW MORE THAN ONE ERROR CODE!
 	// Maybe create a new error enum that builds off HAL_StatusTypeDef? -NJR
 	HAL_StatusTypeDef operation_status = HAL_OK;
-	HAL_GPIO_WritePin(UHF_nCS_GPIO_Port, UHF_nCS_Pin, RESET);
+	Si4464_Nsel(0);
 
 	operation_status = Radio_SPI_Transmit_Message(&command_byte, 1);
 	if (operation_status != HAL_OK) goto error;
@@ -67,35 +70,47 @@ HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_by
 	if (operation_status != HAL_OK) goto error;
 
 error:
-	HAL_GPIO_WritePin(UHF_nCS_GPIO_Port, UHF_nCS_Pin, SET);
+	Si4464_Nsel(1);
 	return operation_status;
 }
+
 
 HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size)
 {
 	return Si4464_Send_Command(command_byte, argument_bytes, arg_size, NULL, 0);
 }
 
+
 // TODO: Add pin for SDN and HAL variables.
 void Si4464_Reset_Device()
 {
 	// Page 21 of the datasheet implies that the minimum time is 10us? -NJR
-	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, SET);
+	Si4464_Nsel(1);
 	HAL_Delay(1); //  TODO: Fix when we have RTOS set up. -NJR
-	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, RESET);
+	Si4464_Nsel(0);
 }
 
+void Si4464_Nsel(uint8_t sel){
+	if(sel){
+		HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, SET);
+	}
+	else{
+		HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, RESET);
+	}
+}
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef * hspi2){
 	// Handle Transmit Callback
 	// Thoughts: Not really sure what a transmit callback would be useful for. -GD
 	return;
 }
 
+
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef * hspi2){
 	// Handle Receive Callback
 	// Thoughts: The data should now be moved into a RTOS queue? -GD
 	return;
 }
+
 
 void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef * hspi2){
 	// Handle Transmit Receive Callback
