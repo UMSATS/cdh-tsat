@@ -108,5 +108,12 @@ HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint
  */
 bool Si4464_Get_CTS();
 
+/**
+ * @brief Set the chip select pin of the Si4464
+ *
+ * @param sel 0 for pull low and 1 for pull high
+ */
+void Si4464_Nsel(uint8_t sel);
+
 #endif /* INC_SI446X_RADIO_SPI_SI4464_H_ */
 
