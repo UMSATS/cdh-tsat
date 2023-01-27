@@ -8,7 +8,7 @@
  */
 #include <stdio.h>
 #include <Si4464_driver.h>
-
+#include "Si4464_command_codes.h"
 #include "Si4464_driver.h"
 
 HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
@@ -33,8 +33,7 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t 
 }
 
 bool Si4464_Get_CTS() {
-	// TODO: Make command a define somewhere, alongside all the other commands. -NJR
-	uint8_t command = 0x44;
+	uint8_t command = SI4464_READ_COMMAND_BUFFER;
 	uint8_t response = 0x00;
 
 	// HACK ALERT!!!!!
