@@ -18,6 +18,23 @@
 // The SPI bus used for the radio module
 extern SPI_HandleTypeDef hspi2;
 
+typedef struct {
+    uint8_t chip_rev;
+    uint16_t part_number;
+    uint8_t part_build;
+    uint16_t id;
+    uint8_t customer;
+    uint8_t rom_id;
+} Si4464PartInfo;
+
+typedef struct {
+    uint8_t ext_revision;
+    uint8_t branch_revision;
+    uint8_t internal_revision;
+    uint16_t patch_id;
+    uint8_t functional_mode;
+} Si4464FunctionInfo;
+
 
 /*
  * Using the SPI in an interrupt mode means we must setup callback functions
@@ -118,6 +135,22 @@ HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint
  * @returns false if not (received byte most likely will be 0x00).
  */
 bool Si4464_Get_CTS();
+
+/**
+ * @brief Get the "Function Revision Information" of the Si4464.
+ * 
+ * @param info_data A pointer to the data struct to return data with.
+ * @returns HAL_OK if command succeeded, otherwise the respective error.
+ */
+HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data);
+
+/**
+ * @brief Get the Part Information of the Si4464.
+ * 
+ * @param info_data A pointer to the data struct to return data with.
+ * @returns HAL_OK if command succeeded, otherwise the respective error.
+ */
+HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data);
 
 /**
  * @brief Set the chip select pin of the Si4464

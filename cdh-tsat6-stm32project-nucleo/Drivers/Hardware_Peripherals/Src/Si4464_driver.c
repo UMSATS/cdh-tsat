@@ -65,6 +65,61 @@ HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t
 	return command_success;
 }
 
+HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data)
+{
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	if (!info_data) {
+		operation_status = HAL_ERROR;
+		goto error;
+	}
+
+	// Otherwise...
+	
+	uint8_t reply_data[8] = {0x00};
+
+	operation_status = Si4464_Send_Command(SI4464_PART_INFO, NULL, 0, reply_data, sizeof(reply_data));
+	if (operation_status != HAL_OK) goto error;
+
+	// Initialize the struct.
+	info_data->chip_rev = reply_data[0];
+	info_data->part_number = (((uint16_t) reply_data[1]) << 8) | (uint16_t) reply_data[2];
+	info_data->part_build = reply_data[3];
+	info_data->id = (((uint16_t) reply_data[4]) << 8) | (uint16_t) reply_data[5];
+	info_data->customer = reply_data[6];
+	info_data->rom_id = reply_data[7];
+
+error:
+	return operation_status;
+}
+
+HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data)
+{
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	if (!info_data) {
+		operation_status = HAL_ERROR;
+		goto error;
+	}
+
+	// Otherwise...
+	
+	uint8_t reply_data[6] = {0x00};
+
+	operation_status = Si4464_Send_Command(SI4464_FUNC_INFO, NULL, 0, reply_data, sizeof(reply_data));
+	if (operation_status != HAL_OK) goto error;
+
+	// Initialize the struct.
+	info_data->ext_revision = reply_data[0];
+	info_data->branch_revision = reply_data[1];
+	info_data->internal_revision = reply_data[2];
+	info_data->patch_id = (((uint16_t) reply_data[3]) << 8) | (uint16_t) reply_data[4];
+	info_data->functional_mode = reply_data[5];
+
+error:
+	return operation_status;
+}
+
 HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size)
 {
 	// HACK ALERT!!!!!!!!!!!!!!
