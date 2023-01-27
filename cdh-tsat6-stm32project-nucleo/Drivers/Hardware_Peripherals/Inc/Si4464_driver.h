@@ -81,6 +81,17 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t 
 void Si4464_Reset_Device();
 
 /**
+ * @brief Send a stream of commands, of the following format:
+ * 
+ * {NUM_BYTES_0, COMMAND_0, DATA_0, ..., DATA_N, NUM_BYTES_1, COMMAND_1, DATA_0, ...}
+ * 
+ * @param command_stream The stream in question.
+ * @param stream_len The length of the stream.
+ * @returns HAL_OK if all commands succeed, otherwise the error code of the failing command.
+ */
+HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t stream_len);
+
+/**
  * @brief Send a command to the Radio module.
  *
  * @param command_byte The command to send.

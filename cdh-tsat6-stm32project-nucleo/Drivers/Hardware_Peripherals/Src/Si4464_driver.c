@@ -44,6 +44,26 @@ bool Si4464_Get_CTS() {
 	return (response == 0xFF);
 }
 
+HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t stream_len)
+{
+	size_t i = 0;
+
+	uint8_t command;
+	uint8_t *args;
+	size_t arg_len;
+
+	HAL_StatusTypeDef command_success = HAL_OK;
+
+	while (i < stream_len && command_stream[i] != 0x00 && command_success == HAL_OK) {
+		arg_len = command_stream[i] - 1;
+		command = command_stream[i + 1];
+		args = command_stream + (i + 2);
+		
+		command_success = Si4464_Send_Command_Ignore_Received(command, args, arg_len);
+	}
+
+	return command_success;
+}
 
 HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size)
 {
@@ -97,6 +117,7 @@ void Si4464_Nsel(uint8_t sel){
 		HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, RESET);
 	}
 }
+
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef * hspi2){
 	// Handle Transmit Callback
 	// Thoughts: Not really sure what a transmit callback would be useful for. -GD
