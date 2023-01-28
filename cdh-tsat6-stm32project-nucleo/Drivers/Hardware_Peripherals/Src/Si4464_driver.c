@@ -159,17 +159,17 @@ HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint
 void Si4464_Reset_Device()
 {
 	// Page 21 of the datasheet implies that the minimum time is 10us? -NJR
-	Si4464_Nsel(1);
+	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_SET);
 	HAL_Delay(1); //  TODO: Fix when we have RTOS set up. -NJR
-	Si4464_Nsel(0);
+	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_RESET);
 }
 
 void Si4464_Nsel(uint8_t sel){
 	if(sel){
-		HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, SET);
+		HAL_GPIO_WritePin(UHF_nCS_GPIO_Port, UHF_nCS_Pin, SET);
 	}
 	else{
-		HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, RESET);
+		HAL_GPIO_WritePin(UHF_nCS_GPIO_Port, UHF_nCS_Pin, RESET);
 	}
 }
 
