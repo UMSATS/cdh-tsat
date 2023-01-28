@@ -60,6 +60,10 @@ HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t
 		args = command_stream + (i + 2);
 		
 		command_success = Si4464_Send_Command_Ignore_Received(command, args, arg_len);
+
+		// we just transmitted command_stream[i] bytes so
+		// skip that many bytes plus the size byte. -NJR
+		i = i + command_stream[i] + 1;
 	}
 
 	return command_success;
