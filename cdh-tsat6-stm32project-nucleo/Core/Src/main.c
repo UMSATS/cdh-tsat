@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Si4464_driver.h"
+#include "Si4464_driver_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -106,6 +107,16 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
+  uint8_t data_array[] = RADIO_CONFIGURATION_DATA_ARRAY;
+
+  Si4464PartInfo info = {0};
+
+  Si4464_Nsel(1);
+
+  Si4464_Reset_Device();
+  Si4464_Execute_Command_Stream(data_array, sizeof(data_array));
+  Si4464_Get_Part_Info(&info);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,7 +127,7 @@ int main(void)
 
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	HAL_Delay(1000);
+    HAL_Delay(1000);
 
     /* USER CODE END WHILE */
 
