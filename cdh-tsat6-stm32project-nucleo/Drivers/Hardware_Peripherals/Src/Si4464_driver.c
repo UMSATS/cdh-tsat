@@ -137,18 +137,18 @@ HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_by
 	if (operation_status != HAL_OK) goto error;
 
 	if (arg_size != 0) {
-	operation_status = Radio_SPI_Transmit_Message(argument_bytes, arg_size);
-	if (operation_status != HAL_OK) goto error;
+		operation_status = Radio_SPI_Transmit_Message(argument_bytes, arg_size);
+		if (operation_status != HAL_OK) goto error;
 	}
 
 	// TODO: Get a timeout here? -NJR
 	while (!Si4464_Get_CTS()) {
 		// Nothing.
 	}
-
+	
 	if (return_size != 0) {
-	operation_status = Radio_SPI_Receive_Message(returned_bytes, return_size);
-	if (operation_status != HAL_OK) goto error;
+		operation_status = Radio_SPI_Receive_Message(returned_bytes, return_size);
+		if (operation_status != HAL_OK) goto error;
 	}
 
 error:
