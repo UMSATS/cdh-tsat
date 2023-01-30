@@ -333,6 +333,128 @@ W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, ui
 //###############################################################################################
 //High-Level Driver Function Prototypes
 //###############################################################################################
+/*
+ * FUNCTION: W25N_Init
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef W25N_Init();
+
+/*
+ * FUNCTION: W25N_Wait_Until_Not_Busy
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
+
+/*
+ * FUNCTION: W25N_Check_LUT_Full
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef W25N_Check_LUT_Full();
+
+/*
+ * FUNCTION: W25N_Check_ECC_Status
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef W25N_Check_ECC_Status();
+
+/*
+ * FUNCTION: W25N_Check_Program_Failure
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef W25N_Check_Program_Failure();
+
+/*
+ * FUNCTION: W25N_Check_Erase_Failure
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef W25N_Check_Erase_Failure();
+
+/*
+ * FUNCTION: W25N_Read
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ *
+ * PARAMETERS:
+ *  p_buffer: ParameterNote1
+ *  page_address: ParameterNote2
+ *  column_address: ParameterNote3
+ *  num_of_bytes: ParameterNote4
+ */
+W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
+
+/*
+ * FUNCTION: W25N_Write
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ *
+ * PARAMETERS:
+ *  p_buffer: ParameterNote1
+ *  page_address: ParameterNote2
+ *  column_address: ParameterNote3
+ *  num_of_bytes: ParameterNote4
+ */
+W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
+
+/*
+ * FUNCTION: W25N_Erase
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ *
+ * PARAMETERS:
+ *  page_address: ParameterNote1
+ */
+W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
 
 //###############################################################################################
 //Helper Function Prototypes
@@ -346,5 +468,20 @@ W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, ui
  *  word_16bit: The 16-bit word to transmit to the W25N Flash.
  */
 W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
+
+/*
+ * FUNCTION: W25N_Page_Address_To_Block_Address
+ *
+ * DESCRIPTION: 
+ *
+ * NOTES:
+ *  - Note1
+ *  - Note2
+ *  - Note3
+ *
+ * PARAMETERS:
+ *  page_address: ParameterNote1
+ */
+uint16_t W25N_Page_Address_To_Block_Address(uint16_t page_address);
 
 #endif /* HARDWARE_PERIPHERALS_INC_W25N_DRIVER_H_ */
