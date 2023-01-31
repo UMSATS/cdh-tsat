@@ -724,7 +724,16 @@ W25N_StatusTypeDef W25N_Establish_BBM_Link(uint16_t logical_block_address, uint1
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != W25N_READY) goto error;
 
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+
     operation_status = W25N_Bad_Block_Management(logical_block_address, physical_block_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_READY) goto error;
+
+    operation_status = W25N_Write_Disable();
     
 error:
     return operation_status;
