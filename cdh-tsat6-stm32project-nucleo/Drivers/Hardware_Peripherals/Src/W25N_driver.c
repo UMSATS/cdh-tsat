@@ -549,7 +549,7 @@ W25N_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer)
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &dummy_byte, 1, W25N_SPI_DELAY);
 	if (operation_status != W25N_HAL_OK) goto error;
 
-	operation_status = HAL_SPI_Receive(&W25N_SPI, p_buffer, 3, W25N_SPI_DELAY);
+	operation_status = HAL_SPI_Receive(&W25N_SPI, p_buffer, 3, W25N_SPI_DELAY); //JEDEC ID is 3 bytes long
 
 error:
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);

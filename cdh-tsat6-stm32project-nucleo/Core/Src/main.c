@@ -121,7 +121,7 @@ int main(void)
     uint8_t bbm_lut_contents[W25N_BBM_LUT_NUM_OF_BYTES];
     operation_status = W25N_Read_BBM_LUT(bbm_lut_contents);
     if (operation_status != W25N_HAL_OK) goto error;
-    for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4)
+    for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4) //Each BBM LUT entry is 4 bytes long
     {
       printf("LBA: %x %x PBA: %x %x", bbm_lut_contents[i], bbm_lut_contents[i+1], bbm_lut_contents[i+2], bbm_lut_contents[i+3]);
     }
@@ -129,7 +129,7 @@ int main(void)
     //determine which blocks are bad
     uint8_t first_byte;
     uint16_t page_address;
-    for (int block_address = 0; block_address < 1024; block_address++)
+    for (int block_address = 0; block_address < 1024; block_address++) //There are 1024 blocks in the W25N
     {
         page_address = block_address * W25N_PAGES_PER_BLOCK;
         operation_status = W25N_Read(&first_byte, page_address, 0x0000, 1);
@@ -156,7 +156,7 @@ int main(void)
     uint8_t bbm_lut_contents[W25N_BBM_LUT_NUM_OF_BYTES];
     operation_status = W25N_Read_BBM_LUT(bbm_lut_contents);
     if (operation_status != W25N_HAL_OK) goto error;
-    for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4)
+    for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4) //Each BBM LUT entry is 4 bytes long
     {
       printf("LBA: %x %x PBA: %x %x", bbm_lut_contents[i], bbm_lut_contents[i+1], bbm_lut_contents[i+2], bbm_lut_contents[i+3]);
     }*/
@@ -236,7 +236,7 @@ int main(void)
 
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	HAL_Delay(1000);
+	  HAL_Delay(1000);
 
     /* USER CODE END WHILE */
 
