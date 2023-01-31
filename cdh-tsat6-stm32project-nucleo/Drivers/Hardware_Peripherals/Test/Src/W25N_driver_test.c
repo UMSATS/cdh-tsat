@@ -339,6 +339,24 @@ error:
 }
 
 //###############################################################################################
+//Public High-Level Unit Test Functions
+//###############################################################################################
+W25N_StatusTypeDef Test_W25N_High_Level_Read()
+{
+
+}
+
+W25N_StatusTypeDef Test_W25N_High_Level_Write()
+{
+
+}
+
+W25N_StatusTypeDef Test_W25N_High_Level_Erase()
+{
+
+}
+
+//###############################################################################################
 //Public Complete Unit Test Function
 //###############################################################################################
 W25N_StatusTypeDef Test_W25N()
@@ -366,6 +384,13 @@ W25N_StatusTypeDef Test_W25N()
     operation_status = Test_W25N_Load_Program_Data();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Execute_Erase();
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = Test_W25N_High_Level_Read();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = Test_W25N_High_Level_Write();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = Test_W25N_High_Level_Erase();
     if (operation_status != W25N_HAL_OK) goto error;
 
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);

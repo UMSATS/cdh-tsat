@@ -138,6 +138,45 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase();
 W25N_StatusTypeDef Test_W25N_Read();
 
 //###############################################################################################
+//Public High-Level Unit Test Function Prototypes
+//###############################################################################################
+/*
+ * FUNCTION: Test_W25N_High_Level_Read
+ *
+ * DESCRIPTION: Unit test function for the W25N_Read function.
+ *
+ * NOTES:
+ *  - Depends on passing: All low-level unit test functions
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef Test_W25N_High_Level_Read();
+
+/*
+ * FUNCTION: Test_W25N_High_Level_Write
+ *
+ * DESCRIPTION: Unit test function for the W25N_Write function.
+ *
+ * NOTES:
+ *  - Depends on passing: All low-level unit test functions
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef Test_W25N_High_Level_Write();
+
+/*
+ * FUNCTION: Test_W25N_High_Level_Erase
+ *
+ * DESCRIPTION: Unit test function for the W25N_Erase function.
+ *
+ * NOTES:
+ *  - Depends on passing: All low-level unit test functions
+ *  - Note2
+ *  - Note3
+ */
+W25N_StatusTypeDef Test_W25N_High_Level_Erase();
+
+//###############################################################################################
 //Public Complete Unit Test Function Prototype
 //###############################################################################################
 /*
