@@ -10,6 +10,9 @@
  * CREATED ON: Dec. 28, 2022
  */
 
+//###############################################################################################
+//Include Directives
+//###############################################################################################
 #include <stdint.h>
 #include <assert.h>
 #include <string.h>
@@ -38,7 +41,7 @@ W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, ui
 W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 
 //###############################################################################################
-//Unit Test Functions
+//Public Unit Test Functions
 //###############################################################################################
 W25N_StatusTypeDef Test_W25N_Device_Reset()
 {
@@ -336,7 +339,7 @@ error:
 }
 
 //###############################################################################################
-//Complete Unit Test Function
+//Public Complete Unit Test Function
 //###############################################################################################
 W25N_StatusTypeDef Test_W25N()
 {

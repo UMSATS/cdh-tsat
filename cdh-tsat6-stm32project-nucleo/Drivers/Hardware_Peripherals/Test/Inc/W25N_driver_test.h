@@ -14,7 +14,12 @@
 #define HARDWARE_PERIPHERALS_TEST_INC_W25N_DRIVER_TEST_H_
 
 //###############################################################################################
-//Unit Test Function Prototypes
+//Include Directives
+//###############################################################################################
+#include "W25N_driver.h"
+
+//###############################################################################################
+//Public Unit Test Function Prototypes
 //###############################################################################################
 /*
  * FUNCTION: Test_W25N_Device_Reset
@@ -133,7 +138,7 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase();
 W25N_StatusTypeDef Test_W25N_Read();
 
 //###############################################################################################
-//Complete Unit Test Function Prototype
+//Public Complete Unit Test Function Prototype
 //###############################################################################################
 /*
  * FUNCTION: Test_W25N
