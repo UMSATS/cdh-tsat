@@ -18,6 +18,24 @@
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 
+//###############################################################################################
+//Driver Function Prototypes
+//###############################################################################################
+W25N_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
+W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
+W25N_StatusTypeDef W25N_Write_Enable();
+W25N_StatusTypeDef W25N_Write_Disable();
+W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
+W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
+W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
+W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
+W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+
+//###############################################################################################
+//High-Level Driver Function Prototypes
+//###############################################################################################
+W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 
 //###############################################################################################
 //Unit Test Functions
