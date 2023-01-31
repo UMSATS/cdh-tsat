@@ -14,25 +14,13 @@
 //Include Directives
 //###############################################################################################
 #include <stdint.h>
+
 #include "stm32l4xx_hal.h"
 #include "W25N_driver.h"
 
 //###############################################################################################
 //Define Directives
 //###############################################################################################
-#define W25N_SPI          hspi1
-
-#define W25N_nCS_GPIO     GPIOB
-#define W25N_nCS_PIN      GPIO_PIN_15
-
-#define W25N_nWP_GPIO     GPIOC
-#define W25N_nWP_PIN      GPIO_PIN_6
-
-#define W25N_nHOLD_GPIO   GPIOC
-#define W25N_nHOLD_PIN    GPIO_PIN_7
-
-#define W25N_SPI_DELAY    HAL_MAX_DELAY
-
 #define W25N_DUMMY_BYTE                         0x00
 
 #define W25N_OPCODE_DEVICE_RESET                0xFF
@@ -74,7 +62,7 @@ extern SPI_HandleTypeDef W25N_SPI;
  *  register_address
  *  *p_buffer: Pointer to the buffer which will contain the BBM LUT.
  */
-static W25N_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
+W25N_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
 
 /*
  * FUNCTION: W25N_Write_Status_Register
@@ -87,7 +75,7 @@ static W25N_StatusTypeDef  W25N_Read_Status_Register(uint8_t register_address, u
  *  register_address
  *  register_value
  */
-static W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
+W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
 
 /*
  * FUNCTION: W25N_Write_Enable
@@ -100,7 +88,7 @@ static W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, u
  * PARAMETERS:
  *  No parameters.
  */
-static W25N_StatusTypeDef W25N_Write_Enable();
+W25N_StatusTypeDef W25N_Write_Enable();
 
 /*
  * FUNCTION: W25N_Write_Disable
@@ -112,7 +100,7 @@ static W25N_StatusTypeDef W25N_Write_Enable();
  * PARAMETERS:
  *  No parameters.
  */
-static W25N_StatusTypeDef W25N_Write_Disable();
+W25N_StatusTypeDef W25N_Write_Disable();
 
 /*
  * FUNCTION: W25N_Bad_Block_Management
@@ -135,7 +123,7 @@ static W25N_StatusTypeDef W25N_Write_Disable();
  *  logical_block_address: Address of the bad block which will be replaced by the good block.
  *  physical_block_address: Address of the good block which will replace the bad block.
  */
-static W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
+W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
 
 //NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
 //OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)
@@ -161,7 +149,7 @@ static W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_addre
  * PARAMETERS:
  *  page_address:
  */
-static W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
+W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Load_Program_Data
@@ -183,7 +171,7 @@ static W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
  *  column_address: W25N Data Buffer memory address for the 0th byte to load.
  *  num_of_bytes: Number of bytes to load from the C buffer into the W25N Data Buffer.
  */
-static W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
  * FUNCTION: W25N_Program_Execute
@@ -213,7 +201,7 @@ static W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t col
  * PARAMETERS:
  *  page_address: Address of the physical memory page to program the W25N Data Buffer into.
  */
-static W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
+W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Page_Data_Read
@@ -230,7 +218,7 @@ static W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address);
  * PARAMETERS:
  *  page_address: Address of the physical memory page to transfer into the W25N Data Buffer.
  */
-static W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
+W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
 
 /*
  * FUNCTION: W25N_Read_Data
@@ -252,7 +240,7 @@ static W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
  *  column_address: W25N Data Buffer memory address for the 0th byte to output.
  *  num_of_bytes: Number of bytes to output from the W25N Data Buffer into the C buffer.
  */
-static W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 //###############################################################################################
 //High-Level Driver Function Prototypes
@@ -267,7 +255,7 @@ static W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_addr
  *  - Note2
  *  - Note3
  */
-static W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
+W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 
 /*
  * FUNCTION: W25N_Check_LUT_Full
@@ -279,7 +267,7 @@ static W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
  *  - Note2
  *  - Note3
  */
-static W25N_StatusTypeDef W25N_Check_LUT_Full();
+W25N_StatusTypeDef W25N_Check_LUT_Full();
 
 /*
  * FUNCTION: W25N_Check_ECC_Status
@@ -291,7 +279,7 @@ static W25N_StatusTypeDef W25N_Check_LUT_Full();
  *  - Note2
  *  - Note3
  */
-static W25N_StatusTypeDef W25N_Check_ECC_Status();
+W25N_StatusTypeDef W25N_Check_ECC_Status();
 
 /*
  * FUNCTION: W25N_Check_Program_Failure
@@ -303,7 +291,7 @@ static W25N_StatusTypeDef W25N_Check_ECC_Status();
  *  - Note2
  *  - Note3
  */
-static W25N_StatusTypeDef W25N_Check_Program_Failure();
+W25N_StatusTypeDef W25N_Check_Program_Failure();
 
 /*
  * FUNCTION: W25N_Check_Erase_Failure
@@ -315,7 +303,7 @@ static W25N_StatusTypeDef W25N_Check_Program_Failure();
  *  - Note2
  *  - Note3
  */
-static W25N_StatusTypeDef W25N_Check_Erase_Failure();
+W25N_StatusTypeDef W25N_Check_Erase_Failure();
 
 //###############################################################################################
 //Helper Function Prototypes
@@ -328,12 +316,12 @@ static W25N_StatusTypeDef W25N_Check_Erase_Failure();
  * PARAMETERS:
  *  word_16bit: The 16-bit word to transmit to the W25N Flash.
  */
-static W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
+W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
 
 //###############################################################################################
 //Driver Functions
 //###############################################################################################
-static W25N_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer)
+W25N_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer)
 {
 	W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_READ_STATUS_REGISTER;
@@ -352,7 +340,7 @@ error:
 	return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value)
+W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value)
 {
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_STATUS_REGISTER;
@@ -372,7 +360,7 @@ error:
 	return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Write_Enable()
+W25N_StatusTypeDef W25N_Write_Enable()
 {
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_ENABLE;
@@ -387,7 +375,7 @@ static W25N_StatusTypeDef W25N_Write_Enable()
 	return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Write_Disable()
+W25N_StatusTypeDef W25N_Write_Disable()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_WRITE_DISABLE;
@@ -402,7 +390,7 @@ static W25N_StatusTypeDef W25N_Write_Disable()
 	return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address)
+W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_BAD_BLOCK_MANAGEMENT;
@@ -425,7 +413,7 @@ error:
 //NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
 //OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)
 //change variable names accordingly
-static W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address)
+W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_BLOCK_ERASE_128KB;
@@ -446,7 +434,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes)
+W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_LOAD_PROGRAM_DATA;
@@ -466,7 +454,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address)
+W25N_StatusTypeDef W25N_Program_Execute(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_PROGRAM_EXECUTE;
@@ -487,7 +475,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address)
+W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_PAGE_DATA_READ;
@@ -506,7 +494,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes)
+W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_READ_DATA;
@@ -591,7 +579,7 @@ error:
 //###############################################################################################
 //High-Level Driver Functions
 //###############################################################################################
-static W25N_StatusTypeDef W25N_Wait_Until_Not_Busy()
+W25N_StatusTypeDef W25N_Wait_Until_Not_Busy()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
@@ -614,7 +602,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Check_LUT_Full()
+W25N_StatusTypeDef W25N_Check_LUT_Full()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
@@ -631,7 +619,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Check_ECC_Status()
+W25N_StatusTypeDef W25N_Check_ECC_Status()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
@@ -649,7 +637,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Check_Program_Failure()
+W25N_StatusTypeDef W25N_Check_Program_Failure()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
@@ -666,7 +654,7 @@ error:
     return operation_status;
 }
 
-static W25N_StatusTypeDef W25N_Check_Erase_Failure()
+W25N_StatusTypeDef W25N_Check_Erase_Failure()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t register_contents;
@@ -757,7 +745,7 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
 //###############################################################################################
 //Helper Functions
 //###############################################################################################
-static W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit)
+W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit)
 {
     W25N_StatusTypeDef operation_status;
     uint8_t word_16bit_high_byte = word_16bit >> 8; //value is truncated & high byte stored

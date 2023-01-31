@@ -17,11 +17,25 @@
 //Include Directives
 //###############################################################################################
 #include <stdint.h>
+
 #include "stm32l4xx_hal.h"
 
 //###############################################################################################
 //Public Define Directives
 //###############################################################################################
+#define W25N_SPI          hspi1
+
+#define W25N_nCS_GPIO     GPIOB
+#define W25N_nCS_PIN      GPIO_PIN_15
+
+#define W25N_nWP_GPIO     GPIOC
+#define W25N_nWP_PIN      GPIO_PIN_6
+
+#define W25N_nHOLD_GPIO   GPIOC
+#define W25N_nHOLD_PIN    GPIO_PIN_7
+
+#define W25N_SPI_DELAY    HAL_MAX_DELAY
+
 #define W25N_PAGES_PER_BLOCK         64
 #define W25N_BBM_LUT_NUM_OF_BYTES    80 //(4 bytes per entry) * (20 entries) = 80 bytes
 
