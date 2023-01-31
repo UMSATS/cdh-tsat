@@ -14,7 +14,6 @@
 //Include Directives
 //###############################################################################################
 #include <stdint.h>
-
 #include "stm32l4xx_hal.h"
 #include "W25N_driver.h"
 
@@ -49,9 +48,6 @@
 #define W25N_OPCODE_PROGRAM_EXECUTE             0x10
 #define W25N_OPCODE_PAGE_DATA_READ              0x13
 #define W25N_OPCODE_READ_DATA                   0x03
-
-#define W25N_PAGES_PER_BLOCK         64
-#define W25N_BBM_LUT_NUM_OF_BYTES    80 //(4 bytes per entry) * (20 entries) = 80 bytes
 
 //###############################################################################################
 //Global Variable Declarations
