@@ -479,10 +479,9 @@ W25N_StatusTypeDef Test_W25N()
 {
     W25N_StatusTypeDef operation_status;
 
-    //set the write protect pin low to enable writing
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
-
     //the following functions are executed in order of dependencies
+
+    //unit test functions
     operation_status = Test_W25N_Read_JEDEC_ID();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_Read_Status_Register();
@@ -502,6 +501,7 @@ W25N_StatusTypeDef Test_W25N()
     operation_status = Test_W25N_Execute_Erase();
     if (operation_status != W25N_HAL_OK) goto error;
 
+    //high-level unit test functions
     operation_status = Test_W25N_High_Level_Read();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_High_Level_Write();
@@ -509,11 +509,8 @@ W25N_StatusTypeDef Test_W25N()
     operation_status = Test_W25N_High_Level_Erase();
     if (operation_status != W25N_HAL_OK) goto error;
 
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
-
     return W25N_HAL_OK;
 
 error:
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
     return operation_status;
 }

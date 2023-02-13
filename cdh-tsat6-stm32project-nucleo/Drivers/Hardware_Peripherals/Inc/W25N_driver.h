@@ -68,30 +68,26 @@ typedef enum
  * FUNCTION: W25N_Device_Reset
  *
  * DESCRIPTION: Terminates current internal operations and allows the device to return to
- *              its default power -on state and lose all the current volatile settings.
+ *              its default power-on state and lose all the current volatile settings.
  *
  * NOTES:
  *  - Device will take approximately tRST to reset. (tRST can be 5us - 500us)
- *  - Recommended to check the BUSY bit in Status Register before issuing the Reset
- *    command.
  *  - Data corruption may happen if there is an ongoing internal Erase or Program operation.
- *    Its recommended by the manufacturer to check the BUSY bit in Status Register before
+ *    It is recommended by the manufacturer to ensure the BUSY bit in Status Register is 0 before
  *    issuing the Reset command.
- *
- * PARAMETERS: No parameters.
  */
 W25N_StatusTypeDef W25N_Device_Reset();
 
 /*
  * FUNCTION: W25N_Read_JEDEC_ID
  *
- * DESCRIPTION: Reads the JEDEC ID allowing debugging.
+ * DESCRIPTION: Reads the JEDEC ID of the W25N device.
  *
  * NOTES:
- *  - This function can only read straight bytes.
+ *  - The JEDEC ID of the W25N01GVZEIG NAND Flash is 0xEFAA21
  *
  * PARAMETERS:
- *  *p_buffer
+ *  p_buffer: Pointer to the buffer which will contain the outputted JEDEC ID.
  */
 W25N_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer);
 
@@ -125,79 +121,94 @@ W25N_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
 /*
  * FUNCTION: W25N_Init
  *
- * DESCRIPTION: 
+ * DESCRIPTION: Initializes the W25N.
  *
  * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ *  - The function ensures the internal initialization is complete by delaying for 1 second.
+ *  - The states of nCS, nWP, & nHOLD are set:
+ *     nCS is set HIGH: this deselects the W25N
+ *     nWP is set LOW: this write protects the W25N
+ *     nHOLD is set HIGH: this disables the hold state, allowing normal device operations
+ *  - The states of the Status Register bits are set:
+ *     SR-1: SR-1 can be changed, all blocks are unlocked for writing, nWP will be used for 
+ *           write protection
+ *     SR-2: The OTP area is not locked, OTP access mode is not active, SR-1 is not locked, ECC
+ *           is enabled, the W25N is in buffer read mode
  */
 W25N_StatusTypeDef W25N_Init();
 
 /*
  * FUNCTION: W25N_Establish_BBM_Link
  *
- * DESCRIPTION: 
+ * DESCRIPTION: Adds a link between a logical block address (LBA) and a physical block address
+ *              (PBA) to the internal Bad Block Management (BBM) Look Up Table (LUT). The logical
+ *              block address is the address for the bad block that will be replaced by the good
+ *              block indicated by the physical block address.
  *
  * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ *  - This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
+ *  - Up to 20 links can be established in the LUT. If all 20 links have been written, the LUT-F
+ *    bit in the Status Register will become a 1, and no more LBA-PBA links can be established.
+ *    Therefore, prior to issuing the BBM command, the LUT-F bit should be checked to confirm if
+ *    spare links are still available in the LUT.
+ *  - Registering the same address in multiple PBAs is prohibited.
+ *  - The parameters are BLOCK ADDRESSES, not page addresses within the specific block
  *
  * PARAMETERS:
- *  logical_block_address: ParameterNote1
- *  physical_block_address: ParameterNote2
+ *  logical_block_address: Address of the bad block which will be replaced by the good block.
+ *  physical_block_address: Address of the good block which will replace the bad block.
  */
 W25N_StatusTypeDef W25N_Establish_BBM_Link(uint16_t logical_block_address, uint16_t physical_block_address);
 
 /*
  * FUNCTION: W25N_Read
  *
- * DESCRIPTION: 
+ * DESCRIPTION: Read data from a physical memory page and store the result in the given buffer.
  *
  * NOTES:
- *  - Note1
+ *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
  *  - Note2
  *  - Note3
  *
  * PARAMETERS:
- *  p_buffer: ParameterNote1
- *  page_address: ParameterNote2
- *  column_address: ParameterNote3
- *  num_of_bytes: ParameterNote4
+ *  p_buffer: Pointer to the buffer which will contain the output data bytes.
+ *  page_address: Address of the physical memory page to read the data from.
+ *  column_address: Starting byte address within the physical memory page to read the data from.
+ *  num_of_bytes: Number of bytes to read from the physical memory page.
  */
 W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
  * FUNCTION: W25N_Write
  *
- * DESCRIPTION: 
+ * DESCRIPTION: Write data to a physical memory page from the given buffer.
  *
  * NOTES:
- *  - Note1
+ *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
  *  - Note2
  *  - Note3
  *
  * PARAMETERS:
- *  p_buffer: ParameterNote1
- *  page_address: ParameterNote2
- *  column_address: ParameterNote3
- *  num_of_bytes: ParameterNote4
+ *  p_buffer: Pointer to the buffer which contains the data bytes to write.
+ *  page_address: Address of the physical memory page to write the data to.
+ *  column_address: Starting byte address within the physical memory page to write the data to.
+ *  num_of_bytes: Number of bytes to write to the physical memory page.
  */
 W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
  * FUNCTION: W25N_Erase
  *
- * DESCRIPTION: 
+ * DESCRIPTION: Sets all memory within a specified block (64Pages, 128KBytes) to the erased state
+ *              of all 1s (0xFF).
  *
  * NOTES:
- *  - Note1
+ *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
  *  - Note2
  *  - Note3
  *
  * PARAMETERS:
- *  page_address: ParameterNote1
+ *  page_address:
  */
 W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
 
@@ -207,15 +218,11 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
 /*
  * FUNCTION: W25N_Page_Address_To_Block_Address
  *
- * DESCRIPTION: 
- *
- * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ * DESCRIPTION: Returns the block address of the block which contains the specified physical 
+ *              memory page.
  *
  * PARAMETERS:
- *  page_address: ParameterNote1
+ *  page_address: The physical memory page address.
  */
 uint16_t W25N_Page_Address_To_Block_Address(uint16_t page_address);
 

@@ -41,7 +41,6 @@ W25N_StatusTypeDef Test_W25N_Device_Reset();
  *
  * NOTES:
  *  - Not dependent on passing any tests.
- *  - Note2
  */
 W25N_StatusTypeDef Test_W25N_Read_JEDEC_ID();
 
@@ -103,7 +102,6 @@ W25N_StatusTypeDef Test_W25N_Write_Disable();
  *
  * NOTES:
  *  - Depends on passing: Test_W25N_Read
- *  - Note2
  */
 W25N_StatusTypeDef Test_W25N_Load_Program_Data();
 
@@ -147,8 +145,11 @@ W25N_StatusTypeDef Test_W25N_Read();
  *
  * NOTES:
  *  - Depends on passing: All low-level unit test functions
- *  - Note2
- *  - Note3
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
+ *    enable latch is reset.
+ *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
+ *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
+ *    used for this unit test.
  */
 W25N_StatusTypeDef Test_W25N_High_Level_Read();
 
@@ -159,8 +160,11 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read();
  *
  * NOTES:
  *  - Depends on passing: All low-level unit test functions, Test_W25N_High_Level_Read
- *  - Note2
- *  - Note3
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
+ *    enable latch is reset.
+ *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
+ *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
+ *    used for this unit test.
  */
 W25N_StatusTypeDef Test_W25N_High_Level_Write();
 
@@ -171,8 +175,11 @@ W25N_StatusTypeDef Test_W25N_High_Level_Write();
  *
  * NOTES:
  *  - Depends on passing: All low-level unit test functions, Test_W25N_High_Level_Read, Test_W25N_High_Level_Write
- *  - Note2
- *  - Note3
+ *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
+ *    enable latch is reset.
+ *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
+ *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
+ *    used for this unit test.
  */
 W25N_StatusTypeDef Test_W25N_High_Level_Erase();
 
@@ -185,8 +192,8 @@ W25N_StatusTypeDef Test_W25N_High_Level_Erase();
  * DESCRIPTION: Complete unit test function for the W25N01GVZEIG NAND Flash STM32L4 driver.
  *
  * NOTES:
- *  - Note1
- *  - Note2
+ *  - Executes all individual unit test functions & high-level unit test functions.
+ *  - The individual unit tests are executed in the correct order of dependencies.
  */
 W25N_StatusTypeDef Test_W25N();
 

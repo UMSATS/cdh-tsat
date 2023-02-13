@@ -48,57 +48,57 @@ extern SPI_HandleTypeDef W25N_SPI;
 /*
  * FUNCTION: W25N_Read_Status_Register
  *
- * DESCRIPTION: This function allows the 8-bit Status Registers to be read. The bits inside
- *              the status register then are shifted out on the DO pin at the falling edge
- *              of CLK with the most significant bit (MSB).
+ * DESCRIPTION: Reads the specified 8-bit Status Register.
  *
  * NOTES:
- *  - This instruction may be used at any time, even while a Program or Erase Cycle is in
- *    progress, allowing the BUSY status bit to be checked to determine when the cycle is
- *    complete and if the device can handle another instruction.
+ *  - This instruction may be used at any time, even while the BUSY status bit is 1.
  *  - The Status Register can be read continuously.
  *
  * PARAMETERS:
- *  register_address
- *  *p_buffer: Pointer to the buffer which will contain the BBM LUT.
+ *  register_address: The Status Register address. (SR-1 : 0xA0, SR-2 : 0xB0, SR-3 : 0xC0)
+ *  p_buffer: Pointer to the buffer which will contain the outputted Status Register byte.
  */
 W25N_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
 
 /*
  * FUNCTION: W25N_Write_Status_Register
  *
- * DESCRIPTION: The Write Status Register Instruction allows the Status Registers to be written.
+ * DESCRIPTION: Write to the specified 8-bit Status Register.
  *
  * NOTES:
- *  -
+ *  - The writable Status Register bits include:
+ *      Status Register-1: SRP[1:0], TB, BP[3:0], WP-E
+ *      Status Register-2: OTP-L, OTP-E, SR1-L, ECC-E, BUF
+ *  - All other Status Register bits are read-only and will not be affected by the Write Status 
+ *    Register instruction.
+ * 
  * PARAMETERS:
- *  register_address
- *  register_value
+ *  register_address: The Status Register address. (SR-1 : 0xA0, SR-2 : 0xB0, SR-3 : 0xC0)
+ *  register_value: The value to be written to the Status Register.
  */
 W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
 
 /*
  * FUNCTION: W25N_Write_Enable
  *
- * DESCRIPTION: This function will set the Write Enable Latch.
+ * DESCRIPTION: Sets the Write Enable Latch (WEL) in Status Register-1 to the value 1.
  *
  * NOTES:
- *  -    The Write Enable Latch (WEL) must be set prior to every Page Program, Quad Page Program,
- *  	 Bad Block Management instruction.
- * PARAMETERS:
- *  No parameters.
+ *  - The WEL must be set prior to every Page Program, Block Erase, & Bad Block Management instruction.
  */
 W25N_StatusTypeDef W25N_Write_Enable();
 
 /*
  * FUNCTION: W25N_Write_Disable
  *
- * DESCRIPTION: This function will reset the Write Enable Latch bit in the Status Register to 0.
+ * DESCRIPTION: Resets the Write Enable Latch (WEL) in Status Register-1 to the value 0.
  *
  * NOTES:
- *  -
- * PARAMETERS:
- *  No parameters.
+ *  - A WEL value of 0 will prevent the Page Program, Block Erase, & Bad Block Management instructions 
+ *    from executing.
+ *  - The WEL is automatically reset after Power-up.
+ *  - The WEL is automatically reset after completion of the Page Program, Block Erase, Reset, & Bad 
+ *    Block Management instructions.
  */
 W25N_StatusTypeDef W25N_Write_Disable();
 
@@ -154,22 +154,22 @@ W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
 /*
  * FUNCTION: W25N_Load_Program_Data
  *
- * DESCRIPTION: Loads data into the W25N Data Buffer from a given C buffer. Resets the unused
- *              data bytes in the W25N Data Buffer to 0xFF.
+ * DESCRIPTION: Loads data into the W25N Data Buffer from a given buffer. Resets the unused data
+ *              bytes in the W25N Data Buffer to 0xFF.
  *
  * NOTES:
  *  - A Write Enable command must be executed before the device will accept the Load Program Data
  *    command.
- *  - The 0th data byte in the C buffer will be loaded into the W25N Data Buffer at the given
+ *  - The 0th data byte in the buffer will be loaded into the W25N Data Buffer at the given
  *    column address. The 1st data byte will be loaded at the given column address + 1, etc.
  *  - ECC will be used for each page, making each page effectively have 2048 data bytes.
  *    Therefore, the W25N Data Buffer will also effectively have 2048 data bytes. Any sent data
  *    bytes that exceed this addressable range will be discarded.
  *
  * PARAMETERS:
- *  p_buffer: Pointer to the C buffer which contains the data bytes to load.
+ *  p_buffer: Pointer to the buffer which contains the data bytes to load.
  *  column_address: W25N Data Buffer memory address for the 0th byte to load.
- *  num_of_bytes: Number of bytes to load from the C buffer into the W25N Data Buffer.
+ *  num_of_bytes: Number of bytes to load from the buffer into the W25N Data Buffer.
  */
 W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
@@ -224,21 +224,21 @@ W25N_StatusTypeDef W25N_Page_Data_Read(uint16_t page_address);
  * FUNCTION: W25N_Read_Data
  *
  * DESCRIPTION: Reads one or more data bytes from the W25N Data Buffer and stores the result in a
- *              given C buffer.
+ *              given buffer.
  *
  * NOTES:
  *  - ECC will be used for each page, making the W25N Data Buffer effectively 2048 data bytes
  *    followed by 64 ECC bytes (2112 total bytes).
  *  - Buffer Read Mode will be used, therefore once the last data byte is output from the W25N
  *    Data Buffer, the output pin will become Hi-Z state.
- *  - The 0th data byte in the C buffer will be loaded from the W25N Data Buffer at the given
+ *  - The 0th data byte in the buffer will be loaded from the W25N Data Buffer at the given
  *    column address. The 1st data byte will be loaded from the W25N Data Buffer at the given
  *    column address + 1, etc.
  *
  * PARAMETERS:
- *  p_buffer: Pointer to the C buffer which will contain the output data bytes.
+ *  p_buffer: Pointer to the buffer which will contain the output data bytes.
  *  column_address: W25N Data Buffer memory address for the 0th byte to output.
- *  num_of_bytes: Number of bytes to output from the W25N Data Buffer into the C buffer.
+ *  num_of_bytes: Number of bytes to output from the W25N Data Buffer into the buffer.
  */
 W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
@@ -248,60 +248,61 @@ W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, ui
 /*
  * FUNCTION: W25N_Wait_Until_Not_Busy
  *
- * DESCRIPTION: 
+ * DESCRIPTION: Waits until the BUSY status bit is 0 (not busy).
  *
  * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ *  - Waits a maximum of 10ms. This is the maximum possible time the W25N can be busy. 
+ *  - This function blocks using the HAL_Delay function.
+ * 
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  - W25N_READY: The W25N is no longer busy.
+ *  - W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
  */
 W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 
 /*
  * FUNCTION: W25N_Check_LUT_Full
  *
- * DESCRIPTION: 
- *
- * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ * DESCRIPTION: Checks if the Bad Block Management (BBM) Look Up Table (LUT) is full.
+ * 
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  - W25N_LUT_HAS_ROOM: There is still room to add to the BBM LUT.
+ *  - W25N_LUT_FULL: The BBM LUT is full.
  */
 W25N_StatusTypeDef W25N_Check_LUT_Full();
 
 /*
  * FUNCTION: W25N_Check_ECC_Status
  *
- * DESCRIPTION: 
- *
- * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ * DESCRIPTION: Check the ECC status of the most recent read operation.
+ * 
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  - W25N_ECC_CORRECTION_UNNECESSARY: No ECC correction was necessary.
+ *  - W25N_ECC_CORRECTION_OK: There were 1-4 bit errors for the page which were successfully corrected.
+ *  - W25N_ECC_CORRECTION_ERROR: ECC correction was unsuccessful since there were more than 4 bit 
+ *                               errors for the page.
  */
 W25N_StatusTypeDef W25N_Check_ECC_Status();
 
 /*
  * FUNCTION: W25N_Check_Program_Failure
  *
- * DESCRIPTION: 
- *
- * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ * DESCRIPTION: Check if the most recent program operation was successful.
+ * 
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  - W25N_PROGRAM_OK: The most recent program operation was successful.
+ *  - W25N_PROGRAM_ERROR: The most recent program operation was unsuccessful.
  */
 W25N_StatusTypeDef W25N_Check_Program_Failure();
 
 /*
  * FUNCTION: W25N_Check_Erase_Failure
  *
- * DESCRIPTION: 
- *
- * NOTES:
- *  - Note1
- *  - Note2
- *  - Note3
+ * DESCRIPTION: Check if the most recent erase operation was successful.
+ * 
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  - W25N_ERASE_OK: The most recent erase operation was successful.
+ *  - W25N_ERASE_ERROR: The most recent erase operation was unsuccessful.
  */
 W25N_StatusTypeDef W25N_Check_Erase_Failure();
 
@@ -674,8 +675,6 @@ error:
 //###############################################################################################
 //Public High-Level Driver Functions
 //###############################################################################################
-//make sure to note in function description that this unlocks all blocks for writing
-//make sure to note in function desciptiion what configuration is set by the status register writes
 W25N_StatusTypeDef W25N_Init()
 {
     W25N_StatusTypeDef operation_status;
