@@ -203,11 +203,16 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     W25N_StatusTypeDef operation_status;
     uint16_t column_address = 0x0000;
     uint16_t page_address = 0xFFFF;
-    uint8_t zero_data_array[2048] = {0x00}; //entire array will be initialized to 0x00
+    uint8_t erased_data_array[2048]; //entire array will be initialized to 0xFF
     uint8_t data_array[2048];
     uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
     uint8_t data_buffer_contents[2048];
     
+    for (int i = 0; i < data_array_size; i++)
+    {
+        erased_data_array[i] = 0xFF;
+    }
+
     uint8_t counter = 0xFF;
     for (int i = 0; i < data_array_size; i++)
     {
@@ -231,7 +236,7 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
 
-    assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
+    assert(memcmp(erased_data_array, data_buffer_contents, data_array_size) == 0);
 
     //test program execute
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
@@ -265,7 +270,7 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
 
-    assert(memcmp(zero_data_array, data_buffer_contents, data_array_size) == 0);
+    assert(memcmp(erased_data_array, data_buffer_contents, data_array_size) == 0);
 
 error:
     return operation_status;
@@ -343,17 +348,128 @@ error:
 //###############################################################################################
 W25N_StatusTypeDef Test_W25N_High_Level_Read()
 {
+    W25N_StatusTypeDef operation_status;
+    uint16_t column_address = 0x0000;
+    uint16_t page_address = 0xFFFF;
+    uint8_t data_array[2048];
+    uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
+    uint8_t data_buffer_contents[2048];
 
+    uint8_t counter = 0x00;
+    for (int i = 0; i < data_array_size; i++)
+    {
+        data_array[i] = counter;
+        counter += 2;
+    }
+    
+    //erase the test page
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Block_Erase_128KB(page_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //write test data to the test page
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Program_Execute(page_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //read test data from the test page
+    operation_status = W25N_Read(data_buffer_contents, page_address, column_address, data_array_size);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
+
+error:
+    return operation_status;
 }
 
 W25N_StatusTypeDef Test_W25N_High_Level_Write()
 {
+    W25N_StatusTypeDef operation_status;
+    uint16_t column_address = 0x0000;
+    uint16_t page_address = 0xFFFF;
+    uint8_t data_array[2048];
+    uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
+    uint8_t data_buffer_contents[2048];
 
+    uint8_t counter = 0x00;
+    for (int i = 0; i < data_array_size; i++)
+    {
+        data_array[i] = counter;
+        counter -= 2;
+    }
+    
+    //erase the test page
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Block_Erase_128KB(page_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //write test data to the test page
+    operation_status = W25N_Write(data_array, page_address, column_address, data_array_size);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //read test data from the test page
+    operation_status = W25N_Read(data_buffer_contents, page_address, column_address, data_array_size);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
+
+error:
+    return operation_status;
 }
 
 W25N_StatusTypeDef Test_W25N_High_Level_Erase()
 {
+    W25N_StatusTypeDef operation_status;
+    uint16_t column_address = 0x0000;
+    uint16_t page_address = 0xFFFF;
+    uint8_t erased_data_array[2048]; //entire array will be initialized to 0xFF
+    uint8_t data_array[2048];
+    uint16_t data_array_size = sizeof(data_array) / sizeof(data_array[0]);
+    uint8_t data_buffer_contents[2048];
 
+    for (int i = 0; i < data_array_size; i++)
+    {
+        erased_data_array[i] = 0xFF;
+    }
+
+    uint8_t counter = 0x00;
+    for (int i = 0; i < data_array_size; i++)
+    {
+        data_array[i] = counter;
+        counter += 3;
+    }
+    
+    //erase the test page
+    operation_status = W25N_Erase(page_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //write test data to the test page
+    operation_status = W25N_Write(data_array, page_address, column_address, data_array_size);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //erase the test page
+    operation_status = W25N_Erase(page_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    //read test data from the test page
+    operation_status = W25N_Read(data_buffer_contents, page_address, column_address, data_array_size);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    assert(memcmp(erased_data_array, data_buffer_contents, data_array_size) == 0);
+
+error:
+    return operation_status;
 }
 
 //###############################################################################################

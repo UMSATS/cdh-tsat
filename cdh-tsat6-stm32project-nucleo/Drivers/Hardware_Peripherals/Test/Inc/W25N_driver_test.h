@@ -158,7 +158,7 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read();
  * DESCRIPTION: Unit test function for the W25N_Write function.
  *
  * NOTES:
- *  - Depends on passing: All low-level unit test functions
+ *  - Depends on passing: All low-level unit test functions, Test_W25N_High_Level_Read
  *  - Note2
  *  - Note3
  */
@@ -170,7 +170,7 @@ W25N_StatusTypeDef Test_W25N_High_Level_Write();
  * DESCRIPTION: Unit test function for the W25N_Erase function.
  *
  * NOTES:
- *  - Depends on passing: All low-level unit test functions
+ *  - Depends on passing: All low-level unit test functions, Test_W25N_High_Level_Read, Test_W25N_High_Level_Write
  *  - Note2
  *  - Note3
  */
