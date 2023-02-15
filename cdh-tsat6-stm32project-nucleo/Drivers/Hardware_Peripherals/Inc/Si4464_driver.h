@@ -37,6 +37,18 @@ typedef struct {
 
 
 /*
+ * TODO: Add detail to function description
+ * Writes bytes sent to it to the TX FIFO
+ */
+HAL_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData);
+
+/*
+ * TODO: Add detail to function description
+ * Will send a message using the radio
+ */
+HAL_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData);
+
+/*
  * Using the SPI in an interrupt mode means we must setup callback functions
  * for the TX and RX. The functions below are the Transmit, Receive and Transmit Receive Respectively
  */
