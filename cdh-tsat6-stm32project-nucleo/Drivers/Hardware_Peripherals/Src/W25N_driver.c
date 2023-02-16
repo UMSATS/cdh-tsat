@@ -775,7 +775,21 @@ error:
 //change parameter name if it turns out to be block address
 W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
 {
+    W25N_StatusTypeDef operation_status;
 
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_READY) goto error;
+
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+    
+    operation_status = W25N_Block_Erase_128KB(page_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = W25N_Check_Erase_Failure();
+
+error:
+    return operation_status;
 }
 
 //###############################################################################################
