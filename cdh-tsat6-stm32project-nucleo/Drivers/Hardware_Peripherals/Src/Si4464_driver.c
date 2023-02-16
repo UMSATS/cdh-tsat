@@ -119,9 +119,13 @@ HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_by
 	}
 
 	// TODO: Get a timeout here? -NJR
-	while (!Si4464_Get_CTS()) {
-		// Nothing.
-	}
+	// TODO: This may be unnecessary, but what we are trying to do is only bring Si4464_Nsel high if CTS Fails. Leave Nsel low if not. -NJR
+	uint32_t cts = 0;
+	do {
+		Si4464_Nsel(1);
+		Si4464_Nsel(0);
+		cts = Si4464_Get_CTS();
+	} while (!cts);
 	
 	if (return_size != 0) {
 		operation_status = Radio_SPI_Receive_Message(returned_bytes, return_size);
@@ -171,21 +175,21 @@ void Si4464_Reset_Device()
 {
 	// Page 21 of the datasheet implies that the minimum time is 10us? -NJR
 	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_SET);
-	HAL_Delay(1); //  TODO: Fix when we have RTOS set up. -NJR
+	HAL_Delay(50); //  TODO: Fix when we have RTOS set up. -NJR
 	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_RESET);
+	HAL_Delay(50);
 }
 
 
 bool Si4464_Get_CTS() {
-	uint8_t command = SI4464_READ_COMMAND_BUFFER;
-	uint8_t response = 0x00;
+	uint8_t command[] = {SI4464_READ_COMMAND_BUFFER, 0x00};
+	uint8_t response[] = {0x00, 0x00};
 
 	// HACK ALERT!!!!!
 	// This does not use the HAL_StatusTypeDef for returning! maybe figure out a returnable struct for error handling? -NJR
-	Radio_SPI_Transmit_Message(&command, 1);
-	Radio_SPI_Receive_Message(&response, 1);
+	Radio_SPI_Transmit_Receive_Message(command, response, 2);
 
-	return (response == 0xFF);
+	return (response[1] == 0xFF);
 }
 
 
