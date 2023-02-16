@@ -725,13 +725,50 @@ error:
 //should check ECC status after read operation & return status (higher level code takes care of what to do)
 W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
 {
+	W25N_StatusTypeDef operation_status;
 
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Page_Data_Read(page_address);
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Read_Data(p_buffer, column_address, num_of_bytes);
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Check_ECC_Status();
+
+error:
+	return operation_status;
 }
 
 //should check program failure & return status (higher level code takes care of what to do)
 W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
 {
+	W25N_StatusTypeDef operation_status;
 
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Write_Enable();
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Load_Program_Data(p_buffer, column_address, num_of_bytes);
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Program_Execute(page_address);
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Check_Program_Failure();
+
+error:
+	return operation_status;
 }
 
 //should check erase failure & return status (higher level code takes care of what to do)
