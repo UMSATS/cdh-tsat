@@ -255,8 +255,8 @@ W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, ui
  *  - This function blocks using the HAL_Delay function.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  - W25N_READY: The W25N is no longer busy.
- *  - W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
+ *  W25N_READY: The W25N is no longer busy.
+ *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
  */
 W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 
@@ -266,8 +266,8 @@ W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
  * DESCRIPTION: Checks if the Bad Block Management (BBM) Look Up Table (LUT) is full.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  - W25N_LUT_HAS_ROOM: There is still room to add to the BBM LUT.
- *  - W25N_LUT_FULL: The BBM LUT is full.
+ *  W25N_LUT_HAS_ROOM: There is still room to add to the BBM LUT.
+ *  W25N_LUT_FULL: The BBM LUT is full.
  */
 W25N_StatusTypeDef W25N_Check_LUT_Full();
 
@@ -277,10 +277,10 @@ W25N_StatusTypeDef W25N_Check_LUT_Full();
  * DESCRIPTION: Check the ECC status of the most recent read operation.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  - W25N_ECC_CORRECTION_UNNECESSARY: No ECC correction was necessary.
- *  - W25N_ECC_CORRECTION_OK: There were 1-4 bit errors for the page which were successfully corrected.
- *  - W25N_ECC_CORRECTION_ERROR: ECC correction was unsuccessful since there were more than 4 bit 
- *                               errors for the page.
+ *  W25N_ECC_CORRECTION_UNNECESSARY: No ECC correction was necessary.
+ *  W25N_ECC_CORRECTION_OK: There were 1-4 bit errors for the page which were successfully corrected.
+ *  W25N_ECC_CORRECTION_ERROR: ECC correction was unsuccessful since there were more than 4 bit 
+ *                             errors for the page.
  */
 W25N_StatusTypeDef W25N_Check_ECC_Status();
 
@@ -290,8 +290,8 @@ W25N_StatusTypeDef W25N_Check_ECC_Status();
  * DESCRIPTION: Check if the most recent program operation was successful.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  - W25N_PROGRAM_OK: The most recent program operation was successful.
- *  - W25N_PROGRAM_ERROR: The most recent program operation was unsuccessful.
+ *  W25N_PROGRAM_OK: The most recent program operation was successful.
+ *  W25N_PROGRAM_ERROR: The most recent program operation was unsuccessful.
  */
 W25N_StatusTypeDef W25N_Check_Program_Failure();
 
@@ -301,8 +301,8 @@ W25N_StatusTypeDef W25N_Check_Program_Failure();
  * DESCRIPTION: Check if the most recent erase operation was successful.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  - W25N_ERASE_OK: The most recent erase operation was successful.
- *  - W25N_ERASE_ERROR: The most recent erase operation was unsuccessful.
+ *  W25N_ERASE_OK: The most recent erase operation was successful.
+ *  W25N_ERASE_ERROR: The most recent erase operation was unsuccessful.
  */
 W25N_StatusTypeDef W25N_Check_Erase_Failure();
 
@@ -677,7 +677,7 @@ W25N_StatusTypeDef W25N_Init()
     uint8_t register_2_contents = 0b00011000;
     uint8_t register_2_address = 0xB0;
 
-    HAL_Delay(1); //Ensure the W25N has completed internal initialization (~500us)
+    HAL_Delay(10); //Ensure the W25N has completed internal initialization (~5ms)
 
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET); //deselect the W25N
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET); //disable all write/program/erase functionality
@@ -783,6 +783,32 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
     operation_status = W25N_Check_Erase_Failure();
 
 error:
+    return operation_status;
+}
+
+W25N_StatusTypeDef W25N_Reset()
+{
+    W25N_StatusTypeDef operation_status;
+    uint8_t register_1_contents = 0b00000010;
+    uint8_t register_1_address = 0xA0;
+    uint8_t register_2_contents = 0b00011000;
+    uint8_t register_2_address = 0xB0;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_READY) goto error;
+
+    operation_status = W25N_Device_Reset();
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = W25N_Write_Status_Register(register_1_address, register_1_contents);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = W25N_Write_Status_Register(register_2_address, register_2_contents);
+
+error:
+    //All called functions will deselect the W25N under normal operations or if an error occurs
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET); //disable all write/program/erase functionality
+    HAL_GPIO_WritePin(W25N_nHOLD_GPIO, W25N_nHOLD_PIN, GPIO_PIN_SET); //allow device operations (disable hold state)
     return operation_status;
 }
 
