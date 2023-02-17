@@ -346,7 +346,6 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_STATUS_REGISTER;
 
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -357,7 +356,6 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
 
 error:
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -366,13 +364,11 @@ W25N_StatusTypeDef W25N_Write_Enable()
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_ENABLE;
 
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
 
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -381,13 +377,11 @@ W25N_StatusTypeDef W25N_Write_Disable()
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_WRITE_DISABLE;
 
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
 
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -701,11 +695,11 @@ W25N_StatusTypeDef W25N_Establish_BBM_Link(uint16_t logical_block_address, uint1
 {
     W25N_StatusTypeDef operation_status;
 
-    operation_status = W25N_Check_LUT_Full();
-    if (operation_status != W25N_LUT_HAS_ROOM) goto error;
-
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != W25N_READY) goto error;
+
+    operation_status = W25N_Check_LUT_Full();
+    if (operation_status != W25N_LUT_HAS_ROOM) goto error;
 
     operation_status = W25N_Write_Enable();
     if (operation_status != W25N_HAL_OK) goto error;
@@ -722,7 +716,6 @@ error:
     return operation_status;
 }
 
-//should check ECC status after read operation & return status (higher level code takes care of what to do)
 W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
 {
 	W25N_StatusTypeDef operation_status;
@@ -745,7 +738,6 @@ error:
 	return operation_status;
 }
 
-//should check program failure & return status (higher level code takes care of what to do)
 W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
 {
 	W25N_StatusTypeDef operation_status;
@@ -771,7 +763,6 @@ error:
 	return operation_status;
 }
 
-//should check erase failure & return status (higher level code takes care of what to do)
 //change parameter name if it turns out to be block address
 W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
 {
@@ -785,6 +776,9 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
     
     operation_status = W25N_Block_Erase_128KB(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Check_Erase_Failure();
 
