@@ -46,6 +46,20 @@ extern SPI_HandleTypeDef W25N_SPI;
 //Driver Function Prototypes
 //###############################################################################################
 /*
+ * FUNCTION: W25N_Device_Reset
+ *
+ * DESCRIPTION: Terminates current internal operations and allows the device to return to its 
+ *              default power-on state and lose all the current volatile settings.
+ *
+ * NOTES:
+ *  - This function ensures the internal reset is complete by delaying for 1 ms. (tRST can be 5us - 500us)
+ *  - Data corruption may happen if there is an ongoing internal Erase or Program operation.
+ *    It is recommended by the manufacturer to ensure the BUSY bit in Status Register is 0 before
+ *    issuing the Reset command. THIS FUNCTION DOES NOT CHECK THE BUSY BIT BEFORE RESETTING.
+ */
+W25N_StatusTypeDef W25N_Device_Reset();
+
+/*
  * FUNCTION: W25N_Read_Status_Register
  *
  * DESCRIPTION: Reads the specified 8-bit Status Register.
@@ -322,6 +336,23 @@ W25N_StatusTypeDef W25N_SPI_Transmit_Word_16Bit(uint16_t word_16bit);
 //###############################################################################################
 //Driver Functions
 //###############################################################################################
+W25N_StatusTypeDef W25N_Device_Reset()
+{
+    W25N_StatusTypeDef operation_status;
+	uint8_t opcode = W25N_OPCODE_DEVICE_RESET;
+
+	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    HAL_Delay(1); //The device needs max 500us to reset (no commands accepted during this time)
+
+error:
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+	return operation_status;
+}
+
 W25N_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer)
 {
 	W25N_StatusTypeDef operation_status;
@@ -346,6 +377,7 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_STATUS_REGISTER;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
@@ -356,6 +388,7 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
 
 error:
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -364,11 +397,13 @@ W25N_StatusTypeDef W25N_Write_Enable()
     W25N_StatusTypeDef operation_status;
 	uint8_t opcode = W25N_OPCODE_WRITE_ENABLE;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
 
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -377,11 +412,13 @@ W25N_StatusTypeDef W25N_Write_Disable()
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_WRITE_DISABLE;
 
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
 
 	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
 
 	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
 	return operation_status;
 }
 
@@ -514,23 +551,6 @@ error:
 //###############################################################################################
 //Public Driver Functions
 //###############################################################################################
-W25N_StatusTypeDef W25N_Device_Reset()
-{
-    W25N_StatusTypeDef operation_status;
-	uint8_t opcode = W25N_OPCODE_DEVICE_RESET;
-
-	HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
-
-	operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    HAL_Delay(1); //The device needs max 500us to reset (no commands accepted during this time)
-
-error:
-    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
-	return operation_status;
-}
-
 W25N_StatusTypeDef W25N_Read_JEDEC_ID(uint8_t *p_buffer)
 {
 	W25N_StatusTypeDef operation_status;
@@ -786,7 +806,7 @@ error:
     return operation_status;
 }
 
-W25N_StatusTypeDef W25N_Reset()
+W25N_StatusTypeDef W25N_Reset_And_Init()
 {
     W25N_StatusTypeDef operation_status;
     uint8_t register_1_contents = 0b00000010;

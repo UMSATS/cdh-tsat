@@ -65,20 +65,6 @@ typedef enum
 //Public Driver Function Prototypes
 //###############################################################################################
 /*
- * FUNCTION: W25N_Device_Reset
- *
- * DESCRIPTION: Terminates current internal operations and allows the device to return to
- *              its default power-on state and lose all the current volatile settings.
- *
- * NOTES:
- *  - The function ensures the internal reset is complete by delaying for 1 ms. (tRST can be 5us - 500us)
- *  - Data corruption may happen if there is an ongoing internal Erase or Program operation.
- *    It is recommended by the manufacturer to ensure the BUSY bit in Status Register is 0 before
- *    issuing the Reset command.
- */
-W25N_StatusTypeDef W25N_Device_Reset();
-
-/*
  * FUNCTION: W25N_Read_JEDEC_ID
  *
  * DESCRIPTION: Reads the JEDEC ID of the W25N device.
@@ -124,7 +110,7 @@ W25N_StatusTypeDef W25N_Read_BBM_LUT(uint8_t *p_buffer);
  * DESCRIPTION: Initializes the W25N.
  *
  * NOTES:
- *  - The function ensures the internal initialization is complete by delaying for 10 ms.
+ *  - This high-level function ensures the internal initialization is complete by delaying for 10 ms.
  *  - The states of nCS, nWP, & nHOLD are set:
  *     nCS is set HIGH: this deselects the W25N
  *     nWP is set LOW: this write protects the W25N
@@ -146,7 +132,8 @@ W25N_StatusTypeDef W25N_Init();
  *              block indicated by the physical block address.
  *
  * NOTES:
- *  - This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
+ *  - This high-level function waits until the W25N is not busy & sets the WEL before establishing 
+ *    the BBM link.
  *  - Up to 20 links can be established in the LUT. If all 20 links have been written, the LUT-F
  *    bit in the Status Register will become a 1, and no more LBA-PBA links can be established.
  *    Therefore, prior to issuing the BBM command, the LUT-F bit should be checked to confirm if
@@ -159,9 +146,7 @@ W25N_StatusTypeDef W25N_Init();
  *  physical_block_address: Address of the good block which will replace the bad block.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  W25N_READY: The W25N is no longer busy.
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
- *  W25N_LUT_HAS_ROOM: There is still room to add to the BBM LUT.
  *  W25N_LUT_FULL: The BBM LUT is full.
  */
 W25N_StatusTypeDef W25N_Establish_BBM_Link(uint16_t logical_block_address, uint16_t physical_block_address);
@@ -169,12 +154,15 @@ W25N_StatusTypeDef W25N_Establish_BBM_Link(uint16_t logical_block_address, uint1
 /*
  * FUNCTION: W25N_Read
  *
- * DESCRIPTION: Read data from a physical memory page and store the result in the given buffer.
+ * DESCRIPTION: Read data from a single physical memory page and store the result in the given buffer.
  *
  * NOTES:
- *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
- *  - Note2
- *  - Note3
+ *  - This high-level function waits until the W25N is not busy before issuing the read commands.
+ *  - This high-level function checks the ECC status of the data after the read is complete.
+ *  - ECC will be used for each page, making each page effectively 2048 data bytes followed by 64 
+ *    ECC bytes (2112 total bytes).
+ *  - The 0th data byte in the buffer will be loaded from the page at the given column address. 
+ *    The 1st data byte in the buffer will be loaded from the page at the given column address + 1, etc.
  *
  * PARAMETERS:
  *  p_buffer: Pointer to the buffer which will contain the output data bytes.
@@ -183,7 +171,6 @@ W25N_StatusTypeDef W25N_Establish_BBM_Link(uint16_t logical_block_address, uint1
  *  num_of_bytes: Number of bytes to read from the physical memory page.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  W25N_READY: The W25N is no longer busy.
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
  *  W25N_ECC_CORRECTION_UNNECESSARY: No ECC correction was necessary.
  *  W25N_ECC_CORRECTION_OK: There were 1-4 bit errors for the page which were successfully corrected.
@@ -195,12 +182,26 @@ W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t 
 /*
  * FUNCTION: W25N_Write
  *
- * DESCRIPTION: Write data to a physical memory page from the given buffer.
+ * DESCRIPTION: Write data to a single physical memory page from the given buffer.
  *
  * NOTES:
- *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
- *  - Note2
- *  - Note3
+ *  - This high-level function waits until the W25N is not busy & sets the WEL before issuing the 
+ *    write commands.
+ *  - This high-level function checks if the write operation was successful or not after the write 
+ *    is complete.
+ *  - The 0th data byte in the buffer will be loaded into the page at the given column address. 
+ *    The 1st data byte in the buffer will be loaded into the page at the given column address + 1, etc.
+ *  - ECC will be used for each page, making each page effectively 2048 data bytes followed by 64 
+ *    ECC bytes (2112 total bytes). Any sent data bytes that exceed this addressable range will be 
+ *    discarded.
+ *  - The write operation will not be executed if the addressed page's block is protected by the 
+ *    Block Protect (TB, BP2, BP1, BP0) bits.
+ *  - Only 4 partial page programs are allowed on every single page. After 4 partial page
+ *    programs are completed on the same page, the page must be erased before being programmed
+ *    again. This is due to successive partial page programs increasing the bit error rate.
+ *  - Pages within a block have to be programmed sequentially from lower order page addresses to
+ *    higher order page addresses. Programming pages out of sequence is prohibited. This is due
+ *    to programming pages out of sequence increasing the bit error rate.
  *
  * PARAMETERS:
  *  p_buffer: Pointer to the buffer which contains the data bytes to write.
@@ -209,10 +210,9 @@ W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t 
  *  num_of_bytes: Number of bytes to write to the physical memory page.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  W25N_READY: The W25N is no longer busy.
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
- *  W25N_PROGRAM_OK: The most recent program operation was successful.
- *  W25N_PROGRAM_ERROR: The most recent program operation was unsuccessful.
+ *  W25N_PROGRAM_OK: The program operation was successful.
+ *  W25N_PROGRAM_ERROR: The program operation was unsuccessful.
  */
 W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
 
@@ -223,40 +223,52 @@ W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t
  *              of all 1s (0xFF).
  *
  * NOTES:
- *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
- *  - Note2
- *  - Note3
+ *  - This high-level function waits until the W25N is not busy & sets the WEL before issuing the 
+ *    erase command.
+ *  - This high-level function checks if the erase operation was successful or not after the erase 
+ *    is complete.
+ *  - The erase operation will not be executed if the addressed block is protected by the Block 
+ *    Protect (TB, BP2, BP1, BP0) bits.
  *
  * PARAMETERS:
  *  page_address:
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  W25N_READY: The W25N is no longer busy.
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
- *  W25N_ERASE_OK: The most recent erase operation was successful.
- *  W25N_ERASE_ERROR: The most recent erase operation was unsuccessful.
+ *  W25N_ERASE_OK: The erase operation was successful.
+ *  W25N_ERASE_ERROR: The erase operation was unsuccessful.
  */
 W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
 
 /*
- * FUNCTION: W25N_Erase
+ * FUNCTION: W25N_Reset_And_Init
  *
- * DESCRIPTION: Sets all memory within a specified block (64Pages, 128KBytes) to the erased state
- *              of all 1s (0xFF).
+ * DESCRIPTION: Terminates current internal operations and allows the device to return to its 
+ *              default power-on state and lose all the current volatile settings, then initializes
+ *              the volatile settings.
  *
  * NOTES:
- *  - Something like: This command ensures the W25N is not busy & sets the WEL before establishing the BBM link.
- *  - Note2
- *  - Note3
- *
- * PARAMETERS:
- *  page_address:
+ *  - This high-level function waits until the W25N is not busy before issuing the reset command.
+ *  - This high-level function will not reset the W25N if it is hanging. If the W25N is hanging, 
+ *    the W25N will have to be power cycled. Note that data corruption may happen if there is an 
+ *    ongoing internal Erase or Program operation. It is recommended by the manufacturer to ensure 
+ *    the BUSY bit in Status Register is 0 before issuing the Reset command. However, a power cycle 
+ *    may be required if the W25N is hanging.
+ *  - This high-level function ensures the internal reset is complete by delaying for 1 ms. (tRST can be 5us - 500us)
+ *  - After reset, the states of nCS, nWP, & nHOLD are set:
+ *     nCS is set HIGH: this deselects the W25N
+ *     nWP is set LOW: this write protects the W25N
+ *     nHOLD is set HIGH: this disables the hold state, allowing normal device operations
+ *  - After reset, the states of the Status Register bits are set:
+ *     SR-1: SR-1 can be changed, all blocks are unlocked for writing, nWP will be used for 
+ *           write protection
+ *     SR-2: The OTP area is not locked, OTP access mode is not active, SR-1 is not locked, ECC
+ *           is enabled, the W25N is in buffer read mode
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  W25N_READY: The W25N is no longer busy.
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
  */
-W25N_StatusTypeDef W25N_Reset();
+W25N_StatusTypeDef W25N_Reset_And_Init();
 
 //###############################################################################################
 //Public Helper Function Prototypes
