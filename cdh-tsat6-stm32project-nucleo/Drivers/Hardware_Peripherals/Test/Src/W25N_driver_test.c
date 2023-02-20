@@ -24,6 +24,7 @@
 //###############################################################################################
 //Driver Function Prototypes
 //###############################################################################################
+W25N_StatusTypeDef W25N_Device_Reset();
 W25N_StatusTypeDef W25N_Read_Status_Register(uint8_t register_address, uint8_t *p_buffer);
 W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t register_value);
 W25N_StatusTypeDef W25N_Write_Enable();

@@ -67,7 +67,7 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
-
+W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
