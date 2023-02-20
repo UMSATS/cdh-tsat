@@ -52,7 +52,7 @@ W25N_StatusTypeDef Test_W25N_Device_Reset()
     uint8_t register_written_contents = 0b01011000;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Write_Status_Register(register_address, register_written_contents);
     if (operation_status != W25N_HAL_OK) goto error;
@@ -93,7 +93,7 @@ W25N_StatusTypeDef Test_W25N_Read_Status_Register()
     uint8_t register_default_contents = 0b00011000;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Read_Status_Register(register_address, &register_contents);
     if (operation_status != W25N_HAL_OK) goto error;
@@ -112,7 +112,7 @@ W25N_StatusTypeDef Test_W25N_Write_Status_Register()
     uint8_t register_written_contents = 0b01011000;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Write_Status_Register(register_address, register_written_contents);
     if (operation_status != W25N_HAL_OK) goto error;
@@ -133,7 +133,7 @@ W25N_StatusTypeDef Test_W25N_Write_Enable()
     uint8_t register_address = 0xC0;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Write_Enable();
     if (operation_status != W25N_HAL_OK) goto error;
@@ -154,7 +154,7 @@ W25N_StatusTypeDef Test_W25N_Write_Disable()
     uint8_t register_address = 0xC0;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Write_Disable();
     if (operation_status != W25N_HAL_OK) goto error;
@@ -184,7 +184,7 @@ W25N_StatusTypeDef Test_W25N_Load_Program_Data()
     }
     
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
@@ -222,17 +222,17 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
 
     //test inital erase
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Write_Enable();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Block_Erase_128KB(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Page_Data_Read(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
 
@@ -246,11 +246,11 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     operation_status = W25N_Program_Execute(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Page_Data_Read(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
 
@@ -262,11 +262,11 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     operation_status = W25N_Block_Erase_128KB(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Page_Data_Read(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
 
@@ -312,7 +312,7 @@ W25N_StatusTypeDef Test_W25N_Read()
     uint8_t zero_data_array[1280] = {0x00}; //entire array will be initialized to 0x00
     
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     //enter OTP access mode to read parameter page
     operation_status = W25N_Write_Status_Register(register_address, register_value_OTP_enter);
@@ -322,7 +322,7 @@ W25N_StatusTypeDef Test_W25N_Read()
     if (operation_status != W25N_HAL_OK) goto error;
 
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
 
     operation_status = W25N_Read_Data(data_buffer_contents, column_address, data_buffer_size);
     if (operation_status != W25N_HAL_OK) goto error;
@@ -364,7 +364,7 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read()
     
     //erase the test page
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Write_Enable();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Block_Erase_128KB(page_address);
@@ -372,7 +372,7 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read()
 
     //write test data to the test page
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Write_Enable();
@@ -382,9 +382,11 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read()
 
     //read test data from the test page
     operation_status = W25N_Read(data_buffer_contents, page_address, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
 
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
+
+    return W25N_HAL_OK;
 
 error:
     return operation_status;
@@ -408,7 +410,7 @@ W25N_StatusTypeDef Test_W25N_High_Level_Write()
     
     //erase the test page
     operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Write_Enable();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Block_Erase_128KB(page_address);
@@ -416,13 +418,15 @@ W25N_StatusTypeDef Test_W25N_High_Level_Write()
 
     //write test data to the test page
     operation_status = W25N_Write(data_array, page_address, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_PROGRAM_OK) goto error;
 
     //read test data from the test page
     operation_status = W25N_Read(data_buffer_contents, page_address, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
 
     assert(memcmp(data_array, data_buffer_contents, data_array_size) == 0);
+
+    return W25N_HAL_OK;
 
 error:
     return operation_status;
@@ -452,21 +456,23 @@ W25N_StatusTypeDef Test_W25N_High_Level_Erase()
     
     //erase the test page
     operation_status = W25N_Erase(page_address);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_ERASE_OK) goto error;
 
     //write test data to the test page
     operation_status = W25N_Write(data_array, page_address, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_PROGRAM_OK) goto error;
 
     //erase the test page
     operation_status = W25N_Erase(page_address);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_ERASE_OK) goto error;
 
     //read test data from the test page
     operation_status = W25N_Read(data_buffer_contents, page_address, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
 
     assert(memcmp(erased_data_array, data_buffer_contents, data_array_size) == 0);
+
+    return W25N_HAL_OK;
 
 error:
     return operation_status;
@@ -507,9 +513,6 @@ W25N_StatusTypeDef Test_W25N()
     operation_status = Test_W25N_High_Level_Write();
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = Test_W25N_High_Level_Erase();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    return W25N_HAL_OK;
 
 error:
     return operation_status;

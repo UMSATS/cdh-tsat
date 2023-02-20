@@ -112,6 +112,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
     //this code one-time initializes the W25N by setting up the BBM LUT
     //this code should be completed by stepping through one step at a time with a debugger & recording the results on paper
+    //this code should be completed after power cycling the W25N
     W25N_StatusTypeDef operation_status;
     
     operation_status = W25N_Init();
@@ -119,6 +120,8 @@ int main(void)
 
     //determine which blocks are already in the LUT - set up by the manufacturer
     uint8_t bbm_lut_contents[W25N_BBM_LUT_NUM_OF_BYTES];
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Read_BBM_LUT(bbm_lut_contents);
     if (operation_status != W25N_HAL_OK) goto error;
     for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4) //Each BBM LUT entry is 4 bytes long
@@ -133,7 +136,7 @@ int main(void)
     {
         page_address = block_address * W25N_PAGES_PER_BLOCK;
         operation_status = W25N_Read(&first_byte, page_address, 0x0000, 1);
-        if (operation_status != W25N_HAL_OK) goto error;
+        if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
         if (first_byte != 0xFF)
           printf("Bad Block: %x", block_address);
     }
@@ -148,12 +151,14 @@ int main(void)
     uint8_t block_addresses_number = sizeof(logical_block_addresses) / sizeof(logical_block_addresses[0]);
     for (int i = 0; i < block_addresses_number; i++)
     {
-      operation_status = W25N_Bad_Block_Management(logical_block_addresses[i], physical_block_addresses[i]);
+      operation_status = W25N_Establish_BBM_Link(logical_block_addresses[i], physical_block_addresses[i]);
       if (operation_status != W25N_HAL_OK) goto error;
     }
 
     //verify the results by printing the LUT
     uint8_t bbm_lut_contents[W25N_BBM_LUT_NUM_OF_BYTES];
+    operation_status = W25N_Wait_Until_Not_Busy();
+    if (operation_status != W25N_READY) goto error;
     operation_status = W25N_Read_BBM_LUT(bbm_lut_contents);
     if (operation_status != W25N_HAL_OK) goto error;
     for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4) //Each BBM LUT entry is 4 bytes long
@@ -166,6 +171,7 @@ int main(void)
 
 
     //this code determines if erase command takes the block address or the page address of a page within the desired block
+    //this code should be completed after power cycling the W25N
     //(we won't have to save this code anywhere, even in the drive, since it just needs to be used to find out how erase function works)
     /*W25N_StatusTypeDef operation_status;
     
@@ -178,22 +184,24 @@ int main(void)
 
     //set last page first byte to 0xAB if it is already in the erased state (0xFF)
     operation_status = W25N_Read(&last_page_first_byte, last_page_address, 0x0000, 1);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
     if (last_page_first_byte == 0xFF)
     {
       uint8_t byte_to_write = 0xAB;
       operation_status = W25N_Write(&byte_to_write, last_page_address, 0x0000, 1);
-      if (operation_status != W25N_HAL_OK) goto error;
+      if (operation_status != W25N_PROGRAM_OK) goto error;
 
       //ensure the last page first byte is no longer in the erased state (0xFF)
       operation_status = W25N_Read(&last_page_first_byte, last_page_address, 0x0000, 1);
-      if (operation_status != W25N_HAL_OK) goto error;
+      if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
       if (last_page_first_byte == 0xFF) goto error;
     }
 
     //erase using the last page address
     operation_status = W25N_Erase(last_page_address);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_ERASE_OK) goto error;
+    operation_status = W25N_Read(&last_page_first_byte, last_page_address, 0x0000, 1);
+    if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
     if (last_page_first_byte == 0xFF)
     {
       printf("Erase is accomplished using the page address");
@@ -203,6 +211,8 @@ int main(void)
     //erase using the block address
     operation_status = W25N_Erase(last_block_address);
     if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Read(&last_page_first_byte, last_page_address, 0x0000, 1);
+    if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
     if (last_page_first_byte == 0xFF)
     {
       printf("Erase is accomplished using the block address");
@@ -214,6 +224,7 @@ int main(void)
 
 
     //this code performs the W25N unit tests
+    //this code should be completed after power cycling the W25N
     /*W25N_StatusTypeDef operation_status;
     
     operation_status = W25N_Init();

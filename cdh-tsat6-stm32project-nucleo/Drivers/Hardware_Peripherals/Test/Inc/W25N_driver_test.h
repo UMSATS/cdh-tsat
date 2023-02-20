@@ -31,6 +31,8 @@
  *  - Assumes OTP area is not locked & SR-1 is not locked.
  *  - If the unit test exits prematurely, the W25N should be power cycled so that the status 
  *    register contents are reset.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Device_Reset();
 
@@ -41,6 +43,8 @@ W25N_StatusTypeDef Test_W25N_Device_Reset();
  *
  * NOTES:
  *  - Not dependent on passing any tests.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Read_JEDEC_ID();
 
@@ -53,6 +57,8 @@ W25N_StatusTypeDef Test_W25N_Read_JEDEC_ID();
  *  - Not dependent on passing any tests.
  *  - Test must be performed after power cycling the W25N.
  *  - Test must be performed before Test_W25N_Write_Status_Register.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Read_Status_Register();
 
@@ -66,6 +72,8 @@ W25N_StatusTypeDef Test_W25N_Read_Status_Register();
  *  - Test must be performed after power cycling the W25N.
  *  - If the unit test exits prematurely, the W25N should be power cycled so that the status 
  *    register contents are reset.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Write_Status_Register();
 
@@ -79,6 +87,8 @@ W25N_StatusTypeDef Test_W25N_Write_Status_Register();
  *  - Test must be performed after power cycling the W25N.
  *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
  *    enable latch is reset.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Write_Enable();
 
@@ -92,6 +102,8 @@ W25N_StatusTypeDef Test_W25N_Write_Enable();
  *  - Test must be performed directly after Test_W25N_Write_Enable.
  *  - If the unit test exits prematurely, the W25N should be power cycled so that the write 
  *    enable latch is reset.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Write_Disable();
 
@@ -102,6 +114,8 @@ W25N_StatusTypeDef Test_W25N_Write_Disable();
  *
  * NOTES:
  *  - Depends on passing: Test_W25N_Read
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Load_Program_Data();
 
@@ -118,6 +132,8 @@ W25N_StatusTypeDef Test_W25N_Load_Program_Data();
  *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
  *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
  *    used for this unit test.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Execute_Erase();
 
@@ -132,6 +148,8 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase();
  *  - Assumes OTP area is not locked & SR-1 is not locked.
  *  - If the unit test exits prematurely, the W25N should be power cycled so that the status 
  *    register contents are reset.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_Read();
 
@@ -150,6 +168,8 @@ W25N_StatusTypeDef Test_W25N_Read();
  *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
  *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
  *    used for this unit test.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_High_Level_Read();
 
@@ -165,6 +185,8 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read();
  *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
  *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
  *    used for this unit test.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_High_Level_Write();
 
@@ -180,6 +202,8 @@ W25N_StatusTypeDef Test_W25N_High_Level_Write();
  *  - If the unit test exits prematurely, the W25N's final block should be erased so that any 
  *    test data is erased. This final block contains the page (page address = 0xFFFF) which is 
  *    used for this unit test.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N_High_Level_Erase();
 
@@ -194,6 +218,8 @@ W25N_StatusTypeDef Test_W25N_High_Level_Erase();
  * NOTES:
  *  - Executes all individual unit test functions & high-level unit test functions.
  *  - The individual unit tests are executed in the correct order of dependencies.
+ * 
+ * W25N_StatusTypeDef SUCCESS RETURNS: W25N_HAL_OK
  */
 W25N_StatusTypeDef Test_W25N();
 
