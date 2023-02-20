@@ -144,6 +144,7 @@ int main(void)
     //determine which area of the Flash will be allocated to providing links for bad block management
     //this depends on how the manufacturer populated the LUT & depends on which blocks are bad
     //this decision is made outside of code
+    //YOU MAY HAVE TO UPDATE THE REST OF THE CODE ACCORDINGLY SINCE MANY TEST FUNCTIONS USE THE LAST PAGE
 
     //add the bad blocks with their links to the BBM LUT
     /*uint16_t logical_block_addresses[] = {}; //bad block addresses
@@ -210,7 +211,7 @@ int main(void)
 
     //erase using the block address
     operation_status = W25N_Erase(last_block_address);
-    if (operation_status != W25N_HAL_OK) goto error;
+    if (operation_status != W25N_ERASE_OK) goto error;
     operation_status = W25N_Read(&last_page_first_byte, last_page_address, 0x0000, 1);
     if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
     if (last_page_first_byte == 0xFF)

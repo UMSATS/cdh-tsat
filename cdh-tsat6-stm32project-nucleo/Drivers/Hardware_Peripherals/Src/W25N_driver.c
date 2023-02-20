@@ -111,8 +111,8 @@ W25N_StatusTypeDef W25N_Write_Enable();
  *  - A WEL value of 0 will prevent the Page Program, Block Erase, & Bad Block Management instructions 
  *    from executing.
  *  - The WEL is automatically reset after Power-up.
- *  - The WEL is automatically reset after completion of the Page Program, Block Erase, Reset, & Bad 
- *    Block Management instructions.
+ *  - The WEL is automatically reset after completion of the Page Program, Block Erase, & Reset 
+ *    instructions.
  */
 W25N_StatusTypeDef W25N_Write_Disable();
 
@@ -820,15 +820,15 @@ W25N_StatusTypeDef W25N_Reset_And_Init()
     operation_status = W25N_Device_Reset();
     if (operation_status != W25N_HAL_OK) goto error;
 
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET); //deselect the W25N
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET); //disable all write/program/erase functionality
+    HAL_GPIO_WritePin(W25N_nHOLD_GPIO, W25N_nHOLD_PIN, GPIO_PIN_SET); //allow device operations (disable hold state)
+
     operation_status = W25N_Write_Status_Register(register_1_address, register_1_contents);
     if (operation_status != W25N_HAL_OK) goto error;
-
     operation_status = W25N_Write_Status_Register(register_2_address, register_2_contents);
 
 error:
-    //All called functions will deselect the W25N under normal operations or if an error occurs
-    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET); //disable all write/program/erase functionality
-    HAL_GPIO_WritePin(W25N_nHOLD_GPIO, W25N_nHOLD_PIN, GPIO_PIN_SET); //allow device operations (disable hold state)
     return operation_status;
 }
 
