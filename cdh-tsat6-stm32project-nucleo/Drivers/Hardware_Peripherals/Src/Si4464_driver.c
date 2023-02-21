@@ -175,9 +175,9 @@ void Si4464_Reset_Device()
 {
 	// Page 21 of the datasheet implies that the minimum time is 10us? -NJR
 	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_SET);
-	HAL_Delay(50); //  TODO: Fix when we have RTOS set up. -NJR
+	HAL_Delay(1); //  TODO: Fix when we have RTOS set up. -NJR
 	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_RESET);
-	HAL_Delay(50);
+	HAL_Delay(1);
 }
 
 
