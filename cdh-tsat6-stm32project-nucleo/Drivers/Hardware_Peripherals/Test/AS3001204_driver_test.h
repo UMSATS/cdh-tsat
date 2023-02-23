@@ -15,6 +15,6 @@
 
 #include "stm32l4xx_hal.h"
 
-int AS3001204_Mram_Driver()
+int AS3001204_Test_Mram_Driver();
 
 #endif /* HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_TEST_H_ */

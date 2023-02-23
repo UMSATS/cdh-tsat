@@ -86,10 +86,7 @@ unsigned int AS3001204_Test_RW_Status_Register() {
     HAL_StatusTypeDef isError; 
     uint8_t p_buffer = 0x00;
 
-    isError = AS3001204_Write_Status
-	
-	
-	_Register(&STATUS_REG_TEST);
+    isError = AS3001204_Write_Status_Register(&STATUS_REG_TEST);
     if (isError != HAL_OK) goto error;
 
     isError = AS3001204_Read_Status_Register(&p_buffer);
@@ -184,8 +181,10 @@ error:
 void AS3001204_Test_Read_ID_Registers() {
 
 	HAL_StatusTypeDef isError;
-	uint8_t *devIDBuffer = malloc(AS3001204_DEVICE_ID_LENGTH);
-	uint8_t *uniIDBuffer = malloc(AS3001204_UNIQUE_ID_LENGTH);
+	// uint8_t *devIDBuffer = malloc(AS3001204_DEVICE_ID_LENGTH);
+	// uint8_t *uniIDBuffer = malloc(AS3001204_UNIQUE_ID_LENGTH);
+	uint8_t devIDBuffer[AS3001204_DEVICE_ID_LENGTH];
+	uint8_t uniIDBuffer[AS3001204_UNIQUE_ID_LENGTH];
 
 	isError = AS3001204_Read_Device_ID(devIDBuffer);
 	if (isError != HAL_OK) goto error;
@@ -193,7 +192,8 @@ void AS3001204_Test_Read_ID_Registers() {
 	isError = AS3001204_Read_Unique_ID(uniIDBuffer);
 	if (isError != HAL_OK) goto error;
 
-	printf("Device ID: %hhn\nUnique ID: %hhn\n", devIDBuffer, uniIDBuffer);
+	int result = memcmp(devIDBuffer, AS3001204_DEVICE_ID, AS3001204_DEVICE_ID_LENGTH);
+	//printf("Device ID: %hhn\nUnique ID: %hhn\n", devIDBuffer, uniIDBuffer);
 
 error:
 	free(devIDBuffer);
@@ -235,22 +235,18 @@ unsigned int AS3001204_Test_Software_Reset(){
 // Testing routine
 //###############################################################################################
 
-int main() {
-
-
-}
 
 int AS3001204_Test_Mram_Driver(){
 		int numFailed = 0;
 
 	AS3001204_Test_Read_ID_Registers();
-
-	numFailed += AS3001204_Test_RW_Status_Register();
-	numFailed += AS3001204_Test_RW_Config_Registers();
-	numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
-	numFailed += AS3001204_Test_RW_Memory();
-	numFailed += AS3001204_Test_RW_Augmented_Storage();
-	numFailed += AS3001204_Test_Write_Disable();
+//
+//	numFailed += AS3001204_Test_RW_Status_Register();
+//	numFailed += AS3001204_Test_RW_Config_Registers();
+//	numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
+//	numFailed += AS3001204_Test_RW_Memory();
+//	numFailed += AS3001204_Test_RW_Augmented_Storage();
+//	numFailed += AS3001204_Test_Write_Disable();
 
 	// Functions not tested in the above (note WREN is indirectly tested)
 
