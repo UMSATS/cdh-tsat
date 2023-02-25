@@ -23,13 +23,13 @@
 //###############################################################################################
 //Public Define Directives
 //###############################################################################################
-#define W25N_SPI          hspi1
+#define W25N_SPI          hspi2
 
-#define W25N_nCS_GPIO     GPIOB
-#define W25N_nCS_PIN      GPIO_PIN_15
+#define W25N_nCS_GPIO     GPIOC
+#define W25N_nCS_PIN      GPIO_PIN_6
 
-#define W25N_nWP_GPIO     GPIOC
-#define W25N_nWP_PIN      GPIO_PIN_6
+#define W25N_nWP_GPIO     GPIOB
+#define W25N_nWP_PIN      GPIO_PIN_12
 
 #define W25N_nHOLD_GPIO   GPIOC
 #define W25N_nHOLD_PIN    GPIO_PIN_7
