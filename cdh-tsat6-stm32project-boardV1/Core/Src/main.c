@@ -22,7 +22,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "W25N_driver.h"
+#include "W25N_driver_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +44,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
- CAN_HandleTypeDef hcan1;
+CAN_HandleTypeDef hcan1;
 
 RTC_HandleTypeDef hrtc;
 
@@ -110,6 +114,20 @@ int main(void)
   MX_RTC_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+    //this code performs the W25N unit tests
+    //this code should be completed after power cycling the W25N
+    /*W25N_StatusTypeDef operation_status;
+
+    operation_status = W25N_Init();
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    operation_status = Test_W25N();
+    if (operation_status != W25N_HAL_OK) goto error;
+
+    exit(0);
+
+  error:
+    exit(1);*/
 
   /* USER CODE END 2 */
 
