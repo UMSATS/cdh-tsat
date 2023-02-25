@@ -310,7 +310,6 @@ W25N_StatusTypeDef Test_W25N_Read()
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
          0x00, 0x00};
-    uint8_t zero_data_array[1280] = {0x00}; //entire array will be initialized to 0x00
     
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != W25N_READY) goto error;
@@ -329,13 +328,19 @@ W25N_StatusTypeDef Test_W25N_Read()
     if (operation_status != W25N_HAL_OK) goto error;
 
     //compare bytes 0-253 to parameter data
+    //bytes 254-255 are for integrity CRC so they will not be checked
     assert(memcmp(parameter_data_array, data_buffer_contents, 254) == 0);
+
     //compare bytes 256-509 to parameter data
+    //bytes 510-511 are for integrity CRC so they will not be checked
     assert(memcmp(parameter_data_array, data_buffer_contents + 256, 254) == 0);
+
     //compare bytes 512-765 to parameter data
+    //bytes 766-767 are for integrity CRC so they will not be checked
     assert(memcmp(parameter_data_array, data_buffer_contents + 512, 254) == 0);
-    //compare bytes 768-2047 to zero data
-    assert(memcmp(zero_data_array, data_buffer_contents + 768, 1280) == 0);
+
+    //bytes 768-2047 are reserved so they will not be checked
+    //the Test_W25N_High_Level_Read unit test function will test reading an entire 2048-byte page
 
     //exit OTP access mode to return to the main memory array
     operation_status = W25N_Write_Status_Register(register_address, register_value_OTP_exit);
