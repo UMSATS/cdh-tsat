@@ -112,7 +112,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
     //this code performs the W25N unit tests
     //this code should be completed after power cycling the W25N
-    W25N_StatusTypeDef operation_status;
+    /*W25N_StatusTypeDef operation_status;
     
     operation_status = W25N_Init();
     if (operation_status != W25N_HAL_OK) goto error;
@@ -123,7 +123,8 @@ int main(void)
     exit(0);
 
   error:
-    exit(1);
+    exit(1);*/
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
