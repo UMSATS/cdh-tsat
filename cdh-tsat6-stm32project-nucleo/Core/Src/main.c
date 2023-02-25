@@ -26,7 +26,7 @@
 
 #include "Si446x/Si446x.h"
 #include "W25N_driver.h"
-
+#include "W25N_driver_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,69 +110,9 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-    //this code one-time initializes the W25N by setting up the BBM LUT
-    //this code should be completed by stepping through one step at a time with a debugger & recording the results on paper
-    //this code should be completed after power cycling the W25N
-    /*W25N_StatusTypeDef operation_status;
-    
-    operation_status = W25N_Init();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    //determine which blocks are already in the LUT - set up by the manufacturer
-    uint8_t bbm_lut_contents[W25N_BBM_LUT_NUM_OF_BYTES];
-    operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_READY) goto error;
-    operation_status = W25N_Read_BBM_LUT(bbm_lut_contents);
-    if (operation_status != W25N_HAL_OK) goto error;
-    for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4) //Each BBM LUT entry is 4 bytes long
-    {
-      printf("LBA: %x %x PBA: %x %x", bbm_lut_contents[i], bbm_lut_contents[i+1], bbm_lut_contents[i+2], bbm_lut_contents[i+3]);
-    }
-
-    //determine which blocks are bad
-    uint8_t first_byte;
-    uint16_t page_address;
-    for (int block_address = 0; block_address < 1024; block_address++) //There are 1024 blocks in the W25N
-    {
-        page_address = block_address * W25N_PAGES_PER_BLOCK;
-        operation_status = W25N_Read(&first_byte, page_address, 0x0000, 1);
-        if ((operation_status != W25N_ECC_CORRECTION_UNNECESSARY) && (operation_status != W25N_ECC_CORRECTION_OK)) goto error;
-        if (first_byte != 0xFF)
-          printf("Bad Block: %x", block_address);
-    }*/
-
-    //determine which area of the Flash will be allocated to providing links for bad block management
-    //this depends on how the manufacturer populated the LUT & depends on which blocks are bad
-    //this decision is made outside of code
-    //YOU MAY HAVE TO UPDATE THE REST OF THE CODE ACCORDINGLY SINCE MANY TEST FUNCTIONS USE THE LAST PAGE
-
-    //add the bad blocks with their links to the BBM LUT
-    /*uint16_t logical_block_addresses[] = {}; //bad block addresses
-    uint16_t physical_block_addresses[] = {}; //good block addresses
-    uint8_t block_addresses_number = sizeof(logical_block_addresses) / sizeof(logical_block_addresses[0]);
-    for (int i = 0; i < block_addresses_number; i++)
-    {
-      operation_status = W25N_Establish_BBM_Link(logical_block_addresses[i], physical_block_addresses[i]);
-      if (operation_status != W25N_HAL_OK) goto error;
-    }
-
-    //verify the results by printing the LUT
-    uint8_t bbm_lut_contents[W25N_BBM_LUT_NUM_OF_BYTES];
-    operation_status = W25N_Wait_Until_Not_Busy();
-    if (operation_status != W25N_READY) goto error;
-    operation_status = W25N_Read_BBM_LUT(bbm_lut_contents);
-    if (operation_status != W25N_HAL_OK) goto error;
-    for (int i = 0; i < W25N_BBM_LUT_NUM_OF_BYTES; i+=4) //Each BBM LUT entry is 4 bytes long
-    {
-      printf("LBA: %x %x PBA: %x %x", bbm_lut_contents[i], bbm_lut_contents[i+1], bbm_lut_contents[i+2], bbm_lut_contents[i+3]);
-    }*/
-
-  /*error:
-    exit(1);*/
-
     //this code performs the W25N unit tests
     //this code should be completed after power cycling the W25N
-    /*W25N_StatusTypeDef operation_status;
+    W25N_StatusTypeDef operation_status;
     
     operation_status = W25N_Init();
     if (operation_status != W25N_HAL_OK) goto error;
@@ -183,7 +123,7 @@ int main(void)
     exit(0);
 
   error:
-    exit(1);*/
+    exit(1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
