@@ -98,7 +98,8 @@ W25N_StatusTypeDef W25N_Write_Status_Register(uint8_t register_address, uint8_t 
  * DESCRIPTION: Sets the Write Enable Latch (WEL) in Status Register-1 to the value 1.
  *
  * NOTES:
- *  - The WEL must be set prior to every Page Program, Block Erase, & Bad Block Management instruction.
+ *  - The WEL must be set prior to every Load Program Data, Program Execute, Block Erase, & Bad Block Management instruction.
+ *  - The WEL does not need to be set prior to a Write Status Register instruction.
  */
 W25N_StatusTypeDef W25N_Write_Enable();
 

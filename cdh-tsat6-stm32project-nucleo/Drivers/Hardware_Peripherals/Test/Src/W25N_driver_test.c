@@ -187,6 +187,9 @@ W25N_StatusTypeDef Test_W25N_Load_Program_Data()
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != W25N_READY) goto error;
 
+    operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+
     operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
 
@@ -240,9 +243,9 @@ W25N_StatusTypeDef Test_W25N_Execute_Erase()
     assert(memcmp(erased_data_array, data_buffer_contents, data_array_size) == 0);
 
     //test program execute
-    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Program_Execute(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
@@ -379,9 +382,9 @@ W25N_StatusTypeDef Test_W25N_High_Level_Read()
     //write test data to the test page
     operation_status = W25N_Wait_Until_Not_Busy();
     if (operation_status != W25N_READY) goto error;
-    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
-    if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Write_Enable();
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_Load_Program_Data(data_array, column_address, data_array_size);
     if (operation_status != W25N_HAL_OK) goto error;
     operation_status = W25N_Program_Execute(page_address);
     if (operation_status != W25N_HAL_OK) goto error;
