@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define CAM_TX_Pin GPIO_PIN_0
+#define CAM_TX_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
@@ -73,6 +75,8 @@ void Error_Handler(void);
 #define UHF_nIRQ_GPIO_Port GPIOB
 #define UHF_nCS_Pin GPIO_PIN_2
 #define UHF_nCS_GPIO_Port GPIOB
+#define UHF_SDN_Pin GPIO_PIN_11
+#define UHF_SDN_GPIO_Port GPIOB
 #define FLASH_nCS_Pin GPIO_PIN_15
 #define FLASH_nCS_GPIO_Port GPIOB
 #define FLASH_nWP_Pin GPIO_PIN_6
@@ -83,8 +87,6 @@ void Error_Handler(void);
 #define MRAM_nCS_GPIO_Port GPIOC
 #define MRAM_nWP_Pin GPIO_PIN_9
 #define MRAM_nWP_GPIO_Port GPIOC
-#define CAM_nCS_Pin GPIO_PIN_8
-#define CAM_nCS_GPIO_Port GPIOA
 #define CAM_FSH_Pin GPIO_PIN_9
 #define CAM_FSH_GPIO_Port GPIOA
 #define CAM_ON_Pin GPIO_PIN_10
@@ -97,8 +99,16 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
+#define CAM_RX_Pin GPIO_PIN_11
+#define CAM_RX_GPIO_Port GPIOC
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
+#define LED3_Pin GPIO_PIN_5
+#define LED3_GPIO_Port GPIOB
+#define LED2_Pin GPIO_PIN_6
+#define LED2_GPIO_Port GPIOB
+#define LED1_Pin GPIO_PIN_7
+#define LED1_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
