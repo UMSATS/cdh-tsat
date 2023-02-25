@@ -231,7 +231,9 @@ W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t
  *    Protect (TB, BP2, BP1, BP0) bits.
  *
  * PARAMETERS:
- *  page_address:
+ *  page_address: Address of the page within the block to be erased. Using any page address within the 
+ *                block will erase the entire block. For example, using any address from 0xFFC0 to 0xFFFF
+ *                will erase the entire block which contains the pages from 0xFFc0 to 0xFFFF.
  * 
  * W25N_StatusTypeDef SPECIFIC RETURNS:
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.

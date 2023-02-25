@@ -139,8 +139,6 @@ W25N_StatusTypeDef W25N_Write_Disable();
  */
 W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uint16_t physical_block_address);
 
-//NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
-//OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)
 /*
  * FUNCTION: W25N_Block_Erase_128KB
  *
@@ -161,7 +159,9 @@ W25N_StatusTypeDef W25N_Bad_Block_Management(uint16_t logical_block_address, uin
  *    Block Protect (TB, BP2, BP1, BP0) bits.
  *
  * PARAMETERS:
- *  page_address:
+ *  page_address: Address of the page within the block to be erased. Using any page address within the 
+ *                block will erase the entire block. For example, using any address from 0xFFC0 to 0xFFFF
+ *                will erase the entire block which contains the pages from 0xFFc0 to 0xFFFF.
  */
 W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
 
@@ -442,9 +442,6 @@ error:
     return operation_status;
 }
 
-//NOTE: CHECK IF ACTUALLY PAGE ADDRESS (ANY PAGE ADDRESS WITHIN BLOCK WE WANT TO ERASE)
-//OR BLOCK ADDRESS (DATASHEET SAYS PAGE ADDRESS)
-//change variable names accordingly
 W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
@@ -783,7 +780,6 @@ error:
 	return operation_status;
 }
 
-//change parameter name if it turns out to be block address
 W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
