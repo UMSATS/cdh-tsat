@@ -95,6 +95,7 @@ void Error_Handler(void);
 #define RELEASE_nEN_GPIO_Port GPIOB
 #define RELEASE_Pin GPIO_PIN_7
 #define RELEASE_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
