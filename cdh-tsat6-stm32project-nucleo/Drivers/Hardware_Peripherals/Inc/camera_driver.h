@@ -44,7 +44,7 @@
 ************************************************************************************************/
 typedef enum
 {
-    piCAM_HAL_OK            = HAL_OK,      //0x00
+	piCAM_HAL_OK            = HAL_OK,      //0x00
 	piCAM_HAL_ERRO          = HAL_ERROR,   //0x01
 	piCAM_HAL_BUSY          = HAL_BUSY,    //0x02
 	piCAM_HAL_TIMEOUT       = HAL_TIMEOUT, //0x03
