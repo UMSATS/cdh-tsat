@@ -25,8 +25,11 @@
 #include <stdlib.h>
 
 #include "Si446x/Si446x.h"
+
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+
+#include "camera_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
