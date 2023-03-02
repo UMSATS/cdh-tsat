@@ -23,7 +23,7 @@
 ************************************************************************************************/
 
 //Initial Definitions
-#define piCAM_UART 			huart4
+#define piCAM_UART			huart4
 #define piCAM_UART_DELAY	HAL_MAX_DELAY
 
 //Pin Definitions
