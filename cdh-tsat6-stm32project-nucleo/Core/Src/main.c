@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../Drivers/Hardware_Peripherals/Test/AS3001204_driver_test.h"
-#include "Si446x/Si446x.h"
+#include "../../Drivers/Hardware_Peripherals/Test/Inc/AS3001204_driver_test.h"
+//#include "Si446x/Si446x.h"
 
 /* USER CODE END Includes */
 

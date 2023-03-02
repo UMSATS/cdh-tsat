@@ -13,7 +13,7 @@
 
 
 #include "../Inc/AS3001204_driver.h"
-#include "AS3001204_driver_test.h"
+#include "../Inc/AS3001204_driver_test.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
