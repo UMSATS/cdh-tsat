@@ -20,58 +20,17 @@
 
 
 //###############################################################################################
-// Defining test functions
-//###############################################################################################
-
-
-
-//########################################
-// Read/write register tests
-//########################################
-
-/*
- * FUNCTIONS:   AS3001204_Test_RW_Status_Register, AS3001204_Test_RW_Config_Registers,
- * 	            AS3001204_Test_RW_Augmented_Array_Protection_Register
- *
- * DESCRIPTION: These functions test the AS3001204 driver's ability to read and write to the
- * 	            MRAM unit's status register, configuration registers, and augmented array
- * 	            protection register, respectively. These functions only write valid data to the
- * 	            registers - writing invalid bits to registers could cause undefined behaviour.
- *
- * RETURN:      0 if successful, 1 if not.
- */
-
-unsigned int AS3001204_Test_RW_Status_Register();
-unsigned int AS3001204_Test_RW_Config_Registers();
-unsigned int AS3001204_Test_RW_Augmented_Array_Protection_Register();
-
-
-//########################################
-// Read/write memory tests
-//########################################
-
-/*
- * FUNCTIONS:   AS3001204_Test_RW_Memory, AS3001204_Test_RW_Augmented_Storage
- *
- * DESCRIPTION: These functions test the AS3001204 driver's ability to read and write the
- * 	            main memory array, and the augmented storage section of memory.
- *
- * RETURN:      0 if successful, 1 if not.
- */
-unsigned int AS3001204_Test_RW_Memory();
-unsigned int AS3001204_Test_RW_Augmented_Storage();
-
-//###############################################################################################
 // Defining test data
 //###############################################################################################
-//static uint8_t STATUS_REG_DEFAULT = 0x00;
-static uint8_t STATUS_REG_TEST    = 0x7c;
 
-//static uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
+static uint8_t STATUS_REG_DEFAULT = 0x00;
+static uint8_t STATUS_REG_TEST = 0x60;
+
+static uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
 static uint8_t CONFIG_REGS_TEST[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x73, 0x06};
 
-//static uint8_t AAP_REG_DEFAULT = 0x00;
-static uint8_t AAP_REG_TEST    = 0xff;
+static uint8_t AAP_REG_DEFAULT = 0x00;
+static uint8_t AAP_REG_TEST = 0xff;
 
 static const char *SAMPLE_DATA = "All human beings are born free and equal in dignity and rights. \
 They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.";
@@ -85,6 +44,10 @@ unsigned int AS3001204_Test_RW_Status_Register() {
 
     HAL_StatusTypeDef isError; 
     uint8_t p_buffer = 0x00;
+
+    AS3001204_Read_Status_Register(&p_buffer);
+
+    p_buffer = 0x00;
 
     isError = AS3001204_Write_Status_Register(&STATUS_REG_TEST);
     if (isError != HAL_OK) goto error;
@@ -136,6 +99,7 @@ error:
 	
 }
 
+
 //###############################################################################################
 // Read/write memory tests
 //###############################################################################################
@@ -178,7 +142,7 @@ error:
 	
 }
 
-void AS3001204_Test_Read_ID_Registers() {
+unsigned int AS3001204_Test_Read_ID_Registers() {
 
 	HAL_StatusTypeDef isError;
 	// uint8_t *devIDBuffer = malloc(AS3001204_DEVICE_ID_LENGTH);
@@ -192,13 +156,14 @@ void AS3001204_Test_Read_ID_Registers() {
 	isError = AS3001204_Read_Unique_ID(uniIDBuffer);
 	if (isError != HAL_OK) goto error;
 
-	int result = memcmp(devIDBuffer, AS3001204_DEVICE_ID, AS3001204_DEVICE_ID_LENGTH);
-	//printf("Device ID: %hhn\nUnique ID: %hhn\n", devIDBuffer, uniIDBuffer);
+	uint8_t deviceID[AS3001204_DEVICE_ID_LENGTH] = {0xE6, 0x01, 0x01, 0x02};
+
+	int result = memcmp(devIDBuffer, &deviceID, AS3001204_DEVICE_ID_LENGTH);
+
+	return result != 0;
 
 error:
-	free(devIDBuffer);
-	free(uniIDBuffer);
-	printf("Failed to read device/unique IDs\n");
+	return 1;
 }
 
 unsigned int AS3001204_Test_Write_Disable() {
@@ -232,16 +197,18 @@ unsigned int AS3001204_Test_Software_Reset() {
 }
 
 //###############################################################################################
-// Testing routine
+// Complete test suite routine
 //###############################################################################################
 
 
 int AS3001204_Test_Mram_Driver() {
 	int numFailed = 0;
 
-	AS3001204_Test_Read_ID_Registers();
-//
-//	numFailed += AS3001204_Test_RW_Status_Register();
+	HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+
+//	numFailed += AS3001204_Test_Read_ID_Registers();
+
+	numFailed += AS3001204_Test_RW_Status_Register();
 //	numFailed += AS3001204_Test_RW_Config_Registers();
 //	numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
 //	numFailed += AS3001204_Test_RW_Memory();
