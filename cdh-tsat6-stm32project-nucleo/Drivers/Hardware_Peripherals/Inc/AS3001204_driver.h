@@ -8,18 +8,29 @@
  *  - Om Sevak (Om.Sevak@umsats.ca)
  *
  * Created on: Nov. 14, 2022
+ * 
+ * CONTENTS:
+ *   1. Includes
+ *   2. Define directives for peripherals
+ *   3. Global declarations for peripherals
+ *   4. Public driver function prototypes
+ *       4.1. Basic commands
+ *       4.2. Read registers
+ *       4.3. Write registers
+ *       4.4. Read/write memory
+ *       4.5. Read/write Augmented Storage Array
  */
 
 #ifndef HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
 #define HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
 
 // ###############################################################################################
-//  Includes
+//  1. Includes
 // ###############################################################################################
 #include "stm32l4xx_hal.h"
 
 // ###############################################################################################
-//  Define Directives
+//  2. Define directives for peripherals
 // ###############################################################################################
 
 #define AS3001204_SPI 			hspi2
@@ -31,74 +42,32 @@
 #define AS3001204_nWP_GPIO 		GPIOC
 #define AS3001204_nWP_PIN 		GPIO_PIN_9
 
-// Opcodes (datasheet pp. 32-36)
-// Control operations (1-0-0 type)
-#define AS3001204_OPCODE_WRITE_ENABLE		0x06
-#define AS3001204_OPCODE_WRITE_DISABLE		0x04
-#define AS3001204_OPCODE_ENTER_DEEP_PWDOWN	0xb9
-#define AS3001204_OPCODE_ENTER_HIBERNATE	0xba
-#define AS3001204_OPCODE_EXIT_DEEP_PWDOWN	0xab
-#define AS3001204_OPCODE_SOFT_RESET_ENABLE	0x66
-#define AS3001204_OPCODE_SOFT_RESET			0x99
-
-// Read register operations (1-0-1 type)
-#define AS3001204_OPCODE_READ_STATUS_REG 	0x05
-#define AS3001204_OPCODE_READ_CONFIG_REGS 	0x46
-#define AS3001204_OPCODE_READ_DEVICE_ID 	0x9f
-#define AS3001204_OPCODE_READ_UNIQUE_ID 	0x4c
-#define AS3001204_OPCODE_READ_AAP_REG 		0x14
-
-// Write register operations (1-0-1 type)
-#define AS3001204_OPCODE_WRITE_STATUS_REG 	0x01
-#define AS3001204_OPCODE_WRITE_CONFIG_REGS 	0x87
-#define AS3001204_OPCODE_WRITE_AAP_REG 		0x1a
-
-// Register lengths (in bytes)
-#define AS3001204_STATUS_REG_LENGTH 		1
-#define AS3001204_CONFIG_REGS_LENGTH 		4
-#define AS3001204_DEVICE_ID_LENGTH 			4
-#define AS3001204_UNIQUE_ID_LENGTH 			8
-#define AS3001204_AAP_REG_LENGTH 			1
-
-// Memory operations (1-1-1 type)
-#define AS3001204_OPCODE_READ_MEMORY 		0x03
-#define AS3001204_OPCODE_WRITE_MEMORY 		0x02
-#define AS3001204_OPCODE_READ_AUG_STORAGE 	0x4b
-#define AS3001204_OPCODE_WRITE_AUG_STORAGE 	0x42
-
-// Delay bytes to await response from augmented storage array
-// (see timing diagram, datasheet pp. 38-39)
-#define AS3001204_READ_AUG_STORAGE_DELAY 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-// Device ID Values
-#define AS3001204_DEVICE_ID 				0xE6010102
-
 // ###############################################################################################
-//  Global Variable Declarations
+//  3. Global declarations for peripherals
 // ###############################################################################################
 extern SPI_HandleTypeDef AS3001204_SPI;
 
 // ###############################################################################################
-//  Driver Function Prototypes
+//  4. Public driver function prototypes
 // ###############################################################################################
 
 /*
- * FUNCTIONS:   AS3001204_Write_Enable, AS3001204_Write_Disable,
- * AS3001204_Enter_Hibernate, AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power,
- *              AS3001204_Software_Reset_Enable, AS3001204_Software_Reset
+ * 4.1. Basic commands
+ *
+ * FUNCTIONS:   AS3001204_Enter_Hibernate, AS3001204_Enter_Deep_Power_Down,
+ *              AS3001204_Exit_Deep_Power_Down, AS3001204_Software_Reset
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).
  */
-HAL_StatusTypeDef AS3001204_Write_Enable();
-HAL_StatusTypeDef AS3001204_Write_Disable();
 HAL_StatusTypeDef AS3001204_Enter_Hibernate();
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down();
 HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down();
-HAL_StatusTypeDef AS3001204_Software_Reset_Enable();
 HAL_StatusTypeDef AS3001204_Software_Reset();
 
 /*
+ * 4.2. Read registers
+ *
  * FUNCTIONS:   AS3001204_Read_Status_Register, AS3001204_Read_Config_Registers,
                 AS3001204_Read_Device_ID, AS3001204_Read_Unique_ID,
                 AS3001204_Read_Augmented_Array_Protection_Register
@@ -119,6 +88,8 @@ HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_buffer);
 
 /*
+ * 4.3. Write registers
+ *
  * FUNCTIONS:   AS3001204_Write_Status_Register, AS3001204_Write_Config_Registers,
                 AS3001204_Write_Augmented_Array_Protection_Register
  *
@@ -143,6 +114,8 @@ HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer);
 
 /*
+ * 4.4. Read/write memory
+ *
  * FUNCTIONS:   AS3001204_Read_Memory, AS3001204_Write_Memory
  *
  * DESCRIPTION: These functions read from (write to) the memory array of
@@ -167,6 +140,8 @@ HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address,
                                          uint16_t num_of_bytes);
 
 /*
+ * 4.5. Read/write Augmented Storage Array
+ *
  * FUNCTIONS:   AS3001204_Read_Augmented_Storage,
  *              AS3001204_Write_Augmented_Storage
  *
