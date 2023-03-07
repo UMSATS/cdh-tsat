@@ -11,8 +11,8 @@
  * 
  * CONTENTS:
  *   1. Includes
- *   2. Define directives for peripherals
- *   3. Global declarations for peripherals
+ *   2. Define directives
+ *   3. Global declarations
  *   4. Public driver function prototypes
  *       4.1. Basic commands
  *       4.2. Read registers
@@ -30,9 +30,10 @@
 #include "stm32l4xx_hal.h"
 
 // ###############################################################################################
-//  2. Define directives for peripherals
+//  2. Define directives
 // ###############################################################################################
 
+// Peripheral pins & handles
 #define AS3001204_SPI 			hspi2
 #define AS3001204_SPI_DELAY 	HAL_MAX_DELAY
 
@@ -42,8 +43,15 @@
 #define AS3001204_nWP_GPIO 		GPIOC
 #define AS3001204_nWP_PIN 		GPIO_PIN_9
 
+// Register lengths (in bytes)
+#define AS3001204_STATUS_REG_LENGTH 		1
+#define AS3001204_CONFIG_REGS_LENGTH 		4
+#define AS3001204_DEVICE_ID_LENGTH 			4
+#define AS3001204_UNIQUE_ID_LENGTH 			8
+#define AS3001204_AAP_REG_LENGTH 			1
+
 // ###############################################################################################
-//  3. Global declarations for peripherals
+//  3. Global declarations
 // ###############################################################################################
 extern SPI_HandleTypeDef AS3001204_SPI;
 

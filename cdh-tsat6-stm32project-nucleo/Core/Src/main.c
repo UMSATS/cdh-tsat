@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../Drivers/Hardware_Peripherals/Inc/W25N_driver.h"
 #include "../../Drivers/Hardware_Peripherals/Test/Inc/AS3001204_driver_test.h"
 //#include "Si446x/Si446x.h"
 

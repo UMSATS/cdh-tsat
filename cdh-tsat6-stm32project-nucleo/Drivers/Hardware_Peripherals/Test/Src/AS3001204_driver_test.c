@@ -23,18 +23,21 @@
 // Defining test data
 //###############################################################################################
 
-static const uint8_t STATUS_REG_DEFAULT = 0x00;
-static const uint8_t STATUS_REG_TEST    = 0x60;
+//static uint8_t STATUS_REG_DEFAULT = 0x00;
+static uint8_t STATUS_REG_TEST    = 0x60;
 
-static const uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
-static const uint8_t CONFIG_REGS_TEST   [AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x73, 0x06};
+//static uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
+static uint8_t CONFIG_REGS_TEST   [AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x73, 0x06};
 
-static const uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xE6, 0x01, 0x01, 0x02};
+static uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xE6, 0x01, 0x01, 0x02};
 
-static const uint8_t AAP_REG_DEFAULT = 0x00;
-static const uint8_t AAP_REG_TEST    = 0xff;
+//static uint8_t AAP_REG_DEFAULT = 0x00;
+static uint8_t AAP_REG_TEST    = 0xff;
 
-static const char *SAMPLE_DATA = "All human beings are born free and equal in dignity and rights. \
+static uint32_t MEM_TEST_ADDRESS = 0xabba;
+static uint32_t AAP_TEST_ADDRESS = 0x0000;
+
+static char *SAMPLE_DATA = "All human beings are born free and equal in dignity and rights. \
 They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.";
 
 
@@ -108,15 +111,15 @@ error:
 unsigned int AS3001204_Test_RW_Memory() {
     
     HAL_StatusTypeDef isError;
-    uint8_t p_buffer[strlen(SAMPLE_DATA)];
+    char p_buffer[strlen(SAMPLE_DATA)];
     
-    isError = AS3001204_Write_Memory((uint8_t *) SAMPLE_DATA, 0xabba, sizeof SAMPLE_DATA);
+    isError = AS3001204_Write_Memory((unsigned char *) SAMPLE_DATA, MEM_TEST_ADDRESS, strlen(SAMPLE_DATA));
     if (isError != HAL_OK) goto error;
     
-    isError = AS3001204_Read_Memory(p_buffer, 0xabba, sizeof SAMPLE_DATA);
+    isError = AS3001204_Read_Memory((uint8_t *) p_buffer, MEM_TEST_ADDRESS, strlen(SAMPLE_DATA));
     if (isError != HAL_OK) goto error;
     
-    if (memcmp(p_buffer, SAMPLE_DATA, strlen(SAMPLE_DATA)) == 0) return 0;
+    return strcmp((char *) p_buffer, SAMPLE_DATA);
     
 error:
     return 1;
@@ -126,15 +129,15 @@ error:
 unsigned int AS3001204_Test_RW_Augmented_Storage() {
     
     HAL_StatusTypeDef isError;
-    uint8_t p_buffer[strlen(SAMPLE_DATA)];
+    char p_buffer[strlen(SAMPLE_DATA)];
     
-    isError = AS3001204_Write_Augmented_Storage((uint8_t *) &SAMPLE_DATA, 0x00, sizeof SAMPLE_DATA);
+    isError = AS3001204_Write_Augmented_Storage((unsigned char *) SAMPLE_DATA, AAP_TEST_ADDRESS, strlen(SAMPLE_DATA));
     if (isError != HAL_OK) goto error;
     
-    isError = AS3001204_Read_Augmented_Storage(p_buffer, 0x00, sizeof SAMPLE_DATA);
+    isError = AS3001204_Read_Augmented_Storage((uint8_t *) p_buffer, AAP_TEST_ADDRESS, strlen(SAMPLE_DATA));
     if (isError != HAL_OK) goto error;
     
-    return strcmp(p_buffer, SAMPLE_DATA, strlen(SAMPLE_DATA) == 0);
+    return strcmp((char *) p_buffer, SAMPLE_DATA);
     
 error:
     return 1;
@@ -157,18 +160,6 @@ unsigned int AS3001204_Test_Read_ID_Registers() {
 
 error:
     return 1;
-}
-
-// This function will have to be made a bit more imaginative, i.e. try writing something
-// during write disable and make sure it didn't happen. That may ruin the hidden implementation 
-// of setting write enable in the write functions, though. -GY
-unsigned int AS3001204_Test_Write_Disable() {
-
-    HAL_StatusTypeDef isError;
-    
-    isError = AS3001204_Write_Disable();
-    
-    return (isError != HAL_OK);
 }
 
 
@@ -194,6 +185,8 @@ int AS3001204_Test_Mram_Driver() {
 
 
     // Note: no tests currently for any of the following driver functions:
+    // (note that Write Enable is tested implicitly through its use in other functions)
+    //  AS3001204_Write_Disable();
     //	AS3001204_Enter_Hibernate();
     //	AS3001204_Enter_Deep_Power_Down();
     //	AS3001204_Exit_Deep_Power_Down();

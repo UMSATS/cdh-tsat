@@ -22,6 +22,7 @@
  *       4.4. Read/write memory
  *       4.5. Read/write Augmented Storage Array
  *   5. Private driver function definitions
+ *   6. Internal helper function definitions
  */
 
 
@@ -55,13 +56,6 @@
 #define AS3001204_OPCODE_WRITE_CONFIG_REGS 	0x87
 #define AS3001204_OPCODE_WRITE_AAP_REG 		0x1a
 
-// Register lengths (in bytes)
-#define AS3001204_STATUS_REG_LENGTH 		1
-#define AS3001204_CONFIG_REGS_LENGTH 		4
-#define AS3001204_DEVICE_ID_LENGTH 			4
-#define AS3001204_UNIQUE_ID_LENGTH 			8
-#define AS3001204_AAP_REG_LENGTH 			1
-
 // Memory operations (1-1-1 type)
 #define AS3001204_OPCODE_READ_MEMORY 		0x03
 #define AS3001204_OPCODE_WRITE_MEMORY 		0x02
@@ -71,6 +65,7 @@
 // Delay bytes to await response from augmented storage array
 // (see timing diagram, datasheet pp. 38-39)
 #define AS3001204_READ_AUG_STORAGE_DELAY 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
 
 // ###############################################################################################
 //  3. Private function prototypes
@@ -84,6 +79,8 @@
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).
+ *              Note that the write enable and disable functions relate to the MRAM's software
+ *              write protection, which is separate from the write protect pin.
  */
 HAL_StatusTypeDef AS3001204_Write_Enable();
 HAL_StatusTypeDef AS3001204_Write_Disable();
@@ -154,39 +151,15 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_
 // -----------------------
 
 HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer) {
-    HAL_StatusTypeDef isError = HAL_OK;
-
-    isError = AS3001204_Write_Enable();
-    if (isError != HAL_OK) goto error;
-
-    isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
-
-error:
-    return isError;
+    return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer) {
-    HAL_StatusTypeDef isError = HAL_OK;
-
-    isError = AS3001204_Write_Enable();
-    if (isError != HAL_OK) goto error;
-
-    isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
-
-error:
-    return isError;
+    return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
 }
 
 HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer) {
-    HAL_StatusTypeDef isError = HAL_OK;
-
-    isError = AS3001204_Write_Enable();
-    if (isError != HAL_OK) goto error;
-
-    isError = AS3001204_Write_Register(AS3001204_OPCODE_WRITE_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
-
-error:
-    return isError;
+    return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
 }
 
 
@@ -221,6 +194,7 @@ HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address, ui
     uint8_t opcode = AS3001204_OPCODE_WRITE_MEMORY;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
 
     AS3001204_Write_Enable();
 
@@ -234,6 +208,7 @@ HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address, ui
 
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
     return isError;
 }
 
@@ -276,6 +251,7 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
     uint8_t opcode = AS3001204_OPCODE_WRITE_AUG_STORAGE;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
 
     AS3001204_Write_Enable();
 
@@ -289,84 +265,7 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
 
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
-    return isError;
-}
-
-
-
-//###############################################################################################
-// Helper Functions
-//###############################################################################################
-
-HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
-
-    HAL_StatusTypeDef isError;
-
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
-
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
-    
-//    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
-
-    return isError;
-}
-
-HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
-    
-    HAL_StatusTypeDef isError;
-
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
-
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
-    //isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
-    //isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
-    if (isError != HAL_OK) goto error;
-    
-    isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
-
-error:
-    //HAL_Delay(2);
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
-    return isError;
-}
-
-
-HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
-
-    HAL_StatusTypeDef isError;
-
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
-//    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
-//    HAL_GPIO_TogglePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN);
-
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
-    if (isError != HAL_OK) goto error;
-    
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
-
-error:
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
-//    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
-    return isError;
-}
-
-
-HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
-
-    HAL_StatusTypeDef isError;
-    // Addresses for this device are only 3 bytes
-    uint8_t word_24bit_high_byte = (address >> 16) & 0xff;
-    uint8_t word_24bit_mid_byte  = (address >> 8) & 0xff;
-    uint8_t word_24bit_low_byte  = (address) & 0xff;
-
-    // TODO: Will there be too much delay between SPI Calls here? Could we send more than one byte at once? -NJR
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_high_byte, 1, AS3001204_SPI_DELAY);
-    if (isError != HAL_OK) goto error;
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_mid_byte, 1, AS3001204_SPI_DELAY);
-    if (isError != HAL_OK) goto error;
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, &word_24bit_low_byte, 1, AS3001204_SPI_DELAY);
-
-error:
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
     return isError;
 }
 
@@ -374,8 +273,6 @@ error:
 // ###############################################################################################
 //  5. Private driver function definitions
 // ###############################################################################################
-
-// Basic commands
 
 HAL_StatusTypeDef AS3001204_Write_Enable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
@@ -387,4 +284,69 @@ HAL_StatusTypeDef AS3001204_Write_Disable() {
 
 HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
+}
+
+
+// ###############################################################################################
+//  6. Internal helper function definitions
+// ###############################################################################################
+
+HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
+
+    HAL_StatusTypeDef isError;
+
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
+    
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+
+    return isError;
+}
+
+HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
+    
+    HAL_StatusTypeDef isError;
+
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
+    if (isError != HAL_OK) goto error;
+    
+    isError = HAL_SPI_Receive(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
+
+error:
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+    return isError;
+}
+
+
+HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
+
+    HAL_StatusTypeDef isError;
+
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) goto error;
+
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
+    if (isError != HAL_OK) goto error;
+    
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
+
+error:
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
+    return isError;
+}
+
+
+HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
+    
+    // Separate 3 bytes of address from the uint32 (most significant byte ignored)
+    uint8_t address_bytes[3] = {(address >> 16) & 0xff, (address >> 8) & 0xff, (address) & 0xff};
+
+    return HAL_SPI_Transmit(&AS3001204_SPI, address_bytes, 3, AS3001204_SPI_DELAY);
 }

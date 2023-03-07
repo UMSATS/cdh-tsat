@@ -49,12 +49,12 @@ unsigned int AS3001204_Test_RW_Augmented_Storage();
 /*
  * Complete test suite
  * 
- * FUNCTION:	AS3001204_Test_MRAM_Driver
+ * FUNCTION:    AS3001204_Test_MRAM_Driver
  *
  * DESCRIPTION:	This function runs through the complete suite of unit tests available for
- *				the MRAM driver.
+ *              the MRAM driver.
  *
- * RETURN:		The number of errors encountered during the course of the unit tests.
+ * RETURN:      The number of errors encountered during the course of the unit tests.
  */
 unsigned int AS3001204_Test_MRAM_Driver();
 
