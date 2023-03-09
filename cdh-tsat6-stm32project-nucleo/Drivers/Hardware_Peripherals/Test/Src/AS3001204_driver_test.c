@@ -167,21 +167,17 @@ error:
 // Complete test suite routine
 //###############################################################################################
 
-int AS3001204_Test_Mram_Driver() {
+int AS3001204_Test_MRAM_Driver() {
     int numFailed = 0;
 
     HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
 
-    // numFailed += AS3001204_Test_Read_ID_Registers();
-
+    numFailed += AS3001204_Test_Read_ID_Registers();
     numFailed += AS3001204_Test_RW_Status_Register();
-    // numFailed += AS3001204_Test_RW_Config_Registers();
-    // numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
-    // numFailed += AS3001204_Test_RW_Memory();
-    // numFailed += AS3001204_Test_RW_Augmented_Storage();
-
-    // This function sucks and won't be included right now, see note above
-    // numFailed += AS3001204_Test_Write_Disable();
+    numFailed += AS3001204_Test_RW_Config_Registers();
+    numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
+    numFailed += AS3001204_Test_RW_Memory();
+    numFailed += AS3001204_Test_RW_Augmented_Storage();
 
 
     // Note: no tests currently for any of the following driver functions:

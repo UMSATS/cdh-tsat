@@ -117,14 +117,14 @@ int main(void) {
 	// Si446x_init();
 
 	// Si446x_getInfo(&info);
-	printf("Number of test failed %d", AS3001204_Test_Mram_Driver());
+	AS3001204_Test_MRAM_Driver();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 
 	while (1) {
-		// Set a breakpoint here to view data grabbed from si446x module. -NJR
+		// Set a breakpoint here to view number of MRAM tests failed
 
 		// Repeatedly toggle the green LED
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
