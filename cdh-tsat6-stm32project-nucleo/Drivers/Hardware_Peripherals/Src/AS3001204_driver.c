@@ -82,17 +82,17 @@
  *              Note that the write enable and disable functions relate to the MRAM's software
  *              write protection, which is separate from the write protect pin.
  */
-HAL_StatusTypeDef AS3001204_Write_Enable();
-HAL_StatusTypeDef AS3001204_Write_Disable();
-HAL_StatusTypeDef AS3001204_Software_Reset_Enable();
+static HAL_StatusTypeDef AS3001204_Write_Enable();
+static HAL_StatusTypeDef AS3001204_Write_Disable();
+static HAL_StatusTypeDef AS3001204_Software_Reset_Enable();
 
 /*
  * 3.2. Internal helper functions
  */
-HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode);
-HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
-HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
-HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address);
+static HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode);
+static HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
+static HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
+static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address);
 
 
 // ###############################################################################################
@@ -117,7 +117,12 @@ HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down() {
 
 
 HAL_StatusTypeDef AS3001204_Software_Reset() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
+	HAL_StatusTypeDef isError;
+	isError = AS3001204_Software_Reset_Enable();
+	if (isError != HAL_OK) return isError;
+
+	isError = AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
+	return isError;
 }
 
 // ----------------------
@@ -274,15 +279,15 @@ error:
 //  5. Private driver function definitions
 // ###############################################################################################
 
-HAL_StatusTypeDef AS3001204_Write_Enable() {
+static HAL_StatusTypeDef AS3001204_Write_Enable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
 }
 
-HAL_StatusTypeDef AS3001204_Write_Disable() {
+static HAL_StatusTypeDef AS3001204_Write_Disable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
 }
 
-HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
+static HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
 }
 
@@ -291,7 +296,7 @@ HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
 //  6. Internal helper function definitions
 // ###############################################################################################
 
-HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
+static HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
 
     HAL_StatusTypeDef isError;
 
@@ -304,7 +309,7 @@ HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
     return isError;
 }
 
-HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
+static HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
     
     HAL_StatusTypeDef isError;
 
@@ -321,7 +326,7 @@ error:
 }
 
 
-HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
+static HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
 
     HAL_StatusTypeDef isError;
 
@@ -343,7 +348,7 @@ error:
 }
 
 
-HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
+static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
     
     // Separate 3 bytes of address from the uint32 (most significant byte ignored)
     uint8_t address_bytes[3] = {(address >> 16) & 0xff, (address >> 8) & 0xff, (address) & 0xff};
