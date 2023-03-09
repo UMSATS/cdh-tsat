@@ -117,7 +117,7 @@ int main(void) {
 	// Si446x_init();
 
 	// Si446x_getInfo(&info);
-	AS3001204_Test_MRAM_Driver();
+	unsigned int numFailed = AS3001204_Test_MRAM_Driver();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

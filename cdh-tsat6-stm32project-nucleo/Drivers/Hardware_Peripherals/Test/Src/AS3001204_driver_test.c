@@ -167,7 +167,7 @@ error:
 // Complete test suite routine
 //###############################################################################################
 
-int AS3001204_Test_MRAM_Driver() {
+unsigned int AS3001204_Test_MRAM_Driver() {
     int numFailed = 0;
 
     HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
