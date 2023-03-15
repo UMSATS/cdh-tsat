@@ -7,7 +7,7 @@
  *      Nikolaus J. Reichert <nikolaus.reichert@umsats.ca>
  */
 #include <stdio.h>
-#include <Si4464_driver.h>
+#include "Si4464_driver.h"
 #include "Si4464_command_codes.h"
 #include "Si4464_driver.h"
 
