@@ -198,10 +198,12 @@ HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address, ui
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_WRITE_MEMORY;
 
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+    // this is a separate command
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) return isError;
 
-    AS3001204_Write_Enable();
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
@@ -227,7 +229,7 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_READ_AUG_STORAGE;
-    uint8_t delay[] = AS3001204_READ_AUG_STORAGE_DELAY;
+//    uint8_t delay[] = AS3001204_READ_AUG_STORAGE_DELAY;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
@@ -239,10 +241,10 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 
     // TODO: Check the behaviour of the wait time here with a logic analyzer. -NJR
     // Transmitting 8 bytes of zeros to wait for output from aug. storage array
-    isError = HAL_SPI_Transmit(&AS3001204_SPI, delay, sizeof(delay), AS3001204_SPI_DELAY);
-    if (isError != HAL_OK) goto error;
+//    isError = HAL_SPI_Transmit(&AS3001204_SPI, delay, sizeof(delay), AS3001204_SPI_DELAY);
+//    if (isError != HAL_OK) goto error;
     
-    isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
+    isError = HAL_SPI_Receive(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
 
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
@@ -255,10 +257,12 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_WRITE_AUG_STORAGE;
 
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+    // separate command
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) return isError;
 
-    AS3001204_Write_Enable();
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
@@ -298,12 +302,12 @@ static HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
 
 static HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
 
-    HAL_StatusTypeDef isError;
+	HAL_StatusTypeDef isError;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
-    
+
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
 
     return isError;
@@ -330,11 +334,12 @@ static HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buf
 
     HAL_StatusTypeDef isError;
 
-    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
-
+    // This is a separate command, it does its own CS flipping
     isError = AS3001204_Write_Enable();
-    if (isError != HAL_OK) goto error;
+    if (isError != HAL_OK) return isError;
+
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
     isError = HAL_SPI_Transmit(&AS3001204_SPI, &opcode, sizeof(opcode), AS3001204_SPI_DELAY);
     if (isError != HAL_OK) goto error;
