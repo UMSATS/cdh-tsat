@@ -114,21 +114,15 @@ int main(void)
   MX_RTC_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-
-  //this code performs the W25N unit tests
-  //this code should be completed after power cycling the W25N
-  /*W25N_StatusTypeDef operation_status;
+  W25N_StatusTypeDef operation_status;
 
   operation_status = W25N_Init();
   if (operation_status != W25N_HAL_OK) goto error;
 
-  operation_status = Test_W25N();
-  if (operation_status != W25N_HAL_OK) goto error;
-
-  exit(0);
-
-error:
-  exit(1);*/
+  //this code performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*operation_status = Test_W25N();
+  if (operation_status != W25N_HAL_OK) goto error;*/
 
   /* USER CODE END 2 */
 
@@ -169,6 +163,9 @@ error:
 
     /* USER CODE BEGIN 3 */
   }
+
+error:
+  exit(1);
   /* USER CODE END 3 */
 }
 
