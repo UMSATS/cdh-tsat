@@ -27,6 +27,7 @@
 #include "Si446x/Si446x.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+#include "LEDs_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,6 +111,7 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+  LEDs_Init();
     //this code performs the W25N unit tests
     //this code should be completed after power cycling the W25N
     /*W25N_StatusTypeDef operation_status;
