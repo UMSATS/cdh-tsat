@@ -28,6 +28,7 @@
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 #include "LEDs_driver.h"
+#include "MAX6822_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,17 +117,18 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
-  W25N_StatusTypeDef operation_status;
-
-  operation_status = W25N_Init();
-  if (operation_status != W25N_HAL_OK) goto error;
+  MAX6822_Init();
 
   LEDs_Init();
 
+  W25N_StatusTypeDef w25n_operation_status;
+  w25n_operation_status = W25N_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
-  /*operation_status = Test_W25N();
-  if (operation_status != W25N_HAL_OK) goto error;*/
+  /*w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
 
   /* USER CODE END 2 */
 
