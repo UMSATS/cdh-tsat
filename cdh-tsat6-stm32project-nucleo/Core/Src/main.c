@@ -68,7 +68,7 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
-W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -111,21 +111,21 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-  LEDs_Init();
-    //this code performs the W25N unit tests
-    //this code should be completed after power cycling the W25N
-    /*W25N_StatusTypeDef operation_status;
-    
-    operation_status = W25N_Init();
-    if (operation_status != W25N_HAL_OK) goto error;
 
-    operation_status = Test_W25N();
-    if (operation_status != W25N_HAL_OK) goto error;
+  //this code performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*W25N_StatusTypeDef operation_status;
+  operation_status = W25N_Init();
+  if (operation_status != W25N_HAL_OK) goto error;
+  operation_status = Test_W25N();
+  if (operation_status != W25N_HAL_OK) goto error;
+  exit(0);*/
 
-    exit(0);
+  //this code initializes the LEDs
+  /*LEDs_Init();*/
 
-  error:
-    exit(1);*/
+/*error:
+  exit(1);*/
 
   /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
   //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
@@ -141,7 +141,7 @@ int main(void)
 
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(1000);
+	HAL_Delay(1000);
 
     /* USER CODE END WHILE */
 

@@ -115,10 +115,12 @@ int main(void)
   MX_RTC_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+
   W25N_StatusTypeDef operation_status;
 
   operation_status = W25N_Init();
   if (operation_status != W25N_HAL_OK) goto error;
+
   LEDs_Init();
 
   //this code performs the W25N unit tests
