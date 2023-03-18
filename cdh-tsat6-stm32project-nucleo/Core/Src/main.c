@@ -446,16 +446,22 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
-                          |M_nRESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|FLASH_nHOLD_Pin|MRAM_nCS_Pin
-                          |MRAM_nWP_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin
-                          |LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|FLASH_nCS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, FLASH_nHOLD_Pin|MRAM_nCS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(M_nRESET_GPIO_Port, M_nRESET_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
