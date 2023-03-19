@@ -56,7 +56,10 @@ SPI_HandleTypeDef hspi3;
 
 UART_HandleTypeDef huart4;
 
-osThreadId defaultTaskHandle;
+osThreadId blinkLED1Handle;
+osThreadId blinkLED2Handle;
+osThreadId blinkLED3Handle;
+osThreadId toggleWDIHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -70,7 +73,10 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_RTC_Init(void);
 static void MX_UART4_Init(void);
-void StartDefaultTask(void const * argument);
+void StartBlinkLED1(void const * argument);
+void StartBlinkLED2(void const * argument);
+void StartBlinkLED3(void const * argument);
+void StartToggleWDI(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -149,9 +155,21 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of blinkLED1 */
+  osThreadDef(blinkLED1, StartBlinkLED1, osPriorityNormal, 0, 128);
+  blinkLED1Handle = osThreadCreate(osThread(blinkLED1), NULL);
+
+  /* definition and creation of blinkLED2 */
+  osThreadDef(blinkLED2, StartBlinkLED2, osPriorityNormal, 0, 128);
+  blinkLED2Handle = osThreadCreate(osThread(blinkLED2), NULL);
+
+  /* definition and creation of blinkLED3 */
+  osThreadDef(blinkLED3, StartBlinkLED3, osPriorityNormal, 0, 128);
+  blinkLED3Handle = osThreadCreate(osThread(blinkLED3), NULL);
+
+  /* definition and creation of toggleWDI */
+  osThreadDef(toggleWDI, StartToggleWDI, osPriorityNormal, 0, 128);
+  toggleWDIHandle = osThreadCreate(osThread(toggleWDI), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -531,22 +549,79 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartBlinkLED1 */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the blinkLED1 thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_StartBlinkLED1 */
+void StartBlinkLED1(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED1_Toggle();
+    osDelay(1000);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartBlinkLED2 */
+/**
+* @brief Function implementing the blinkLED2 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlinkLED2 */
+void StartBlinkLED2(void const * argument)
+{
+  /* USER CODE BEGIN StartBlinkLED2 */
+  /* Infinite loop */
+  for(;;)
+  {
+    LED2_Toggle();
+    osDelay(500);
+  }
+  /* USER CODE END StartBlinkLED2 */
+}
+
+/* USER CODE BEGIN Header_StartBlinkLED3 */
+/**
+* @brief Function implementing the blinkLED3 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlinkLED3 */
+void StartBlinkLED3(void const * argument)
+{
+  /* USER CODE BEGIN StartBlinkLED3 */
+  /* Infinite loop */
+  for(;;)
+  {
+    LED3_Toggle();
+    osDelay(250);
+  }
+  /* USER CODE END StartBlinkLED3 */
+}
+
+/* USER CODE BEGIN Header_StartToggleWDI */
+/**
+* @brief Function implementing the toggleWDI thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartToggleWDI */
+void StartToggleWDI(void const * argument)
+{
+  /* USER CODE BEGIN StartToggleWDI */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartToggleWDI */
 }
 
 /**
