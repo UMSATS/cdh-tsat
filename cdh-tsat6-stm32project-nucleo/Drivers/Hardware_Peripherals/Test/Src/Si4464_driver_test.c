@@ -19,12 +19,13 @@
 HAL_StatusTypeDef Test_Si4464_Reset_Device()
 {
 
+
 }
 
 //###############################################################################################
 //Public Complete Unit Test Function
 //###############################################################################################
-HAL_StatusTypeDef Test_W25N()
+HAL_StatusTypeDef Test_Si4464()
 {
     HAL_StatusTypeDef operation_status;
 

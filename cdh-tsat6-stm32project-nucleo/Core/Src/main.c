@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include "Si4464_driver.h"
 #include "Si4464_driver_config.h"
+
+#include "W25N_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +42,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-CAN_HandleTypeDef hcan1;
+ CAN_HandleTypeDef hcan1;
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
@@ -130,7 +132,6 @@ int main(void)
   while (1)
   {
 	//Set a breakpoint here to view data grabbed from si446x module. -NJR
-
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     HAL_Delay(1000);
@@ -247,7 +248,7 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
@@ -327,7 +328,7 @@ static void MX_SPI3_Init(void)
   hspi3.Instance = SPI3;
   hspi3.Init.Mode = SPI_MODE_MASTER;
   hspi3.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi3.Init.DataSize = SPI_DATASIZE_4BIT;
   hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi3.Init.NSS = SPI_NSS_SOFT;
@@ -434,16 +435,15 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
-                          |M_nRESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_nCS_Pin|CAM_FSH_Pin|CAM_ON_Pin
+                          |WDI_Pin|M_nRESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|FLASH_nHOLD_Pin|MRAM_nCS_Pin
                           |MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin
-                          |LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -451,10 +451,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
-                           M_nRESET_Pin */
-  GPIO_InitStruct.Pin = LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
-                          |M_nRESET_Pin;
+  /*Configure GPIO pins : LD4_Pin CAM_nCS_Pin CAM_FSH_Pin CAM_ON_Pin
+                           WDI_Pin M_nRESET_Pin */
+  GPIO_InitStruct.Pin = LD4_Pin|CAM_nCS_Pin|CAM_FSH_Pin|CAM_ON_Pin
+                          |WDI_Pin|M_nRESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -469,10 +469,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin FLASH_nCS_Pin
-                           LED3_Pin LED2_Pin LED1_Pin */
-  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin
-                          |LED3_Pin|LED2_Pin|LED1_Pin;
+  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin FLASH_nCS_Pin */
+  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -482,7 +480,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = UHF_nIRQ_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(UHF_irq_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
 
 }
 

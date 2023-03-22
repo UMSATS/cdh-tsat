@@ -7,6 +7,8 @@
  *      Nikolaus J. Reichert <nikolaus.reichert@umsats.ca>
  */
 #include <stdio.h>
+#include <string.h>
+
 #include "Si4464_driver.h"
 #include "Si4464_command_codes.h"
 #include "Si4464_driver.h"
@@ -211,6 +213,62 @@ HAL_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData){
 	}
 	operation_status = Si4464_Send_Command(SI4464_TX_FIFO_WRITE, txData, lengthTxData, NULL, 0); // Add bytes to the transmit buffer
 	Si4464_Nsel(1);
+	return operation_status;
+}
+
+HAL_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *returned_bytes){
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	if (!returned_bytes) {
+		operation_status = HAL_ERROR;
+		goto error;
+	}
+
+	uint8_t args[] = {group, num_props, start_prop};
+
+	operation_status = Si4464_Send_Command(SI4464_GET_PROPERTY, args, 3, returned_bytes, num_props);
+	if (operation_status != HAL_OK) goto error;
+
+error:
+	return operation_status;
+}
+
+HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *bytes_to_send){
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	if (!bytes_to_send) {
+		operation_status = HAL_ERROR;
+		goto error;
+	}
+
+	if (num_props > 12 || num_props < 1) {
+		operation_status = HAL_ERROR;
+		goto error;
+	}
+
+	uint8_t args[15] = {0};
+	args[0] = group;
+	args[1] = num_props;
+	args[2] = start_prop;
+
+	memcpy(args + 3, bytes_to_send, num_props); // TODO: TRIPLE CHECK THIS! -NJR
+
+	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_SET_PROPERTY, args, 3 + num_props);
+	if (operation_status != HAL_OK) goto error;
+
+error:
+	return operation_status;
+}
+
+HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send){
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	uint8_t args[4] = {group, 1, start_prop, byte_to_send};
+
+	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_SET_PROPERTY, args, 4);
+	if (operation_status != HAL_OK) goto error;
+
+error:
 	return operation_status;
 }
 /***********************************************************

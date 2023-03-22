@@ -165,6 +165,47 @@ HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data);
 HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data);
 
 /**
+ * @brief Get some number of properties in a given group.
+ *
+ * @param group The Property Group to access.
+ * @param num_props The number of properties to get.
+ * @param start_prop The property index to start on.
+ * @param returned_bytes An array to store returned fields.
+ *
+ * NOTE: Expects that returned_bytes has at least num_props bytes of space!
+ *
+ * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
+ */
+HAL_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *returned_bytes);
+
+/**
+ * @brief Set some number of properties in a given group.
+ *
+ * @param group The Property Group to access.
+ * @param num_props The number of properties to set.
+ * @param start_prop The property index to start on.
+ * @param bytes_to_send An array of data to send.
+ *
+ * NOTE: Expects that returned_bytes has at least num_props bytes available to send!
+ *
+ * NOTE: Expects that num_props is less than or equal to 12 (the maximum number of props modifiable) and greater than 0.
+ *
+ * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
+ */
+HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *bytes_to_send);
+
+/**
+ * @brief A shortcut for setting only one property.
+ *
+ * @param group The Property Group to access.
+ * @param start_prop The property index to start on.
+ * @param byte_to_send The data to send.
+ *
+ * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
+ */
+HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send);
+
+/**
  * @brief Set the chip select pin of the Si4464
  *
  * @param sel 0 for pull low and 1 for pull high
