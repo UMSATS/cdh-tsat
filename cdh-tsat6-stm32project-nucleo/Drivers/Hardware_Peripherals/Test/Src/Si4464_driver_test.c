@@ -11,16 +11,71 @@
 
 #include "Si4464_driver_test.h"
 #include "Si4464_driver.h"
+#include "Si4464_command_codes.h"
 
+// TODO: Move this to a new file, alongside all other props. -NJR
+#define SI4464_MODEM_GROUP 0x20
+#define SI4464_MODEM_MOD_TYPE 0x01
 
 //###############################################################################################
 //Public Unit Test Functions
 //###############################################################################################
-HAL_StatusTypeDef Test_Si4464_Reset_Device()
-{
+HAL_StatusTypeDef Test_Si4464_Reset_Device(){
+	HAL_StatusTypeDef operation_status = HAL_OK
+	uint8_t original_value = 0x73; // Random bit pattern to know if we read stuff correctly. -NJR
+	uint8_t new_value = 0xAC;
+	uint8_t post_reset_value = 0x73;
 
+	Si4464_Reset_Device();
 
+	operation_status = Si4464_Get_Prop(SI4464_MODEM_GROUP,  1,  SI4464_MODEM_MOD_TYPE, &original_value);
+	if (operation_status != HAL_OK) goto error;
+
+	operation_status = Si4464_Set_One_Prop(SI4464_MODEM_GROUP, SI4464_MODEM_MOD_TYPE, 0xAC);
+	if (operation_status != HAL_OK) goto error;
+
+	Si4464_Reset_Device();
+
+	operation_status = Si4464_Get_Prop(SI4464_MODEM_GROUP,  1,  SI4464_MODEM_MOD_TYPE, &post_reset_value);
+	if (operation_status != HAL_OK) goto error;
+
+	if (post_reset_value != original_value) {
+		operation_status = HAL_ERROR;
+	}
+
+error:
+	return operation_status;
 }
+
+HAL_StatusTypeDef Test_Si4464_Get_CTS(){
+	// Modified Send_Command code, with hardcoded command and stripped out reply section.
+	HAL_StatusTypeDef operation_status = HAL_OK;
+	Si4464_Nsel(0);
+
+	uint8_t command = Si4464_NOP
+
+	operation_status = Radio_SPI_Transmit_Message(&command, 1);
+	if (operation_status != HAL_OK) goto error;
+
+	uint32_t retries = 0;
+
+	uint32_t cts = 0;
+	do {
+		retries++;
+		Si4464_Nsel(1);
+		Si4464_Nsel(0);
+		cts = Si4464_Get_CTS();
+	} while (!cts && retries < 1000);
+
+	if (retries >= 1000) {
+		operation_status = HAL_ERROR;
+	}
+
+error:
+	Si4464_Nsel(1);
+	return operation_status;
+}
+
 
 //###############################################################################################
 //Public Complete Unit Test Function
@@ -37,6 +92,8 @@ HAL_StatusTypeDef Test_Si4464()
 
     operation_status = Test_Si4464_Reset_Device();
     if (operation_status != HAL_OK) goto error;
+
+    operation_status = Test_Si4464_
 
 error:
     return operation_status;
