@@ -29,7 +29,7 @@ static uint8_t STATUS_REG_DEFAULT = 0x00;
 static uint8_t STATUS_REG_TEST 	  = 0xc0;
 
 static uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
-static uint8_t CONFIG_REGS_TEST   [AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0xf7, 0x04};
+static uint8_t CONFIG_REGS_TEST   [AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x74, 0x04};
 
 static uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xe6, 0x01, 0x01, 0x02};
 static uint8_t UNIQUE_ID[AS3001204_UNIQUE_ID_LENGTH] = {0xa4, 0x00, 0x02, 0xe6, 0x10, 0x01, 0x00, 0x14};
@@ -133,7 +133,7 @@ unsigned int AS3001204_Test_RW_ASP_Register() {
     if (isError != HAL_OK || p_buffer != ASP_REG_TEST) goto error;
 
     // Restore default
-    isError = AS3001204_Write_ASP_Register(&ASP_REG_TEST);
+    isError = AS3001204_Write_ASP_Register(&ASP_REG_DEFAULT);
     if (isError == HAL_OK) return 0;
 
 error:
@@ -193,6 +193,8 @@ error:
 
 unsigned int AS3001204_Test_MRAM_Driver() {
     int numFailed = 0;
+
+    AS3001204_Software_Reset();
 
     numFailed += AS3001204_Test_Read_ID_Registers();
     numFailed += AS3001204_Test_RW_Status_Register();

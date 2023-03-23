@@ -147,7 +147,7 @@ HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer) {
     return AS3001204_Read_Register(AS3001204_OPCODE_READ_UNIQUE_ID, p_buffer, AS3001204_UNIQUE_ID_LENGTH);
 }
 
-HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_buffer) {
+HAL_StatusTypeDef AS3001204_Read_ASP_Register(uint8_t *p_buffer) {
     return AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
 }
 
@@ -164,7 +164,7 @@ HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer) {
     return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_CONFIG_REGS, p_buffer, AS3001204_CONFIG_REGS_LENGTH);
 }
 
-HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer) {
+HAL_StatusTypeDef AS3001204_Write_ASP_Register(uint8_t *p_buffer) {
     return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
 }
 
