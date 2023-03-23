@@ -21,6 +21,7 @@
  *       4.3. Write registers
  *       4.4. Read/write memory
  *       4.5. Read/write Augmented Storage Array
+ *       4.6. Device initialization
  *   5. Private driver function definitions
  *   6. Internal helper function definitions
  */
@@ -278,6 +279,48 @@ error:
     return isError;
 }
 
+// -----------------------------------
+//  4.6. Device initialization
+// -----------------------------------
+HAL_StatusTypeDef AS3001204_Init() {
+
+	HAL_StatusTypeDef isError;
+
+	/*
+	 * Status register:
+	 *  Enable hardware write protection
+	 *  Leave other features disabled
+	 */
+	static uint8_t STATUS_REG_INIT = 0x80;
+
+	/*
+	 * Configuration registers:
+	 *  1. Lock status register protection options, and enable ASA write protection
+	 *  2. Single SPI; zero memory read latency
+	 *  3. Leave output driver strength unchanged; leave read wrapping disabled
+	 *  4. Enforce software write enable (WREN) as prerequisite to all memory write instructions
+	 */
+	static uint8_t CONFIG_REGS_INIT[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x00, 0x60, 0x04};
+
+	/*
+	 * Augmented Storage Array protection register:
+	 *  Leave ASA section-specific protection disabled
+	 */
+	static uint8_t ASP_REG_INIT = 0x00;
+
+	// Write to registers
+	isError = AS3001204_Write_Status_Register(&STATUS_REG_INIT);
+	if (isError != HAL_OK) goto error;
+	isError = AS3001204_Write_Config_Registers(CONFIG_REGS_INIT);
+	if (isError != HAL_OK) goto error;
+	isError = AS3001204_Write_ASP_Register(&ASP_REG_INIT);
+	if (isError != HAL_OK) goto error;
+
+error:
+	return isError;
+
+}
+
 
 // ###############################################################################################
 //  5. Private driver function definitions
@@ -287,6 +330,9 @@ static HAL_StatusTypeDef AS3001204_Write_Enable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
 }
 
+
+// Likely won't be used; our initialization settings include auto-disabling
+// the software write enable following every write instruction.
 static HAL_StatusTypeDef AS3001204_Write_Disable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
 }

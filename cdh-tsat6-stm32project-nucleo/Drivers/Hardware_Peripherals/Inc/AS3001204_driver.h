@@ -19,6 +19,7 @@
  *       4.3. Write registers
  *       4.4. Read/write memory
  *       4.5. Read/write Augmented Storage Array
+ *       4.6. Device initialization
  */
 
 #ifndef HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
@@ -78,7 +79,7 @@ HAL_StatusTypeDef AS3001204_Software_Reset();
  *
  * FUNCTIONS:   AS3001204_Read_Status_Register, AS3001204_Read_Config_Registers,
                 AS3001204_Read_Device_ID, AS3001204_Read_Unique_ID,
-                AS3001204_Read_Augmented_Array_Protection_Register
+                AS3001204_Read_ASP_Register
  *
  * DESCRIPTION: These functions read reserved registers from the MRAM device.
  *              Refer to the definitions above for the length of each register.
@@ -93,13 +94,13 @@ HAL_StatusTypeDef AS3001204_Read_Status_Register(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Config_Registers(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Device_ID(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer);
-HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_buffer);
+HAL_StatusTypeDef AS3001204_Read_ASP_Register(uint8_t *p_buffer);
 
 /*
  * 4.3. Write registers
  *
  * FUNCTIONS:   AS3001204_Write_Status_Register, AS3001204_Write_Config_Registers,
-                AS3001204_Write_Augmented_Array_Protection_Register
+                AS3001204_Write_ASP_Register
  *
  * DESCRIPTION: These functions write reserved registers to the MRAM device.
  *              Refer to the definitions above for the length of each register.
@@ -119,7 +120,7 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Array_Protection_Register(uint8_t *p_
  */
 HAL_StatusTypeDef AS3001204_Write_Status_Register(uint8_t *p_buffer);
 HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer);
-HAL_StatusTypeDef AS3001204_Write_Augmented_Array_Protection_Register(uint8_t *p_buffer);
+HAL_StatusTypeDef AS3001204_Write_ASP_Register(uint8_t *p_buffer);
 
 /*
  * 4.4. Read/write memory
@@ -174,5 +175,18 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
                                                    uint16_t num_of_bytes);
 HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t address,
                                                     uint16_t num_of_bytes);
+
+
+/*
+ * 4.6. Device initialization
+ *
+ * FUNCTIONS:	AS3001204_Init
+ *
+ * DESCRIPTION:
+ *
+ * NOTES:
+ */
+HAL_StatusTypeDef AS3001204_Init();
+
 
 #endif  // HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_H_
