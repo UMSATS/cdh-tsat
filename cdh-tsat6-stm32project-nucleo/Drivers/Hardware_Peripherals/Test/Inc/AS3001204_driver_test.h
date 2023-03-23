@@ -33,10 +33,10 @@ unsigned int AS3001204_Test_Read_ID_Registers();
  * Read/write register tests
  *
  * FUNCTIONS:   AS3001204_Test_RW_Status_Register, AS3001204_Test_RW_Config_Registers,
- * 	            AS3001204_Test_RW_Augmented_Array_Protection_Register
+ * 	            AS3001204_Test_RW_ASP_Register
  *
  * DESCRIPTION: These functions test the AS3001204 driver's ability to read and write to the
- * 	            MRAM unit's status register, configuration registers, and augmented array
+ * 	            MRAM unit's status register, configuration registers, and augmented storage array
  * 	            protection register, respectively. These functions only write valid data to the
  * 	            registers - writing invalid bits to registers could cause undefined behaviour.
  *
@@ -45,7 +45,7 @@ unsigned int AS3001204_Test_Read_ID_Registers();
 
 unsigned int AS3001204_Test_RW_Status_Register();
 unsigned int AS3001204_Test_RW_Config_Registers();
-unsigned int AS3001204_Test_RW_Augmented_Array_Protection_Register();
+unsigned int AS3001204_Test_RW_ASP_Register();
 
 /*
  * Read/write memory tests

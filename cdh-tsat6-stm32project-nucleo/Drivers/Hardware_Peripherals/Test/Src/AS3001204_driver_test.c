@@ -34,8 +34,9 @@ static uint8_t CONFIG_REGS_TEST   [AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 
 static uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xe6, 0x01, 0x01, 0x02};
 static uint8_t UNIQUE_ID[AS3001204_UNIQUE_ID_LENGTH] = {0xa4, 0x00, 0x02, 0xe6, 0x10, 0x01, 0x00, 0x14};
 
-static uint8_t AAP_REG_DEFAULT = 0x00;
-static uint8_t AAP_REG_TEST    = 0xff;
+// (A)ugmented (S)torage Array (P)rotection Register
+static uint8_t ASP_REG_DEFAULT = 0x00;
+static uint8_t ASP_REG_TEST    = 0xff;
 
 static uint32_t MEM_TEST_ADDRESS = 0xabba;
 static uint32_t AAP_TEST_ADDRESS = 0x0000;
@@ -118,21 +119,21 @@ error:
 }
 
 
-unsigned int AS3001204_Test_RW_Augmented_Array_Protection_Register() {
+unsigned int AS3001204_Test_RW_ASP_Register() {
     
     HAL_StatusTypeDef isError; 
     uint8_t p_buffer = 0x00;
 
     // Write test data
-    isError = AS3001204_Write_Augmented_Array_Protection_Register(&AAP_REG_TEST);
+    isError = AS3001204_Write_ASP_Register(&ASP_REG_TEST);
     if (isError != HAL_OK) goto error;
 
     // Read back and verify test data
-    isError = AS3001204_Read_Augmented_Array_Protection_Register(&p_buffer);
-    if (isError != HAL_OK || p_buffer != AAP_REG_TEST) goto error;
+    isError = AS3001204_Read_ASP_Register(&p_buffer);
+    if (isError != HAL_OK || p_buffer != ASP_REG_TEST) goto error;
 
     // Restore default
-    isError = AS3001204_Write_Augmented_Array_Protection_Register(&AAP_REG_TEST);
+    isError = AS3001204_Write_ASP_Register(&ASP_REG_TEST);
     if (isError == HAL_OK) return 0;
 
 error:
@@ -196,7 +197,7 @@ unsigned int AS3001204_Test_MRAM_Driver() {
     numFailed += AS3001204_Test_Read_ID_Registers();
     numFailed += AS3001204_Test_RW_Status_Register();
     numFailed += AS3001204_Test_RW_Config_Registers();
-    numFailed += AS3001204_Test_RW_Augmented_Array_Protection_Register();
+    numFailed += AS3001204_Test_RW_ASP_Register();
 
     numFailed += AS3001204_Test_RW_Memory();
     numFailed += AS3001204_Test_RW_Augmented_Storage();
