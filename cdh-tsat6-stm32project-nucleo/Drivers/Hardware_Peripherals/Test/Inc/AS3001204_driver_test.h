@@ -15,6 +15,20 @@
 
 #include "stm32l4xx_hal.h"
 
+
+/*
+ * Read ID registers test
+ *
+ * FUNCTIONS:   AS3001204_Test_Read_ID_Registers
+ *
+ * DESCRIPTION: This function is a simple test that reads the (read-only) device ID and
+ * 				unique ID registers of the AS3001204 MRAM unit, and compares their
+ * 				contents to known values.
+ *
+ * RETURN:      0 if successful, 1 if not.
+ */
+unsigned int AS3001204_Test_Read_ID_Registers();
+
 /*
  * Read/write register tests
  *
