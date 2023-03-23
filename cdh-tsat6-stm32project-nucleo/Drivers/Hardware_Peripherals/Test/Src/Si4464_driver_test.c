@@ -21,7 +21,7 @@
 //Public Unit Test Functions
 //###############################################################################################
 HAL_StatusTypeDef Test_Si4464_Reset_Device(){
-	HAL_StatusTypeDef operation_status = HAL_OK
+	HAL_StatusTypeDef operation_status = HAL_OK;
 	uint8_t original_value = 0x73; // Random bit pattern to know if we read stuff correctly. -NJR
 	uint8_t new_value = 0xAC;
 	uint8_t post_reset_value = 0x73;
@@ -52,7 +52,7 @@ HAL_StatusTypeDef Test_Si4464_Get_CTS(){
 	HAL_StatusTypeDef operation_status = HAL_OK;
 	Si4464_Nsel(0);
 
-	uint8_t command = Si4464_NOP
+	uint8_t command = Si4464_NOP;
 
 	operation_status = Radio_SPI_Transmit_Message(&command, 1);
 	if (operation_status != HAL_OK) goto error;
@@ -76,6 +76,30 @@ error:
 	return operation_status;
 }
 
+HAL_StatusTypeDef Test_Si4464_Get_Set_Props(){
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	uint8_t original_data[MAX_PROP_WRITE_NUM] = {0x00};
+	// Fill buffer with indicator that we aren't able to read stuff.
+
+	for (size_t i = 0; i < MAX_PROP_WRITE_NUM; i++) {
+		original_data[i] = 0x73;
+	}
+
+	uint8_t data_to_write[MAX_PROP_WRITE_NUM] = {0x00};
+
+	uint8_t after_write_data[MAX_PROP_WRITE_NUM] = {0x00};
+
+	for (size_t i = 0; i < MAX_PROP_WRITE_NUM; i++) {
+		after_write_data[i] = 0xAC;
+	}
+
+
+
+error:
+	return operation_status;
+}
+
 
 //###############################################################################################
 //Public Complete Unit Test Function
@@ -88,6 +112,9 @@ HAL_StatusTypeDef Test_Si4464()
 
     //unit test functions
     operation_status = Test_Si4464_Get_CTS();
+    if (operation_status != HAL_OK) goto error;
+
+    operation_status = Test_Si4464_Get_Set_Props();
     if (operation_status != HAL_OK) goto error;
 
     operation_status = Test_Si4464_Reset_Device();
