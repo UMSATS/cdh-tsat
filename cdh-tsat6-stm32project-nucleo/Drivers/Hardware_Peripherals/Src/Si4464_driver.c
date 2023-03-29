@@ -12,6 +12,9 @@
 #include "Si4464_driver.h"
 #include "Si4464_command_codes.h"
 #include "Si4464_driver.h"
+#include "Si4464_driver_config.h"
+
+static uint8_t POWER_UP_ARRAY[] = RADIO_CONFIGURATION_DATA_ARRAY;
 
 
 /************************************************************
@@ -136,6 +139,18 @@ HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_by
 
 error:
 	Si4464_Nsel(1);
+	return operation_status;
+}
+
+HAL_StatusTypeDef Si4464_Init_Device() {
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	Si4464_Reset_Device();
+
+	operation_status = Si4464_Execute_Command_Stream(POWER_UP_ARRAY, sizeof(POWER_UP_ARRAY));
+	if (operation_status != HAL_OK) goto error;
+
+error:
 	return operation_status;
 }
 

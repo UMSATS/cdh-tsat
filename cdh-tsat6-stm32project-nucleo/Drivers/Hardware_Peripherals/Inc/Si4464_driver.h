@@ -217,6 +217,14 @@ HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t sta
 HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send);
 
 /**
+ * @brief Resets and Initializes the device from the config data in Si4464_driver_config.h.
+ *
+ * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
+ */
+HAL_StatusTypeDef Si4464_Init_Device();
+
+
+/**
  * @brief Set the chip select pin of the Si4464
  *
  * @param sel 0 for pull low and 1 for pull high
