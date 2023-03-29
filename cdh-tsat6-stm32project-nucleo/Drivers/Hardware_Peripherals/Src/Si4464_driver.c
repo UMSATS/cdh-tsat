@@ -272,6 +272,20 @@ HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t
 error:
 	return operation_status;
 }
+
+HAL_StatusTypeDef Si4464_Set_Power_State(Si4464PowerState state) {
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	uint8_t int_state = (uint8_t) state & 0x0F;
+
+	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_CHANGE_STATE, &int_state, 1);
+	if (operation_status != HAL_OK) goto error;
+
+error:
+	return operation_status;
+}
+
+
 /***********************************************************
  *
  * Low Level HAL Wrappers

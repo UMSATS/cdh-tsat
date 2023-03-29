@@ -35,6 +35,17 @@ typedef struct {
     uint8_t functional_mode;
 } Si4464FunctionInfo;
 
+typedef enum {
+	SI4464_STATE_NOCHANGE = 0x00,
+	SI4464_STATE_SLEEP = 0x01,
+	SI4464_STATE_SPI_ACTIVE = 0x02,
+	SI4464_STATE_READY = 0x03,
+	SI4464_STATE_TX_TUNE = 0x05,
+	SI4464_STATE_RX_TUNE = 0x06,
+	SI4464_STATE_TX = 0x07,
+	SI4464_STATE_RX = 0x08,
+} Si4464PowerState;
+
 
 /*
  * TODO: Add detail to function description
