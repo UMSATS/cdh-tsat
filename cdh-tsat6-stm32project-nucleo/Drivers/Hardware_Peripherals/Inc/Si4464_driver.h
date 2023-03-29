@@ -36,28 +36,35 @@ typedef struct {
 } Si4464FunctionInfo;
 
 typedef enum {
-	SI4464_STATE_NOCHANGE = 0x00,
-	SI4464_STATE_SLEEP = 0x01,
+	SI4464_STATE_NOCHANGE 	= 0x00,
+	SI4464_STATE_SLEEP 		= 0x01,
 	SI4464_STATE_SPI_ACTIVE = 0x02,
-	SI4464_STATE_READY = 0x03,
-	SI4464_STATE_TX_TUNE = 0x05,
-	SI4464_STATE_RX_TUNE = 0x06,
-	SI4464_STATE_TX = 0x07,
-	SI4464_STATE_RX = 0x08,
+	SI4464_STATE_READY 		= 0x03,
+	SI4464_STATE_TX_TUNE 	= 0x05,
+	SI4464_STATE_RX_TUNE 	= 0x06,
+	SI4464_STATE_TX 		= 0x07,
+	SI4464_STATE_RX 		= 0x08
 } Si4464PowerState;
+
+typedef enum {
+	SI4464_HAL_OK 		= HAL_OK,
+	SI4464_HAL_ERROR 	= HAL_ERROR,
+	SI4464_HAL_BUSY 	= HAL_BUSY,
+	SI4464_HAL_TIMEOUT 	= HAL_TIMEOUT
+} Si4464_StatusTypeDef;
 
 
 /*
  * TODO: Add detail to function description
  * Writes bytes sent to it to the TX FIFO
  */
-HAL_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData);
+Si4464_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData);
 
 /*
  * TODO: Add detail to function description
  * Will send a message using the radio
  */
-HAL_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData);
+Si4464_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData);
 
 /*
  * Using the SPI in an interrupt mode means we must setup callback functions
@@ -90,7 +97,7 @@ void HAL_SPI_TxRxCpltCallback (SPI_HandleTypeDef * hspi2);
  *
  * @returns the status code returned by the HAL.
  */
-HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
+Si4464_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
 
 /**
  * @brief Receive up to numToReceive bytes of data from the Radio.
@@ -101,7 +108,7 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
  *
  * @returns the status code returned by the HAL.
  */
-HAL_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive);
+Si4464_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive);
 
 /**
  * @brief Transmit/Receive numTransmittedReceived bytes to/from the Radio.
@@ -113,7 +120,7 @@ HAL_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive
  *
  * @returns the status code returned by the HAL.
  */
-HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData, size_t numTransmittedReceived);
+Si4464_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData, size_t numTransmittedReceived);
 
 /**
  * @brief Reset the Radio via its SDN Pin.
@@ -129,7 +136,7 @@ void Si4464_Reset_Device();
  * @param stream_len The length of the stream.
  * @returns HAL_OK if all commands succeed, otherwise the error code of the failing command.
  */
-HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t stream_len);
+Si4464_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t stream_len);
 
 /**
  * @brief Send a command to the Radio module.
@@ -144,12 +151,12 @@ HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t
  *
  * Note: if return_size is more than what the API Description states, the function will return garbage values for those bytes.
  */
-HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size);
+Si4464_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size);
 
 /**
  * @brief Wrapper for Si4464_Send_Command(), throwing out any ignored data.
  */
-HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size);
+Si4464_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size);
 
 /**
  * @brief Check if the Radio Module is ready to return requested data.
@@ -165,7 +172,7 @@ bool Si4464_Get_CTS();
  * @param info_data A pointer to the data struct to return data with.
  * @returns HAL_OK if command succeeded, otherwise the respective error.
  */
-HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data);
+Si4464_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data);
 
 /**
  * @brief Get the Part Information of the Si4464.
@@ -173,7 +180,7 @@ HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data);
  * @param info_data A pointer to the data struct to return data with.
  * @returns HAL_OK if command succeeded, otherwise the respective error.
  */
-HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data);
+Si4464_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data);
 
 /**
  * @brief Get some number of properties in a given group.
@@ -187,7 +194,7 @@ HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data);
  *
  * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
  */
-HAL_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *returned_bytes);
+Si4464_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *returned_bytes);
 
 /**
  * @brief Set some number of properties in a given group.
@@ -203,7 +210,7 @@ HAL_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t star
  *
  * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
  */
-HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *bytes_to_send);
+Si4464_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *bytes_to_send);
 
 /**
  * @brief A shortcut for setting only one property.
@@ -214,14 +221,14 @@ HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t sta
  *
  * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
  */
-HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send);
+Si4464_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send);
 
 /**
  * @brief Resets and Initializes the device from the config data in Si4464_driver_config.h.
  *
  * @returns HAL_OK if all commands succeeded, otherwise the error returned by the HAL or other called functions.
  */
-HAL_StatusTypeDef Si4464_Init_Device();
+Si4464_StatusTypeDef Si4464_Init_Device();
 
 
 /**

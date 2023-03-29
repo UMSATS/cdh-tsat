@@ -23,11 +23,11 @@ static uint8_t POWER_UP_ARRAY[] = RADIO_CONFIGURATION_DATA_ARRAY;
  *
  ************************************************************/
 
-HAL_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData){
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData){
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	operation_status = writeTxBuffer(lengthTxData, txData);
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 	Si4464_Nsel(0);
 	while(!Si4464_Get_CTS()){
@@ -36,7 +36,7 @@ HAL_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData)
 
 	operation_status = Si4464_Send_Command(SI4464_START_TX, NULL, 0, NULL, 0);
 
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 	while(!Si4464_Get_CTS()){
 		// Wait for message to send
@@ -45,12 +45,12 @@ HAL_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData)
 error:
 	return operation_status;
 }
-HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data)
+Si4464_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data)
 {
-	HAL_StatusTypeDef operation_status = HAL_OK;
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	if (!info_data) {
-		operation_status = HAL_ERROR;
+		operation_status = SI4464_HAL_ERROR;
 		goto error;
 	}
 
@@ -59,7 +59,7 @@ HAL_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data)
 	uint8_t reply_data[8] = {0x00};
 
 	operation_status = Si4464_Send_Command(SI4464_PART_INFO, NULL, 0, reply_data, sizeof(reply_data));
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 	// Initialize the struct.
 	info_data->chip_rev = reply_data[0];
@@ -73,12 +73,12 @@ error:
 	return operation_status;
 }
 
-HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data)
+Si4464_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data)
 {
-	HAL_StatusTypeDef operation_status = HAL_OK;
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	if (!info_data) {
-		operation_status = HAL_ERROR;
+		operation_status = SI4464_HAL_ERROR;
 		goto error;
 	}
 
@@ -87,7 +87,7 @@ HAL_StatusTypeDef Si4464_Get_Function_Info(Si4464FunctionInfo *info_data)
 	uint8_t reply_data[6] = {0x00};
 
 	operation_status = Si4464_Send_Command(SI4464_FUNC_INFO, NULL, 0, reply_data, sizeof(reply_data));
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 	// Initialize the struct.
 	info_data->ext_revision = reply_data[0];
@@ -106,21 +106,21 @@ error:
  * Basic Si4464 Commands & Utilities
  *
  ************************************************************/
-HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size)
+Si4464_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size, uint8_t *returned_bytes, size_t return_size)
 {
 	// HACK ALERT!!!!!!!!!!!!!!
 	// TODO: DO NULL CHECKING HERE!
 	// OUR CURRENT ERROR TYPEDEFS DO NOT ALLOW MORE THAN ONE ERROR CODE!
-	// Maybe create a new error enum that builds off HAL_StatusTypeDef? -NJR
-	HAL_StatusTypeDef operation_status = HAL_OK;
+	// Maybe create a new error enum that builds off Si4464_StatusTypeDef? -NJR
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 	Si4464_Nsel(0);
 
 	operation_status = Radio_SPI_Transmit_Message(&command_byte, 1);
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 	if (arg_size != 0) {
 		operation_status = Radio_SPI_Transmit_Message(argument_bytes, arg_size);
-		if (operation_status != HAL_OK) goto error;
+		if (operation_status != SI4464_HAL_OK) goto error;
 	}
 
 	// TODO: Get a timeout here? -NJR
@@ -134,7 +134,7 @@ HAL_StatusTypeDef Si4464_Send_Command(uint8_t command_byte, uint8_t *argument_by
 	
 	if (return_size != 0) {
 		operation_status = Radio_SPI_Receive_Message(returned_bytes, return_size);
-		if (operation_status != HAL_OK) goto error;
+		if (operation_status != SI4464_HAL_OK) goto error;
 	}
 
 error:
@@ -142,26 +142,26 @@ error:
 	return operation_status;
 }
 
-HAL_StatusTypeDef Si4464_Init_Device() {
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef Si4464_Init_Device() {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	Si4464_Reset_Device();
 
 	operation_status = Si4464_Execute_Command_Stream(POWER_UP_ARRAY, sizeof(POWER_UP_ARRAY));
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 error:
 	return operation_status;
 }
 
 
-HAL_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size)
+Si4464_StatusTypeDef Si4464_Send_Command_Ignore_Received(uint8_t command_byte, uint8_t *argument_bytes, size_t arg_size)
 {
 	return Si4464_Send_Command(command_byte, argument_bytes, arg_size, NULL, 0);
 }
 
 
-HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t stream_len)
+Si4464_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t stream_len)
 {
 	size_t i = 0;
 
@@ -169,9 +169,9 @@ HAL_StatusTypeDef Si4464_Execute_Command_Stream(uint8_t command_stream[], size_t
 	uint8_t *args;
 	size_t arg_len;
 
-	HAL_StatusTypeDef command_success = HAL_OK;
+	Si4464_StatusTypeDef command_success = SI4464_HAL_OK;
 
-	while (i < stream_len && command_stream[i] != 0x00 && command_success == HAL_OK) {
+	while (i < stream_len && command_stream[i] != 0x00 && command_success == SI4464_HAL_OK) {
 		arg_len = command_stream[i] - 1;
 		command = command_stream[i + 1];
 		args = command_stream + (i + 2);
@@ -203,7 +203,7 @@ bool Si4464_Get_CTS() {
 	uint8_t response[] = {0x00, 0x00};
 
 	// HACK ALERT!!!!!
-	// This does not use the HAL_StatusTypeDef for returning! maybe figure out a returnable struct for error handling? -NJR
+	// This does not use the Si4464_StatusTypeDef for returning! maybe figure out a returnable struct for error handling? -NJR
 	Radio_SPI_Transmit_Receive_Message(command, response, 2);
 
 	return (response[1] == 0xFF);
@@ -220,8 +220,8 @@ void Si4464_Nsel(uint8_t sel){
 }
 
 
-HAL_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData){
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData){
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 	Si4464_Nsel(0);
 	while(!Si4464_Get_CTS()){
 		// Wait
@@ -231,33 +231,33 @@ HAL_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData){
 	return operation_status;
 }
 
-HAL_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *returned_bytes){
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef Si4464_Get_Prop(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *returned_bytes){
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	if (!returned_bytes) {
-		operation_status = HAL_ERROR;
+		operation_status = SI4464_HAL_ERROR;
 		goto error;
 	}
 
 	uint8_t args[] = {group, num_props, start_prop};
 
 	operation_status = Si4464_Send_Command(SI4464_GET_PROPERTY, args, 3, returned_bytes, num_props);
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 error:
 	return operation_status;
 }
 
-HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *bytes_to_send){
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t start_prop, uint8_t *bytes_to_send){
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	if (!bytes_to_send) {
-		operation_status = HAL_ERROR;
+		operation_status = SI4464_HAL_ERROR;
 		goto error;
 	}
 
 	if (num_props > 12 || num_props < 1) {
-		operation_status = HAL_ERROR;
+		operation_status = SI4464_HAL_ERROR;
 		goto error;
 	}
 
@@ -269,32 +269,32 @@ HAL_StatusTypeDef Si4464_Set_Props(uint8_t group, uint8_t num_props, uint8_t sta
 	memcpy(args + 3, bytes_to_send, num_props); // TODO: TRIPLE CHECK THIS! -NJR
 
 	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_SET_PROPERTY, args, 3 + num_props);
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 error:
 	return operation_status;
 }
 
-HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send){
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send){
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	// TODO: I don't feel super comfortable about passing the address of an argument here. What
 	// if it's an argument passed by register? Maybe read the ARM EABI Reference to double check. -NJR
 
 	operation_status = Si4464_Set_Props(group, 1, start_prop, &byte_to_send);
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 error:
 	return operation_status;
 }
 
-HAL_StatusTypeDef Si4464_Set_Power_State(Si4464PowerState state) {
-	HAL_StatusTypeDef operation_status = HAL_OK;
+Si4464_StatusTypeDef Si4464_Set_Power_State(Si4464PowerState state) {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 
 	uint8_t int_state = (uint8_t) state & 0x0F;
 
 	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_CHANGE_STATE, &int_state, 1);
-	if (operation_status != HAL_OK) goto error;
+	if (operation_status != SI4464_HAL_OK) goto error;
 
 error:
 	return operation_status;
@@ -306,7 +306,7 @@ error:
  * Low Level HAL Wrappers
  *
  ***********************************************************/
-HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
+Si4464_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
 	// TODO: Check which form of SPI Transfer function we should use: Blocking, IT, or DMA.
 	// For now, Daigh noted we should use Blocking. -NJR
 	// HAL_SPI_Transmit_IT(&hspi2, pData, sizeof(pData));
@@ -314,14 +314,14 @@ HAL_StatusTypeDef Radio_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
 }
 
 
-HAL_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
+Si4464_StatusTypeDef Radio_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
 	// See note on Radio_SPI_Transmit_Message(). -NJR
 	// HAL_SPI_Receive_IT(&hspi2, pData, sizeof(pData));
 	return HAL_SPI_Receive(&hspi2, pData, numToReceive, HAL_MAX_DELAY);
 }
 
 
-HAL_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData, size_t numTransmittedReceived){
+Si4464_StatusTypeDef Radio_SPI_Transmit_Receive_Message(uint8_t * pTxData, uint8_t * pRxData, size_t numTransmittedReceived){
 
 	// HAL_SPI_TransmitReceive_IT(&hspi2, pTxData, pRxData, sizeof(pTxData));
 	return HAL_SPI_TransmitReceive(&hspi2, pTxData, pRxData, numTransmittedReceived, HAL_MAX_DELAY);
