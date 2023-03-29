@@ -8,9 +8,9 @@
 #ifndef HARDWARE_PERIPHERALS_TEST_INC_W25N_DRIVER_TEST_H_
 #define HARDWARE_PERIPHERALS_TEST_INC_W25N_DRIVER_TEST_H_
 
+#include "stm32l4xx_hal.h"
 
-HAL_Status_TypeDef Test_Si4464_Get_CTS();
+HAL_StatusTypeDef Test_Si4464();
 
-HAL_Status_TypeDef Test_Si4464_Reset_Device();
 
 #endif
