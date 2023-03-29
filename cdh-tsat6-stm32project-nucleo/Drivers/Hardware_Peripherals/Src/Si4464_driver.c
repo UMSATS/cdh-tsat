@@ -263,9 +263,10 @@ error:
 HAL_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint8_t byte_to_send){
 	HAL_StatusTypeDef operation_status = HAL_OK;
 
-	uint8_t args[4] = {group, 1, start_prop, byte_to_send};
+	// TODO: I don't feel super comfortable about passing the address of an argument here. What
+	// if it's an argument passed by register? Maybe read the ARM EABI Reference to double check. -NJR
 
-	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_SET_PROPERTY, args, 4);
+	operation_status = Si4464_Set_Props(group, 1, start_prop, &byte_to_send);
 	if (operation_status != HAL_OK) goto error;
 
 error:
