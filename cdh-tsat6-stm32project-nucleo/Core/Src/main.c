@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "Si4464_driver.h"
 #include "Si4464_driver_config.h"
+#include "Si4464_driver_test.h"
 
 #include "W25N_driver.h"
 /* USER CODE END Includes */
@@ -108,22 +109,11 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-    //this code performs the W25N unit tests
-    //this code should be completed after power cycling the W25N
-    /*W25N_StatusTypeDef operation_status;
-    
-    operation_status = W25N_Init();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-  uint8_t data_array[] = RADIO_CONFIGURATION_DATA_ARRAY;
-
-  Si4464PartInfo info = {0};
-
-  Si4464_Nsel(1);
 
   Si4464_Reset_Device();
-  Si4464_Execute_Command_Stream(data_array, sizeof(data_array));
-  Si4464_Get_Part_Info(&info);
+
+  Test_Si4464();
+
 
   /* USER CODE END 2 */
 

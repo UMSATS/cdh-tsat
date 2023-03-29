@@ -12,6 +12,7 @@
 #include "Si4464_driver_test.h"
 #include "Si4464_driver.h"
 #include "Si4464_command_codes.h"
+#include "Si4464_driver_config.h"
 
 #include <string.h>
 
@@ -25,6 +26,8 @@
 
 #define SI4464_MODEM_CHFLT_RX1_CHFLT_COE 0x00
 
+static uint8_t POWER_UP_ARRAY[] = RADIO_CONFIGURATION_DATA_ARRAY;
+
 //###############################################################################################
 //Public Unit Test Functions
 //###############################################################################################
@@ -37,6 +40,8 @@ HAL_StatusTypeDef Test_Si4464_Reset_Device(){
 	// be the same. -NJR
 	Si4464_Reset_Device();
 
+	Si4464_Init_Device();
+
 	operation_status = Si4464_Get_Prop(SI4464_MODEM_GROUP,  1,  SI4464_MODEM_MOD_TYPE, &original_value);
 	if (operation_status != HAL_OK) goto error;
 
@@ -44,6 +49,8 @@ HAL_StatusTypeDef Test_Si4464_Reset_Device(){
 	if (operation_status != HAL_OK) goto error;
 
 	Si4464_Reset_Device();
+
+	Si4464_Init_Device();
 
 	operation_status = Si4464_Get_Prop(SI4464_MODEM_GROUP,  1,  SI4464_MODEM_MOD_TYPE, &post_reset_value);
 	if (operation_status != HAL_OK) goto error;
@@ -56,7 +63,21 @@ error:
 	return operation_status;
 }
 
-HAL_StatusTypeDef Test_Si4464_Get_CTS(){
+HAL_StatusTypeDef Test_Si4464_Init_Device() {
+	HAL_StatusTypeDef operation_status = HAL_OK;
+
+	// Just check if it works right now.
+
+	operation_status = Si4464_Init_Device();
+	if (operation_status != HAL_OK) goto error;
+
+	// TODO: Assert that some registers are set to their default value or something.
+
+error:
+	return operation_status;
+}
+
+HAL_StatusTypeDef Test_Si4464_Get_CTS() {
 	// Modified Send_Command code, with hardcoded command and stripped out reply section. -NJR
 	HAL_StatusTypeDef operation_status = HAL_OK;
 	Si4464_Nsel(0);
@@ -97,6 +118,11 @@ HAL_StatusTypeDef Test_Si4464_Get_Set_Props(){
 	for (size_t i = 0; i < SI4464_MAX_PROP_WRITE_NUM; i++) {
 		original_data[i] = 0x73;
 	}
+
+
+
+	Si4464_Execute_Command_Stream(POWER_UP_ARRAY, sizeof(POWER_UP_ARRAY));
+
 
 	operation_status = Si4464_Get_Prop(SI4464_MODEM_CHFLT_GROUP, 12, SI4464_MODEM_CHFLT_RX1_CHFLT_COE, original_data);
 	if (operation_status != HAL_OK) goto error;
@@ -159,6 +185,11 @@ HAL_StatusTypeDef Test_Si4464()
     //the following functions are executed in order of dependencies
 
     //unit test functions
+    operation_status = Test_Si4464_Init_Device();
+    if (operation_status != HAL_OK) goto error;
+
+    HAL_Delay(100);
+
     operation_status = Test_Si4464_Get_CTS();
     if (operation_status != HAL_OK) goto error;
 
@@ -166,6 +197,9 @@ HAL_StatusTypeDef Test_Si4464()
     if (operation_status != HAL_OK) goto error;
 
     operation_status = Test_Si4464_Reset_Device();
+    if (operation_status != HAL_OK) goto error;
+
+    operation_status = Si4464_Init_Device(); // Clean up everything.
     if (operation_status != HAL_OK) goto error;
 
 error:
