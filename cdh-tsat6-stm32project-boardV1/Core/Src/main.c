@@ -29,6 +29,7 @@
 #include "W25N_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -546,7 +547,16 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+	CAN_Message_Received();
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartBlinkLED1 */
