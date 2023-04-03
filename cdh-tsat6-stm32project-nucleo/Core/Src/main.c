@@ -24,10 +24,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../Drivers/Hardware_Peripherals/Inc/W25N_driver.h"
-#include "../../Drivers/Hardware_Peripherals/Test/Inc/AS3001204_driver_test.h"
-//#include "Si446x/Si446x.h"
-
+#include "Si446x/Si446x.h"
+#include "W25N_driver.h"
+#include "W25N_driver_test.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include "LEDs_driver.h"
+#include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +73,7 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
-W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -101,32 +106,51 @@ int main(void) {
 
 	/* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_USART2_UART_Init();
-	MX_SPI1_Init();
-	MX_CAN1_Init();
-	MX_SPI2_Init();
-	MX_SPI3_Init();
-	MX_UART4_Init();
-	/* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_SPI1_Init();
+    MX_CAN1_Init();
+    MX_SPI2_Init();
+    MX_SPI3_Init();
+    MX_UART4_Init();
+    /* USER CODE BEGIN 2 */
 
-	/* Test code to check if comms on the si446x board is working. -NJR */
-	// si446x_info_t info = {0};
+    //this code initializes the MAX6822
+    /*MAX6822_Init();*/
 
-	// Si446x_init();
+    //this code initializes the LEDs
+    /*LEDs_Init();*/
 
-	// Si446x_getInfo(&info);
-	unsigned int numFailed = AS3001204_Test_MRAM_Driver();
+    //this code initializes the LTC1154
+    /*LTC1154_Init();*/
+
+    //this code initializes the CAN Bus
+    /*HAL_StatusTypeDef can_operation_status;
+    can_operation_status = CAN_Init();
+    if (can_operation_status != HAL_OK) goto error;*/
+
+    //this code initializes the W25N & performs the W25N unit tests
+    //this code should be completed after power cycling the W25N
+    /*W25N_StatusTypeDef w25n_operation_status;
+    w25n_operation_status = W25N_Init();
+    if (w25n_operation_status != W25N_HAL_OK) goto error;
+    w25n_operation_status = Test_W25N();
+    if (w25n_operation_status != W25N_HAL_OK) goto error;
+    exit(0);*/
+
+/*error:
+  exit(1);*/
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	while (1) 
+	{
+		//Set a breakpoint here to view data grabbed from si446x module. -NJR
 
-	while (1) {
-		// Set a breakpoint here to view number of MRAM tests failed
-
-		// Repeatedly toggle the green LED
+		//Repeatedly toggle the green LED
 		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		HAL_Delay(1000);
 
@@ -386,75 +410,95 @@ static void MX_USART2_UART_Init(void) {
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOH_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, LD4_Pin | CAM_FSH_Pin | CAM_ON_Pin | WDI_Pin | M_nRESET_Pin,
-	                  GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOC, RELEASE_Pin | FLASH_nWP_Pin | FLASH_nHOLD_Pin | MRAM_nWP_Pin,
-	                  GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin | UHF_nCS_Pin | FLASH_nCS_Pin,
-	                  GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|FLASH_nCS_Pin, GPIO_PIN_SET);
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(MRAM_nCS_GPIO_Port, MRAM_nCS_Pin, GPIO_PIN_SET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pin : B1_Pin */
-	GPIO_InitStruct.Pin = B1_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, FLASH_nHOLD_Pin|MRAM_nCS_Pin, GPIO_PIN_SET);
 
-	/*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
-	                         M_nRESET_Pin */
-	GPIO_InitStruct.Pin = LD4_Pin | CAM_FSH_Pin | CAM_ON_Pin | WDI_Pin | M_nRESET_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(M_nRESET_GPIO_Port, M_nRESET_Pin, GPIO_PIN_SET);
 
-	/*Configure GPIO pins : RELEASE_Pin FLASH_nWP_Pin FLASH_nHOLD_Pin MRAM_nCS_Pin
-	                         MRAM_nWP_Pin */
-	GPIO_InitStruct.Pin =
-	    RELEASE_Pin | FLASH_nWP_Pin | FLASH_nHOLD_Pin | MRAM_nCS_Pin | MRAM_nWP_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin FLASH_nCS_Pin
-	                         LED3_Pin LED2_Pin LED1_Pin */
-	GPIO_InitStruct.Pin = RELEASE_nEN_Pin | UHF_nCS_Pin | UHF_SDN_Pin | FLASH_nCS_Pin |
-	                      LED3_Pin | LED2_Pin | LED1_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  /*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
+                           M_nRESET_Pin */
+  GPIO_InitStruct.Pin = LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
+                          |M_nRESET_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	/*Configure GPIO pin : UHF_nIRQ_Pin */
-	GPIO_InitStruct.Pin = UHF_nIRQ_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pins : RELEASE_Pin FLASH_nWP_Pin FLASH_nHOLD_Pin MRAM_nCS_Pin
+                           MRAM_nWP_Pin */
+  GPIO_InitStruct.Pin = RELEASE_Pin|FLASH_nWP_Pin|FLASH_nHOLD_Pin|MRAM_nCS_Pin
+                          |MRAM_nWP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin FLASH_nCS_Pin
+                           LED3_Pin LED2_Pin LED1_Pin */
+  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin
+                          |LED3_Pin|LED2_Pin|LED1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : UHF_nIRQ_Pin */
+  GPIO_InitStruct.Pin = UHF_nIRQ_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
+}
 /* USER CODE END 4 */
 
 /**
