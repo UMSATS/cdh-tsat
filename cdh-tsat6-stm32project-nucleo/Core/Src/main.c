@@ -30,6 +30,7 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,6 +123,11 @@ int main(void)
 
   //this code initializes the LTC1154
   /*LTC1154_Init();*/
+
+  //this code initializes the CAN Bus
+  /*HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;*/
 
   //this code initializes the W25N & performs the W25N unit tests
   //this code should be completed after power cycling the W25N
@@ -509,7 +515,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
+}
 /* USER CODE END 4 */
 
 /**
