@@ -1,56 +1,49 @@
+/*
+ * FILENAME: can.h
+ *
+ * DESCRIPTION: Functions for CAN initialization, message reception, and message transmission.
+ *
+ * AUTHORS:
+ *  - Graham Driver (graham.driver@umsats.ca)
+ *
+ * CREATED ON: May 25, 2022
+ */
+
 #ifndef INCLUDE_CAN_H_
 #define INCLUDE_CAN_H_
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// UMSATS 2022
-//
-// License:
-//  Available under MIT license.
-//
-// Repository:
-//  Github: https://github.com/UMSATS/cdh-tsat6
-//
-// File Description:
-//  Functions for CAN initialization, message reception, and message transmission.
-//
-// History
-// 2022-05-25 by Graham Driver
-// - Created/Adapted from tsat5.
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// INCLDUES
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+//###############################################################################################
+// Include Directives
+//###############################################################################################
 #include "stm32l4xx_hal.h"
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// DECLARATIONS & Definitions
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+//###############################################################################################
+// Define Directives & Extern Variables
+//###############################################################################################
 #define MAX_CAN_DATA_LENGTH  8
 #define RECEIVED_DESTINATION_ID_MASK  0x3
 #define SOURCE_ID  0x3 // The ID number of the device MAX VALUE: 0x3
 
 extern CAN_HandleTypeDef hcan1; // Set this to the CAN type found in generated main.c file
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// STRUCTS
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//###############################################################################################
+// Structs
+//###############################################################################################
 typedef struct{
-	uint8_t priority; // Priority of the message MAX VALUE: 0x1F
-	uint8_t DestinationID; // The ID number of the destination device MAX VALUE: 0x3
-	uint8_t command;	// The command value
-	uint8_t data[7];	// Message
+	uint8_t priority; // Priority of the message, MAX VALUE: 0x7F
+	uint8_t DestinationID; // The ID number of the destination device, MAX VALUE: 0x3
+	uint8_t command; // The command value
+	uint8_t data[7]; // Message
 } CANMessage_t;
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// FUNCTION PROTOTYPES
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//###############################################################################################
+// Public Function Prototypes
+//###############################################################################################
+HAL_StatusTypeDef CAN_Init(); // Initializes and Starts the CAN Bus
 
-void CAN_Boot(); // Initializes and Starts the CAN
-
-
-void CAN_Transmit_Message(
-		CANMessage_t myMessage // Uses the message struct to send messages
+HAL_StatusTypeDef CAN_Transmit_Message(
+        CANMessage_t myMessage // Uses the message struct to send messages
 );
 
+HAL_StatusTypeDef CAN_Message_Received(); // Interrupt handler for the CAN Bus
 
-void CAN_Message_Received();    // Interrupt handler for CAN BUS
 #endif /* INCLUDE_CAN_H_ */

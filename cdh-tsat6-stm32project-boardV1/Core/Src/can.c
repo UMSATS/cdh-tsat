@@ -1,35 +1,33 @@
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// UMSATS 2022
-//
-// License:
-//  Available under MIT license.
-//
-// Repository:
-//  Github: https://github.com/UMSATS/cdh-tsat6
-//
-// File Description:
-//  Functions for CAN initialization, message reception, and message transmission. Received messages are read into a Queue, which
-//  can be handled by a dedicated task.
-//
-// History
-// 2022-05-25 by Graham Driver
-// - Created.
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+ * FILENAME: can.c
+ *
+ * DESCRIPTION: Functions for CAN initialization, message reception, and message transmission.
+ *              Received messages are read into a Queue, which can be handled by a dedicated task.
+ *
+ * AUTHORS:
+ *  - Graham Driver (graham.driver@umsats.ca)
+ *
+ * CREATED ON: May 25, 2022
+ */
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
-// INCLUDES and Constants
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+//###############################################################################################
+// Include Directives
+//###############################################################################################
 #include <stdio.h>
 #include "can.h"
 
-
+//###############################################################################################
+//Public Functions
+//###############################################################################################
 /**
  * @brief Boots the CAN Bus
  * 
  * @return HAL_StatusTypeDef 
  */
-void CAN_Boot(){
-	CAN_FilterTypeDef  		sFilterConfig;
+HAL_StatusTypeDef CAN_Init(){
+    HAL_StatusTypeDef operation_status;
+
+	CAN_FilterTypeDef sFilterConfig;
 	sFilterConfig.FilterIdHigh = 0x0000;
 	sFilterConfig.FilterIdLow = 0x0000;
 	sFilterConfig.FilterMaskIdHigh = 0x0000;
@@ -41,18 +39,25 @@ void CAN_Boot(){
 	sFilterConfig.FilterActivation = ENABLE;
 	sFilterConfig.SlaveStartFilterBank = 14;
 
-	HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig);
-	HAL_CAN_Start(&hcan1); // Turn on CANBus
+	operation_status = HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig);
+	if (operation_status != HAL_OK) goto error;
+	operation_status = HAL_CAN_Start(&hcan1); // Turn on the CAN Bus
+	if (operation_status != HAL_OK) goto error;
 
-	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+	operation_status = HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+
+error:
+    return operation_status;
 }
-
 
 /**
  * @brief Used to send messages over CAN
- * @param message A 8 byte message
+ *
+ * @param myMessage: An 8 byte message
+ *
+ * @return HAL_StatusTypeDef
  */
-void CAN_Transmit_Message(CANMessage_t myMessage){
+HAL_StatusTypeDef CAN_Transmit_Message(CANMessage_t myMessage){
 	uint32_t txMailbox; // Transmit Mailbox
 	CAN_TxHeaderTypeDef txMessage;
 	
@@ -64,31 +69,40 @@ void CAN_Transmit_Message(CANMessage_t myMessage){
 	txMessage.IDE = CAN_ID_STD;
 	txMessage.RTR = CAN_RTR_DATA;
 	txMessage.DLC = MAX_CAN_DATA_LENGTH;
-	HAL_CAN_AddTxMessage(&hcan1, &txMessage, message, &txMailbox);
+
+	return HAL_CAN_AddTxMessage(&hcan1, &txMessage, message, &txMailbox);
 }
 
-
 /**
- * @brief Interrupt Handler for received CAN messages.
+ * @brief Interrupt Handler for received CAN messages
+ *
+ * @return HAL_StatusTypeDef
  */
-void CAN_Message_Received(){
+HAL_StatusTypeDef CAN_Message_Received(){
+    HAL_StatusTypeDef operation_status;
 	CAN_RxHeaderTypeDef rxMessage; // Received Message Header
 	uint8_t rxData[8]; // Received data
 	uint8_t receivedDestinationId; // ID of Received Message
 
-	// Message Sent To Queue
 	/* Get RX message */
-	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &rxMessage, rxData);
+	operation_status = HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &rxMessage, rxData);
+	if (operation_status != HAL_OK) goto error;
 	receivedDestinationId = RECEIVED_DESTINATION_ID_MASK & rxMessage.StdId;
+
 	if(receivedDestinationId == SOURCE_ID){
-		// *NOTE* program custom handling per your subsystem here.
+	    // *NOTE* Send message to queue per your subsystem here
+
+		// *NOTE* program custom handling per your subsystem here
 		CANMessage_t ping;
 		ping.DestinationID = 0x2;
 		ping.command = rxData[0];
 		ping.priority = 1;
-		for(uint8_t i = 0; i <= 7; i++){
+		for(uint8_t i = 0; i <= 6; i++){
 			ping.data[i] = rxData[i+1] + 1;
 		}
-		CAN_Transmit_Message(ping);
+		operation_status = CAN_Transmit_Message(ping);
 	}
+
+error:
+	return operation_status;
 }

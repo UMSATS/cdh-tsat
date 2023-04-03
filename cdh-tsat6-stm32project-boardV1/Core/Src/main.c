@@ -131,6 +131,10 @@ int main(void)
 
   LTC1154_Init();
 
+  HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;
+
   W25N_StatusTypeDef w25n_operation_status;
   w25n_operation_status = W25N_Init();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
@@ -571,7 +575,12 @@ static void MX_GPIO_Init(void)
   */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
 {
-	CAN_Message_Received();
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
 }
 /* USER CODE END 4 */
 
