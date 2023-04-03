@@ -29,6 +29,7 @@
 #include "W25N_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
 #include "can.h"
 /* USER CODE END Includes */
 
@@ -127,6 +128,8 @@ int main(void)
   MAX6822_Init();
 
   LEDs_Init();
+
+  LTC1154_Init();
 
   W25N_StatusTypeDef w25n_operation_status;
   w25n_operation_status = W25N_Init();

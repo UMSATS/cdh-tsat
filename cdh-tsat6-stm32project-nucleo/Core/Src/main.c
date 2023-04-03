@@ -29,6 +29,7 @@
 #include "W25N_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,6 +119,9 @@ int main(void)
 
   //this code initializes the LEDs
   /*LEDs_Init();*/
+
+  //this code initializes the LTC1154
+  /*LTC1154_Init();*/
 
   //this code initializes the W25N & performs the W25N unit tests
   //this code should be completed after power cycling the W25N
