@@ -49,7 +49,7 @@
 #define AS3001204_CONFIG_REGS_LENGTH 		4
 #define AS3001204_DEVICE_ID_LENGTH 			4
 #define AS3001204_UNIQUE_ID_LENGTH 			8
-#define AS3001204_AAP_REG_LENGTH 			1
+#define AS3001204_ASP_REG_LENGTH 			1
 
 // ###############################################################################################
 //  3. Global declarations
@@ -63,13 +63,15 @@ extern SPI_HandleTypeDef AS3001204_SPI;
 /*
  * 4.1. Basic commands
  *
- * FUNCTIONS:   AS3001204_Enter_Hibernate, AS3001204_Enter_Deep_Power_Down,
- *              AS3001204_Exit_Deep_Power_Down, AS3001204_Software_Reset
+ * FUNCTIONS:   AS3001204_Enter_Hibernate, AS3001204_Exit_Hibernate,
+ *              AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power_Down,
+ *              AS3001204_Software_Reset
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).
  */
 HAL_StatusTypeDef AS3001204_Enter_Hibernate();
+HAL_StatusTypeDef AS3001204_Exit_Hibernate();
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down();
 HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down();
 HAL_StatusTypeDef AS3001204_Software_Reset();
@@ -78,8 +80,8 @@ HAL_StatusTypeDef AS3001204_Software_Reset();
  * 4.2. Read registers
  *
  * FUNCTIONS:   AS3001204_Read_Status_Register, AS3001204_Read_Config_Registers,
-                AS3001204_Read_Device_ID, AS3001204_Read_Unique_ID,
-                AS3001204_Read_ASP_Register
+ *              AS3001204_Read_Device_ID, AS3001204_Read_Unique_ID,
+ *              AS3001204_Read_ASP_Register
  *
  * DESCRIPTION: These functions read reserved registers from the MRAM device.
  *              Refer to the definitions above for the length of each register.
@@ -100,7 +102,7 @@ HAL_StatusTypeDef AS3001204_Read_ASP_Register(uint8_t *p_buffer);
  * 4.3. Write registers
  *
  * FUNCTIONS:   AS3001204_Write_Status_Register, AS3001204_Write_Config_Registers,
-                AS3001204_Write_ASP_Register
+ *              AS3001204_Write_ASP_Register
  *
  * DESCRIPTION: These functions write reserved registers to the MRAM device.
  *              Refer to the definitions above for the length of each register.
@@ -170,6 +172,8 @@ HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address,
  *    Protection Register.
  *  - Unlike reading from the standard memory array, reading from the ASA
  *    is an operation with latency. (see timing diagram, datasheet pp. 38-39)
+ *    However, the HAL SPI functions fulfill these latency requirements without
+ *    needing to make the AS3001204 implement any latency cycles.
  */
 HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t address,
                                                    uint16_t num_of_bytes);
@@ -182,9 +186,20 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
  *
  * FUNCTIONS:	AS3001204_Init
  *
- * DESCRIPTION:
+ * DESCRIPTION: Initializes the AS3001204.
  *
  * NOTES:
+ *  - This function ensures the internal initialization is complete by delaying for 1 ms.
+ *  - The states of nCS & nWP are set:
+ *     nCS is set HIGH: this deselects the AS3001204
+ *     nWP is set LOW: this write protects the AS3001204
+ *  - The states of the Register bits are set:
+ *     SR:  Enable hardware write protection; leave other features disabled
+ *     ASP: Leave ASA section-specific protection disabled
+ *     CR1: Lock status register protection options; enable ASA write protection
+ *     CR2: Single SPI; zero memory read latency
+ *     CR3: Leave output driver strength unchanged; leave read wrapping disabled
+ *     CR4: Enforce software write enable (WREN) as prerequisite to all memory write instructions
  */
 HAL_StatusTypeDef AS3001204_Init();
 

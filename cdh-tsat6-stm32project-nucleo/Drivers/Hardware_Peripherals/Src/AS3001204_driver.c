@@ -30,7 +30,8 @@
 // ###############################################################################################
 //  1. Includes
 // ###############################################################################################
-#include "../Inc/AS3001204_driver.h"
+#include "AS3001204_driver.h"
+
 
 // ###############################################################################################
 //  2. Opcode definitions (see datasheet pp. 32-36)
@@ -50,22 +51,18 @@
 #define AS3001204_OPCODE_READ_CONFIG_REGS 	0x46
 #define AS3001204_OPCODE_READ_DEVICE_ID 	0x9f
 #define AS3001204_OPCODE_READ_UNIQUE_ID 	0x4c
-#define AS3001204_OPCODE_READ_AAP_REG 		0x14
+#define AS3001204_OPCODE_READ_ASP_REG 		0x14
 
 // Write register operations (1-0-1 type)
 #define AS3001204_OPCODE_WRITE_STATUS_REG 	0x01
 #define AS3001204_OPCODE_WRITE_CONFIG_REGS 	0x87
-#define AS3001204_OPCODE_WRITE_AAP_REG 		0x1a
+#define AS3001204_OPCODE_WRITE_ASP_REG 		0x1a
 
 // Memory operations (1-1-1 type)
 #define AS3001204_OPCODE_READ_MEMORY 		0x03
 #define AS3001204_OPCODE_WRITE_MEMORY 		0x02
 #define AS3001204_OPCODE_READ_AUG_STORAGE 	0x4b
 #define AS3001204_OPCODE_WRITE_AUG_STORAGE 	0x42
-
-// Delay bytes to await response from augmented storage array
-// (see timing diagram, datasheet pp. 38-39)
-#define AS3001204_READ_AUG_STORAGE_DELAY 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
 // ###############################################################################################
@@ -105,24 +102,47 @@ static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address)
 // ----------------------
 
 HAL_StatusTypeDef AS3001204_Enter_Hibernate() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_HIBERNATE);
+    HAL_StatusTypeDef isError;
+    isError = AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_HIBERNATE);
+    if (isError != HAL_OK) return isError;
+    HAL_Delay(1); // Ensure the AS3001204 has completed entering hibernation (~3us)
+    return isError;
+}
+
+HAL_StatusTypeDef AS3001204_Exit_Hibernate() {
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+    HAL_Delay(1); // Ensure the AS3001204 has completed exiting hibernation (~450us)
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_DEEP_PWDOWN);
+    HAL_StatusTypeDef isError;
+    isError = AS3001204_Send_Basic_Command(AS3001204_OPCODE_ENTER_DEEP_PWDOWN);
+    if (isError != HAL_OK) return isError;
+    HAL_Delay(1); // Ensure the AS3001204 has completed entering deep power down (~3us)
+    return isError;
 }
 
 HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_EXIT_DEEP_PWDOWN);
+    HAL_StatusTypeDef isError;
+    isError = AS3001204_Send_Basic_Command(AS3001204_OPCODE_EXIT_DEEP_PWDOWN);
+    if (isError != HAL_OK) return isError;
+    HAL_Delay(1); // Ensure the AS3001204 has completed exiting deep power down (~400us)
+    return isError;
 }
-
 
 HAL_StatusTypeDef AS3001204_Software_Reset() {
 	HAL_StatusTypeDef isError;
+
 	isError = AS3001204_Software_Reset_Enable();
 	if (isError != HAL_OK) return isError;
 
 	isError = AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
+	if (isError != HAL_OK) return isError;
+
+	HAL_Delay(1); // Ensure the AS3001204 has completed the software reset (~50us)
+
 	return isError;
 }
 
@@ -130,7 +150,6 @@ HAL_StatusTypeDef AS3001204_Software_Reset() {
 //  4.2. Read registers
 // ----------------------
 
-// TODO: Should we null-check here, or at a lower/higher level? -NJR
 HAL_StatusTypeDef AS3001204_Read_Status_Register(uint8_t *p_buffer) {
     return AS3001204_Read_Register(AS3001204_OPCODE_READ_STATUS_REG, p_buffer, AS3001204_STATUS_REG_LENGTH);
 }
@@ -148,9 +167,8 @@ HAL_StatusTypeDef AS3001204_Read_Unique_ID(uint8_t *p_buffer) {
 }
 
 HAL_StatusTypeDef AS3001204_Read_ASP_Register(uint8_t *p_buffer) {
-    return AS3001204_Read_Register(AS3001204_OPCODE_READ_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
+    return AS3001204_Read_Register(AS3001204_OPCODE_READ_ASP_REG, p_buffer, AS3001204_ASP_REG_LENGTH);
 }
-
 
 // -----------------------
 //  4.3. Write registers
@@ -165,9 +183,8 @@ HAL_StatusTypeDef AS3001204_Write_Config_Registers(uint8_t *p_buffer) {
 }
 
 HAL_StatusTypeDef AS3001204_Write_ASP_Register(uint8_t *p_buffer) {
-    return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_AAP_REG, p_buffer, AS3001204_AAP_REG_LENGTH);
+    return AS3001204_Write_Register(AS3001204_OPCODE_WRITE_ASP_REG, p_buffer, AS3001204_ASP_REG_LENGTH);
 }
-
 
 // -------------------------
 //  4.4. Read/write memory
@@ -186,7 +203,7 @@ HAL_StatusTypeDef AS3001204_Read_Memory(uint8_t *p_buffer, uint32_t address, uin
     isError = AS3001204_SPI_Transmit_Memory_Address(address);
     if (isError != HAL_OK) goto error;
     
-    isError = HAL_SPI_Receive (&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
+    isError = HAL_SPI_Receive(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
 
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
@@ -199,7 +216,7 @@ HAL_StatusTypeDef AS3001204_Write_Memory(uint8_t *p_buffer, uint32_t address, ui
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_WRITE_MEMORY;
 
-    // this is a separate command
+    // This is a separate command, it does its own CS flipping
     isError = AS3001204_Write_Enable();
     if (isError != HAL_OK) return isError;
 
@@ -218,9 +235,8 @@ error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
     return isError;
+
 }
-
-
 
 // -----------------------------------
 //  4.5. R/W Augmented Storage Array
@@ -230,7 +246,6 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_READ_AUG_STORAGE;
-//    uint8_t delay[] = AS3001204_READ_AUG_STORAGE_DELAY;
 
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
 
@@ -240,10 +255,11 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
     isError = AS3001204_SPI_Transmit_Memory_Address(address);
     if (isError != HAL_OK) goto error;
 
-    // TODO: Check the behaviour of the wait time here with a logic analyzer. -NJR
-    // Transmitting 8 bytes of zeros to wait for output from aug. storage array
-//    isError = HAL_SPI_Transmit(&AS3001204_SPI, delay, sizeof(delay), AS3001204_SPI_DELAY);
-//    if (isError != HAL_OK) goto error;
+    //The AS3001204 requires minimum 8 latency cycles at 40 MHz between inputting the address & receiving the data.
+    //That means there must be a minimum 200 ns delay.
+    //The overhead between calling AS3001204_SPI_Transmit_Memory_Address(...) & HAL_SPI_Receive(...) separately
+    //as opposed to a single HAL_SPI_TransmitReceive(...) call produces far more than a 200 ns delay for us.
+    //Therefore, there is no need to configure the AS3001204 to output latency cycles for this command.
     
     isError = HAL_SPI_Receive(&AS3001204_SPI, p_buffer, num_of_bytes, AS3001204_SPI_DELAY);
 
@@ -258,7 +274,7 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
     HAL_StatusTypeDef isError;
     uint8_t opcode = AS3001204_OPCODE_WRITE_AUG_STORAGE;
 
-    // separate command
+    // This is a separate command, it does its own CS flipping
     isError = AS3001204_Write_Enable();
     if (isError != HAL_OK) return isError;
 
@@ -277,11 +293,13 @@ error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
     return isError;
+
 }
 
 // -----------------------------------
 //  4.6. Device initialization
 // -----------------------------------
+
 HAL_StatusTypeDef AS3001204_Init() {
 
 	HAL_StatusTypeDef isError;
@@ -291,7 +309,7 @@ HAL_StatusTypeDef AS3001204_Init() {
 	 *  Enable hardware write protection
 	 *  Leave other features disabled
 	 */
-	static uint8_t STATUS_REG_INIT = 0x80;
+	uint8_t STATUS_REG_INIT = 0x80;
 
 	/*
 	 * Configuration registers:
@@ -300,13 +318,20 @@ HAL_StatusTypeDef AS3001204_Init() {
 	 *  3. Leave output driver strength unchanged; leave read wrapping disabled
 	 *  4. Enforce software write enable (WREN) as prerequisite to all memory write instructions
 	 */
-	static uint8_t CONFIG_REGS_INIT[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x00, 0x60, 0x04};
+	uint8_t CONFIG_REGS_INIT[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x00, 0x60, 0x04};
 
 	/*
 	 * Augmented Storage Array protection register:
 	 *  Leave ASA section-specific protection disabled
 	 */
-	static uint8_t ASP_REG_INIT = 0x00;
+	uint8_t ASP_REG_INIT = 0x00;
+
+	// Ensure the AS3001204 has completed internal initialization (~250us)
+	HAL_Delay(1);
+
+	// Set GPIO pins
+	HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
 
 	// Write to registers
 	isError = AS3001204_Write_Status_Register(&STATUS_REG_INIT);
@@ -314,7 +339,6 @@ HAL_StatusTypeDef AS3001204_Init() {
 	isError = AS3001204_Write_Config_Registers(CONFIG_REGS_INIT);
 	if (isError != HAL_OK) goto error;
 	isError = AS3001204_Write_ASP_Register(&ASP_REG_INIT);
-	if (isError != HAL_OK) goto error;
 
 error:
 	return isError;
@@ -329,7 +353,6 @@ error:
 static HAL_StatusTypeDef AS3001204_Write_Enable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
 }
-
 
 // Likely won't be used; our initialization settings include auto-disabling
 // the software write enable following every write instruction.
@@ -357,6 +380,7 @@ static HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
 
     return isError;
+
 }
 
 static HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
@@ -373,8 +397,8 @@ static HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buff
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
     return isError;
-}
 
+}
 
 static HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes) {
 
@@ -395,9 +419,11 @@ static HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buf
 error:
     HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
+    if (isError == HAL_OK)
+        HAL_Delay(1); // Ensure the AS3001204 has completed the register write cycle (~5us)
     return isError;
-}
 
+}
 
 static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address) {
     
@@ -405,4 +431,5 @@ static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address)
     uint8_t address_bytes[3] = {(address >> 16) & 0xff, (address >> 8) & 0xff, (address) & 0xff};
 
     return HAL_SPI_Transmit(&AS3001204_SPI, address_bytes, 3, AS3001204_SPI_DELAY);
+
 }

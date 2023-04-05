@@ -25,9 +25,9 @@
  * 				unique ID registers of the AS3001204 MRAM unit, and compares their
  * 				contents to known values.
  *
- * RETURN:      0 if successful, 1 if not.
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
-unsigned int AS3001204_Test_Read_ID_Registers();
+HAL_StatusTypeDef AS3001204_Test_Read_ID_Registers();
 
 /*
  * Read/write register tests
@@ -40,12 +40,12 @@ unsigned int AS3001204_Test_Read_ID_Registers();
  * 	            protection register, respectively. These functions only write valid data to the
  * 	            registers - writing invalid bits to registers could cause undefined behaviour.
  *
- * RETURN:      0 if successful, 1 if not.
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
 
-unsigned int AS3001204_Test_RW_Status_Register();
-unsigned int AS3001204_Test_RW_Config_Registers();
-unsigned int AS3001204_Test_RW_ASP_Register();
+HAL_StatusTypeDef AS3001204_Test_RW_Status_Register();
+HAL_StatusTypeDef AS3001204_Test_RW_Config_Registers();
+HAL_StatusTypeDef AS3001204_Test_RW_ASP_Register();
 
 /*
  * Read/write memory tests
@@ -55,10 +55,37 @@ unsigned int AS3001204_Test_RW_ASP_Register();
  * DESCRIPTION: These functions test the AS3001204 driver's ability to read and write the
  * 	            main memory array, and the augmented storage section of memory.
  *
- * RETURN:      0 if successful, 1 if not.
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
-unsigned int AS3001204_Test_RW_Memory();
-unsigned int AS3001204_Test_RW_Augmented_Storage();
+HAL_StatusTypeDef AS3001204_Test_RW_Memory();
+HAL_StatusTypeDef AS3001204_Test_RW_Augmented_Storage();
+
+/*
+ * Enter/exit hibernate and deep power down tests
+ *
+ * FUNCTIONS:   AS3001204_Test_Enter_Exit_Hibernate, AS3001204_Test_Enter_Exit_Deep_Power_Down
+ *
+ * DESCRIPTION: These functions test the AS3001204 driver's ability to enter and exit hibernate
+ *              and deep power down modes of operation.
+ *
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
+ */
+
+HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Hibernate();
+HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down();
+
+/*
+ * Software reset test
+ *
+ * FUNCTIONS:   AS3001204_Test_Software_Reset
+ *
+ * DESCRIPTION: This function tests the AS3001204 driver's ability to perform a software reset
+ *              by checking the value of a register before and after the software reset.
+ *
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
+ */
+
+HAL_StatusTypeDef AS3001204_Test_Software_Reset();
 
 /*
  * Complete test suite
@@ -68,8 +95,8 @@ unsigned int AS3001204_Test_RW_Augmented_Storage();
  * DESCRIPTION:	This function runs through the complete suite of unit tests available for
  *              the MRAM driver.
  *
- * RETURN:      The number of errors encountered during the course of the unit tests.
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
-unsigned int AS3001204_Test_MRAM_Driver();
+HAL_StatusTypeDef AS3001204_Test_MRAM_Driver();
 
 #endif /* HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_TEST_H_ */

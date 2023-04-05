@@ -12,49 +12,22 @@
  */
 
 
-#include "../Inc/AS3001204_driver.h"
-#include "../Inc/AS3001204_driver_test.h"
+#include "stm32l4xx_hal.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
 //###############################################################################################
-// Defining default & test data
-//###############################################################################################
-
-// Note that status register bits [5:2] (TBSEL and BPSEL) will be locked if the initialization
-// routine (specifically, for Config Register 1) has been executed.
-static uint8_t STATUS_REG_DEFAULT = 0x00;
-static uint8_t STATUS_REG_TEST 	  = 0xc0;
-
-static uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
-static uint8_t CONFIG_REGS_TEST   [AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x74, 0x04};
-
-static uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xe6, 0x01, 0x01, 0x02};
-static uint8_t UNIQUE_ID[AS3001204_UNIQUE_ID_LENGTH] = {0xa4, 0x00, 0x02, 0xe6, 0x10, 0x01, 0x00, 0x14};
-
-// (A)ugmented (S)torage Array (P)rotection Register
-static uint8_t ASP_REG_DEFAULT = 0x00;
-static uint8_t ASP_REG_TEST    = 0xff;
-
-static uint32_t MEM_TEST_ADDRESS = 0xabba;
-static uint32_t AAP_TEST_ADDRESS = 0x0000;
-
-// Article 1 of the United Nations Declaration of Human Rights
-static char *SAMPLE_DATA = "All human beings are born free and equal in dignity and rights. \
-They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.";
-static const int SAMPLE_DATA_LENGTH = 170;
-
-static char *SAMPLE_DATA_ASA = "UMSATS is the best club on campus!!!";
-static const int SAMPLE_DATA_ASA_LENGTH = 36;
-
-
-//###############################################################################################
 // Read/write register tests
 //###############################################################################################
 
-unsigned int AS3001204_Test_Read_ID_Registers() {
+HAL_StatusTypeDef AS3001204_Test_Read_ID_Registers() {
+
+    const uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xe6, 0x01, 0x01, 0x02};
+    const uint8_t UNIQUE_ID[AS3001204_UNIQUE_ID_LENGTH] = {0xa4, 0x00, 0x02, 0xe6, 0x10, 0x01, 0x00, 0x14};
 
     HAL_StatusTypeDef isError;
     uint8_t devIDBuffer[AS3001204_DEVICE_ID_LENGTH];
@@ -67,77 +40,102 @@ unsigned int AS3001204_Test_Read_ID_Registers() {
     isError = AS3001204_Read_Unique_ID(uniIDBuffer);
     if (isError != HAL_OK) goto error;
 
-    return memcmp(devIDBuffer, DEVICE_ID, AS3001204_DEVICE_ID_LENGTH) != 0
-    	|| memcmp(uniIDBuffer, UNIQUE_ID, AS3001204_UNIQUE_ID_LENGTH) != 0;
+    if (memcmp(devIDBuffer, DEVICE_ID, AS3001204_DEVICE_ID_LENGTH) != 0 ||
+            memcmp(uniIDBuffer, UNIQUE_ID, AS3001204_UNIQUE_ID_LENGTH) != 0)
+        isError = HAL_ERROR;
 
 error:
-    return 1;
+    return isError;
+
 }
 
-unsigned int AS3001204_Test_RW_Status_Register() {
+HAL_StatusTypeDef AS3001204_Test_RW_Status_Register() {
+
+    // Note that status register bits [5:2] (TBSEL and BPSEL) will be locked if the initialization
+    // routine (specifically, for Config Register 1) has been executed.
+    uint8_t STATUS_REG_DEFAULT = 0x00;
+    uint8_t STATUS_REG_TEST = 0xc0;
 
     HAL_StatusTypeDef isError; 
-    uint8_t p_buffer = 0x00;
+    uint8_t reg_contents;
 
     // Write test data
     isError = AS3001204_Write_Status_Register(&STATUS_REG_TEST);
     if (isError != HAL_OK) goto error;
 
     // Read back and verify test data
-    isError = AS3001204_Read_Status_Register(&p_buffer);
-    if (isError != HAL_OK || p_buffer != STATUS_REG_TEST) goto error;
+    isError = AS3001204_Read_Status_Register(&reg_contents);
+    if (isError != HAL_OK) goto error;
+
+    if (reg_contents != STATUS_REG_TEST) {
+        isError = HAL_ERROR;
+        goto error;
+    }
 
     // Restore to default
     isError = AS3001204_Write_Status_Register(&STATUS_REG_DEFAULT);
-    if (isError == HAL_OK) return 0;
 
 error:
-    return 1;
+    return isError;
+
 }
 
-unsigned int AS3001204_Test_RW_Config_Registers() {
+HAL_StatusTypeDef AS3001204_Test_RW_Config_Registers() {
+
+    uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
+    uint8_t CONFIG_REGS_TEST[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x74, 0x04};
 
     HAL_StatusTypeDef isError;
-    uint8_t p_buffer[AS3001204_CONFIG_REGS_LENGTH];
+    uint8_t test_buffer[AS3001204_CONFIG_REGS_LENGTH];
 
     // Write test data
     isError = AS3001204_Write_Config_Registers(CONFIG_REGS_TEST);
     if (isError != HAL_OK) goto error;
 
     // Read back and verify test data
-    isError = AS3001204_Read_Config_Registers(p_buffer);
-    if (isError != HAL_OK
-     || memcmp(p_buffer, CONFIG_REGS_TEST, AS3001204_CONFIG_REGS_LENGTH) != 0) goto error;
+    isError = AS3001204_Read_Config_Registers(test_buffer);
+    if (isError != HAL_OK) goto error;
+
+    if (memcmp(test_buffer, CONFIG_REGS_TEST, AS3001204_CONFIG_REGS_LENGTH) != 0) {
+        isError = HAL_ERROR;
+        goto error;
+    }
 
     // Restore to default
     isError = AS3001204_Write_Config_Registers(CONFIG_REGS_DEFAULT);
-    if (isError == HAL_OK) return 0;
 
 error:
-    return 1;
+    return isError;
     
 }
 
-
-unsigned int AS3001204_Test_RW_ASP_Register() {
+HAL_StatusTypeDef AS3001204_Test_RW_ASP_Register() {
     
+    // (A)ugmented (S)torage Array (P)rotection Register
+    uint8_t ASP_REG_DEFAULT = 0x00;
+    uint8_t ASP_REG_TEST = 0xff;
+
     HAL_StatusTypeDef isError; 
-    uint8_t p_buffer = 0x00;
+    uint8_t reg_contents;
 
     // Write test data
     isError = AS3001204_Write_ASP_Register(&ASP_REG_TEST);
     if (isError != HAL_OK) goto error;
 
     // Read back and verify test data
-    isError = AS3001204_Read_ASP_Register(&p_buffer);
-    if (isError != HAL_OK || p_buffer != ASP_REG_TEST) goto error;
+    isError = AS3001204_Read_ASP_Register(&reg_contents);
+    if (isError != HAL_OK) goto error;
 
-    // Restore default
+    if (reg_contents != ASP_REG_TEST) {
+        isError = HAL_ERROR;
+        goto error;
+    }
+
+    // Restore to default
     isError = AS3001204_Write_ASP_Register(&ASP_REG_DEFAULT);
-    if (isError == HAL_OK) return 0;
 
 error:
-    return 1;
+    return isError;
     
 }
 
@@ -146,44 +144,200 @@ error:
 // Read/write memory tests
 //###############################################################################################
 
-unsigned int AS3001204_Test_RW_Memory() {
+HAL_StatusTypeDef AS3001204_Test_RW_Memory() {
     
+    const uint32_t MEM_TEST_ADDRESS = 0x00abba;
+
+    // Article 1 of the United Nations Declaration of Human Rights
+    uint8_t SAMPLE_DATA[] = "All human beings are born free and equal in dignity and rights. \
+    They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.";
+    uint16_t SAMPLE_DATA_LENGTH = sizeof(SAMPLE_DATA)/sizeof(SAMPLE_DATA[0]);
+
     HAL_StatusTypeDef isError;
-    char p_buffer[SAMPLE_DATA_LENGTH];
+    uint8_t test_buffer[SAMPLE_DATA_LENGTH];
+    uint8_t erased_data_buffer[SAMPLE_DATA_LENGTH]; //entire buffer will be initialized to 0xff
+
+    for (int i = 0; i < SAMPLE_DATA_LENGTH; i++)
+    {
+        erased_data_buffer[i] = 0xff;
+    }
 
     // Write test data
-    isError = AS3001204_Write_Memory((unsigned char *) SAMPLE_DATA, MEM_TEST_ADDRESS, SAMPLE_DATA_LENGTH);
+    isError = AS3001204_Write_Memory(SAMPLE_DATA, MEM_TEST_ADDRESS, SAMPLE_DATA_LENGTH);
     if (isError != HAL_OK) goto error;
     
     // Read back and verify test data
-    isError = AS3001204_Read_Memory((uint8_t *) p_buffer, MEM_TEST_ADDRESS, SAMPLE_DATA_LENGTH);
+    isError = AS3001204_Read_Memory(test_buffer, MEM_TEST_ADDRESS, SAMPLE_DATA_LENGTH);
     if (isError != HAL_OK) goto error;
     
-    int result = strncmp((char *) p_buffer, SAMPLE_DATA, SAMPLE_DATA_LENGTH);
-    return result != 0;
+    if (memcmp(test_buffer, SAMPLE_DATA, SAMPLE_DATA_LENGTH) != 0) {
+        isError = HAL_ERROR;
+        goto error;
+    }
+
+    // Restore to default
+    isError = AS3001204_Write_Memory(erased_data_buffer, MEM_TEST_ADDRESS, SAMPLE_DATA_LENGTH);
     
 error:
-    return 1;
+    return isError;
+
+}
+
+HAL_StatusTypeDef AS3001204_Test_RW_Augmented_Storage() {
+    
+    const uint32_t ASA_TEST_ADDRESS = 0x000000;
+
+    uint8_t SAMPLE_DATA_ASA[] = "UMSATS is the best club on campus!!!";
+    uint16_t SAMPLE_DATA_ASA_LENGTH = sizeof(SAMPLE_DATA_ASA)/sizeof(SAMPLE_DATA_ASA[0]);
+
+    HAL_StatusTypeDef isError;
+    uint8_t test_buffer[SAMPLE_DATA_ASA_LENGTH];
+    uint8_t erased_data_buffer[SAMPLE_DATA_ASA_LENGTH]; //entire buffer will be initialized to 0xff
+
+    for (int i = 0; i < SAMPLE_DATA_ASA_LENGTH; i++)
+    {
+        erased_data_buffer[i] = 0xff;
+    }
+    
+    // Write test data
+    isError = AS3001204_Write_Augmented_Storage(SAMPLE_DATA_ASA, ASA_TEST_ADDRESS, SAMPLE_DATA_ASA_LENGTH);
+    if (isError != HAL_OK) goto error;
+    
+    // Read back and verify test data
+    isError = AS3001204_Read_Augmented_Storage(test_buffer, ASA_TEST_ADDRESS, SAMPLE_DATA_ASA_LENGTH);
+    if (isError != HAL_OK) goto error;
+    
+    if (memcmp(test_buffer, SAMPLE_DATA_ASA, SAMPLE_DATA_ASA_LENGTH) != 0) {
+        isError = HAL_ERROR;
+        goto error;
+    }
+
+    // Restore to default
+    isError = AS3001204_Write_Augmented_Storage(erased_data_buffer, ASA_TEST_ADDRESS, SAMPLE_DATA_ASA_LENGTH);
+    
+error:
+    return isError;
+    
 }
 
 
-unsigned int AS3001204_Test_RW_Augmented_Storage() {
-    
+//###############################################################################################
+// Enter/exit hibernate and deep power down tests
+//###############################################################################################
+
+HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Hibernate() {
+
+    const uint32_t MEM_TEST_ADDRESS = 0x00abba;
+    uint8_t SAMPLE_DATA1 = 0x01;
+    uint8_t SAMPLE_DATA2 = 0x02;
+    uint8_t ERASED_DATA = 0xff;
+
     HAL_StatusTypeDef isError;
-    char p_buffer[SAMPLE_DATA_ASA_LENGTH];
-    
-    isError = AS3001204_Write_Augmented_Storage((unsigned char *) SAMPLE_DATA_ASA, AAP_TEST_ADDRESS, SAMPLE_DATA_ASA_LENGTH);
+    uint8_t test_data;
+
+    // Write sample data 1
+    isError = AS3001204_Write_Memory(&SAMPLE_DATA1, MEM_TEST_ADDRESS, 1);
     if (isError != HAL_OK) goto error;
-    
-    isError = AS3001204_Read_Augmented_Storage((uint8_t *) p_buffer, AAP_TEST_ADDRESS, SAMPLE_DATA_ASA_LENGTH);
+
+    //Enter hibernate
+    isError = AS3001204_Enter_Hibernate();
     if (isError != HAL_OK) goto error;
-    
-    int result = strncmp((char *) p_buffer, SAMPLE_DATA_ASA, SAMPLE_DATA_ASA_LENGTH) != 0;
-    return result != 0;
-    
+
+    // Write sample data 2
+    isError = AS3001204_Write_Memory(&SAMPLE_DATA2, MEM_TEST_ADDRESS, 1);
+    if (isError != HAL_OK) goto error;
+
+    //Exit hibernate
+    isError = AS3001204_Exit_Hibernate();
+    if (isError != HAL_OK) goto error;
+
+    // Read back and verify test data
+    isError = AS3001204_Read_Memory(&test_data, MEM_TEST_ADDRESS, 1);
+    if (isError != HAL_OK) goto error;
+
+    if (test_data != SAMPLE_DATA1) {
+        isError = HAL_ERROR;
+        goto error;
+    }
+
+    // Restore to default
+    isError = AS3001204_Write_Memory(&ERASED_DATA, MEM_TEST_ADDRESS, 1);
+
 error:
-    return 1;
-    
+    return isError;
+
+}
+
+HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down() {
+
+    const uint32_t MEM_TEST_ADDRESS = 0x00abba;
+    uint8_t SAMPLE_DATA = 0x0a;
+    uint8_t ERASED_DATA = 0xff;
+
+    HAL_StatusTypeDef isError;
+    uint8_t test_data;
+
+    // Write sample data
+    isError = AS3001204_Write_Memory(&SAMPLE_DATA, MEM_TEST_ADDRESS, 1);
+    if (isError != HAL_OK) goto error;
+
+    //Enter deep power down
+    isError = AS3001204_Enter_Deep_Power_Down();
+    if (isError != HAL_OK) goto error;
+
+    //Exit deep power down
+    isError = AS3001204_Exit_Deep_Power_Down();
+    if (isError != HAL_OK) goto error;
+
+    // Read back and verify test data
+    isError = AS3001204_Read_Memory(&test_data, MEM_TEST_ADDRESS, 1);
+    if (isError != HAL_OK) goto error;
+
+    if (test_data != SAMPLE_DATA) {
+        isError = HAL_ERROR;
+        goto error;
+    }
+
+    // Restore to default
+    isError = AS3001204_Write_Memory(&ERASED_DATA, MEM_TEST_ADDRESS, 1);
+
+    error:
+        return isError;
+
+}
+
+
+//###############################################################################################
+// Software reset test
+//###############################################################################################
+
+HAL_StatusTypeDef AS3001204_Test_Software_Reset() {
+
+    // (A)ugmented (S)torage Array (P)rotection Register
+    uint8_t ASP_REG_DEFAULT = 0x00;
+    uint8_t ASP_REG_TEST = 0xaa;
+
+    HAL_StatusTypeDef isError;
+    uint8_t reg_contents;
+
+    // Write test data
+    isError = AS3001204_Write_ASP_Register(&ASP_REG_TEST);
+    if (isError != HAL_OK) goto error;
+
+    // Software reset
+    isError = AS3001204_Software_Reset();
+    if (isError != HAL_OK) goto error;
+
+    // Read and verify register has been reset
+    isError = AS3001204_Read_ASP_Register(&reg_contents);
+    if (isError != HAL_OK) goto error;
+
+    if (reg_contents != ASP_REG_DEFAULT)
+        isError = HAL_ERROR;
+
+error:
+    return isError;
+
 }
 
 
@@ -191,32 +345,38 @@ error:
 // Complete test suite routine
 //###############################################################################################
 
-unsigned int AS3001204_Test_MRAM_Driver() {
-    int numFailed = 0;
+HAL_StatusTypeDef AS3001204_Test_MRAM_Driver() {
 
-    AS3001204_Software_Reset();
+    HAL_StatusTypeDef isError;
 
-    numFailed += AS3001204_Test_Read_ID_Registers();
-    numFailed += AS3001204_Test_RW_Status_Register();
-    numFailed += AS3001204_Test_RW_Config_Registers();
-    numFailed += AS3001204_Test_RW_ASP_Register();
+    isError = AS3001204_Software_Reset();
+    if (isError != HAL_OK) goto error;
 
-    numFailed += AS3001204_Test_RW_Memory();
-    numFailed += AS3001204_Test_RW_Augmented_Storage();
+    isError = AS3001204_Test_Read_ID_Registers();
+    if (isError != HAL_OK) goto error;
+    isError = AS3001204_Test_RW_Status_Register();
+    if (isError != HAL_OK) goto error;
+    isError = AS3001204_Test_RW_Config_Registers();
+    if (isError != HAL_OK) goto error;
+    isError = AS3001204_Test_RW_ASP_Register();
+    if (isError != HAL_OK) goto error;
 
-    // Note: no tests currently for any of the following driver functions:
-    // (note that Write Enable is tested implicitly through its use in other functions)
+    isError = AS3001204_Test_RW_Memory();
+    if (isError != HAL_OK) goto error;
+    isError = AS3001204_Test_RW_Augmented_Storage();
+    if (isError != HAL_OK) goto error;
 
-    //  AS3001204_Write_Disable();
-    //	AS3001204_Enter_Deep_Power_Down();
-    //	AS3001204_Exit_Deep_Power_Down();
-    //	AS3001204_Software_Reset_Enable();
-    //	AS3001204_Software_Reset();
+    isError = AS3001204_Test_Enter_Exit_Hibernate();
+    if (isError != HAL_OK) goto error;
+    isError = AS3001204_Test_Enter_Exit_Deep_Power_Down();
+    if (isError != HAL_OK) goto error;
 
-    return numFailed;
+    isError = AS3001204_Test_Software_Reset();
+
+    // Note: There is currently no test for AS3001204_Write_Disable()
+    // (AS3001204_Write_Enable() is tested implicitly through its use in other functions)
+
+error:
+    return isError;
+
 }
-
-
-
-
-
