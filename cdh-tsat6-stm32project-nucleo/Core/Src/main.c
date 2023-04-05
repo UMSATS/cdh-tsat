@@ -27,6 +27,8 @@
 #include "Si446x/Si446x.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
@@ -136,6 +138,15 @@ int main(void)
   if (w25n_operation_status != W25N_HAL_OK) goto error;
   w25n_operation_status = Test_W25N();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
+  exit(0);*/
+
+  //this code initializes the AS3001204 & performs the AS3001204 unit tests
+  //this code should be completed after power cycling the AS3001204
+  /*HAL_StatusTypeDef as3001204_operation_status;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  if (as3001204_operation_status != HAL_OK) goto error;
   exit(0);*/
 
 /*error:
