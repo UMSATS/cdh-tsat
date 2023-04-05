@@ -148,6 +148,8 @@ int main(void)
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
   /*w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = W25N_Reset_And_Init();
   if (w25n_operation_status != W25N_HAL_OK) goto error;*/
 
   //this code performs the AS3001204 unit tests
