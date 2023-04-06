@@ -27,7 +27,7 @@
 HAL_StatusTypeDef AS3001204_Test_Read_ID_Registers() {
 
     const uint8_t DEVICE_ID[AS3001204_DEVICE_ID_LENGTH] = {0xe6, 0x01, 0x01, 0x02};
-    const uint8_t UNIQUE_ID[AS3001204_UNIQUE_ID_LENGTH] = {0xa4, 0x00, 0x02, 0xe6, 0x10, 0x01, 0x00, 0x14};
+    const uint8_t UNIQUE_ID[AS3001204_UNIQUE_ID_LENGTH] = {0xa4, 0x00, 0x01, 0xee, 0x0e, 0x01, 0x00, 0x14};
 
     HAL_StatusTypeDef isError;
     uint8_t devIDBuffer[AS3001204_DEVICE_ID_LENGTH];
