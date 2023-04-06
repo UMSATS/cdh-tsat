@@ -3,6 +3,8 @@
  *
  * DESCRIPTION: Functions for CAN initialization, message reception, and message transmission.
  *
+ * Link to Documentation: https://drive.google.com/file/d/1HHNWpN6vo-JKY5VvzY14uecxMsGIISU7/view?usp=share_link
+ *
  * AUTHORS:
  *  - Graham Driver (graham.driver@umsats.ca)
  *
