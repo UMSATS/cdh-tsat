@@ -156,8 +156,6 @@ int main(void)
   //this code should be completed after power cycling the AS3001204
   /*as3001204_operation_status = AS3001204_Test_MRAM_Driver();
   if (as3001204_operation_status != HAL_OK) goto error;
-  as3001204_operation_status = AS3001204_Software_Reset();
-  if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
 

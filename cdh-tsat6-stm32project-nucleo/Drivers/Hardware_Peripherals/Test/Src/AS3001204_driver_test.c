@@ -51,8 +51,6 @@ error:
 
 HAL_StatusTypeDef AS3001204_Test_RW_Status_Register() {
 
-    // Note that status register bits [5:2] (TBSEL and BPSEL) will be locked if the initialization
-    // routine (specifically, for Config Register 1) has been executed.
     uint8_t STATUS_REG_DEFAULT = 0x80;
     uint8_t STATUS_REG_TEST = 0xc0;
 
@@ -332,7 +330,6 @@ HAL_StatusTypeDef AS3001204_Test_MRAM_Driver() {
     isError = AS3001204_Test_Enter_Exit_Hibernate();
     if (isError != HAL_OK) goto error;
     isError = AS3001204_Test_Enter_Exit_Deep_Power_Down();
-    if (isError != HAL_OK) goto error;
 
     // Note: There is currently no test for AS3001204_Write_Disable()
     // (AS3001204_Write_Enable() is tested implicitly through its use in other functions)

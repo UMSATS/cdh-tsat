@@ -63,12 +63,17 @@ extern SPI_HandleTypeDef AS3001204_SPI;
 /*
  * 4.1. Basic commands
  *
- * FUNCTIONS:   AS3001204_Enter_Hibernate, AS3001204_Exit_Hibernate,
+ * FUNCTIONS:   AS3001204_Write_Disable, AS3001204_Write_Enable,
+ *              AS3001204_Enter_Hibernate, AS3001204_Exit_Hibernate,
  *              AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power_Down
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).
+ *              Note that the write enable and disable functions relate to the MRAM's software
+ *              write protection, which is separate from the write protect pin.
  */
+HAL_StatusTypeDef AS3001204_Write_Disable();
+HAL_StatusTypeDef AS3001204_Write_Enable();
 HAL_StatusTypeDef AS3001204_Enter_Hibernate();
 HAL_StatusTypeDef AS3001204_Exit_Hibernate();
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down();
@@ -178,7 +183,6 @@ HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t a
 HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t address,
                                                     uint16_t num_of_bytes);
 
-
 /*
  * 4.6. Device initialization
  *
@@ -194,7 +198,7 @@ HAL_StatusTypeDef AS3001204_Write_Augmented_Storage(uint8_t *p_buffer, uint32_t 
  *  - The states of the Register bits are set:
  *     SR:  Enable hardware write protection; leave other features disabled
  *     ASP: Leave ASA section-specific protection disabled
- *     CR1: Lock status register protection options; enable ASA write protection
+ *     CR1: Unlock status register protection options; disable ASA write protection
  *     CR2: Single SPI; zero memory read latency
  *     CR3: Leave output driver strength unchanged; leave read wrapping disabled
  *     CR4: Enforce software write enable (WREN) as prerequisite to all memory write instructions

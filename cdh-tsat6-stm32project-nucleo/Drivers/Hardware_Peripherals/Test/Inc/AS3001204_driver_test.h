@@ -42,7 +42,6 @@ HAL_StatusTypeDef AS3001204_Test_Read_ID_Registers();
  *
  * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
-
 HAL_StatusTypeDef AS3001204_Test_RW_Status_Register();
 HAL_StatusTypeDef AS3001204_Test_RW_Config_Registers();
 HAL_StatusTypeDef AS3001204_Test_RW_ASP_Register();
@@ -70,10 +69,8 @@ HAL_StatusTypeDef AS3001204_Test_RW_Augmented_Storage();
  *
  * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
-
 HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Hibernate();
 HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down();
-
 
 /*
  * Complete test suite
@@ -86,5 +83,6 @@ HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down();
  * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
  */
 HAL_StatusTypeDef AS3001204_Test_MRAM_Driver();
+
 
 #endif /* HARDWARE_PERIPHERALS_INC_AS3001204_DRIVER_TEST_H_ */

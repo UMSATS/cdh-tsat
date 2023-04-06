@@ -12,9 +12,7 @@
  * CONTENTS:
  *   1. Includes
  *   2. Opcode definitions
- *   3. Private function prototypes
- *       3.1. Private driver functions
- *       3.2. Internal helper functions
+ *   3. Internal helper function prototypes
  *   4. Public driver function definitions
  *       4.1. Basic commands
  *       4.2. Read registers
@@ -22,8 +20,7 @@
  *       4.4. Read/write memory
  *       4.5. Read/write Augmented Storage Array
  *       4.6. Device initialization
- *   5. Private driver function definitions
- *   6. Internal helper function definitions
+ *   5. Internal helper function definitions
  */
 
 
@@ -38,10 +35,10 @@
 // ###############################################################################################
 
 // Control operations (1-0-0 type)
+#define AS3001204_OPCODE_WRITE_DISABLE      0x04
 #define AS3001204_OPCODE_WRITE_ENABLE		0x06
-#define AS3001204_OPCODE_WRITE_DISABLE		0x04
+#define AS3001204_OPCODE_ENTER_HIBERNATE    0xba
 #define AS3001204_OPCODE_ENTER_DEEP_PWDOWN	0xb9
-#define AS3001204_OPCODE_ENTER_HIBERNATE	0xba
 #define AS3001204_OPCODE_EXIT_DEEP_PWDOWN	0xab
 
 // Read register operations (1-0-1 type)
@@ -64,25 +61,9 @@
 
 
 // ###############################################################################################
-//  3. Private function prototypes
+//  3. Internal helper function prototypes
 // ###############################################################################################
 
-/*
- * 3.1. Private driver functions 
- *
- * FUNCTIONS:   AS3001204_Write_Enable, AS3001204_Write_Disable
- *
- * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
- *              of an opcode (no memory addresses or datastreams to read/write).
- *              Note that the write enable and disable functions relate to the MRAM's software
- *              write protection, which is separate from the write protect pin.
- */
-static HAL_StatusTypeDef AS3001204_Write_Enable();
-static HAL_StatusTypeDef AS3001204_Write_Disable();
-
-/*
- * 3.2. Internal helper functions
- */
 static HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode);
 static HAL_StatusTypeDef AS3001204_Read_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
 static HAL_StatusTypeDef AS3001204_Write_Register(uint8_t opcode, uint8_t *p_buffer, uint16_t num_of_bytes);
@@ -97,8 +78,8 @@ static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address)
 //  4.1. Basic commands
 // ----------------------
 
-// Likely won't be used; our initialization settings include auto-disabling
-// the software write enable following every write instruction.
+// Note: Our initialization settings include auto-disabling the software write enable following
+//       every write instruction.
 HAL_StatusTypeDef AS3001204_Write_Disable() {
     return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
 }
@@ -137,7 +118,6 @@ HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down() {
     HAL_Delay(1); // Ensure the AS3001204 has completed exiting deep power down (~400us)
     return isError;
 }
-
 
 // ----------------------
 //  4.2. Read registers
@@ -231,9 +211,9 @@ error:
 
 }
 
-// -----------------------------------
-//  4.5. R/W Augmented Storage Array
-// -----------------------------------
+// ------------------------------------------
+//  4.5. Read/write Augmented Storage Array
+// ------------------------------------------
 
 HAL_StatusTypeDef AS3001204_Read_Augmented_Storage(uint8_t *p_buffer, uint32_t address, uint16_t num_of_bytes) {
 
@@ -289,9 +269,9 @@ error:
 
 }
 
-// -----------------------------------
+// -----------------------------
 //  4.6. Device initialization
-// -----------------------------------
+// -----------------------------
 
 HAL_StatusTypeDef AS3001204_Init() {
 
@@ -306,7 +286,7 @@ HAL_StatusTypeDef AS3001204_Init() {
 
 	/*
 	 * Configuration registers:
-	 *  1. Lock status register protection options, and enable ASA write protection
+	 *  1. Unlock status register protection options; disable ASA write protection
 	 *  2. Single SPI; zero memory read latency
 	 *  3. Leave output driver strength unchanged; leave read wrapping disabled
 	 *  4. Enforce software write enable (WREN) as prerequisite to all memory write instructions

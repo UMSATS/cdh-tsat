@@ -156,8 +156,6 @@ int main(void)
   //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
   //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
 
-  AS3001204_Test_MRAM_Driver();
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
