@@ -43,8 +43,6 @@
 #define AS3001204_OPCODE_ENTER_DEEP_PWDOWN	0xb9
 #define AS3001204_OPCODE_ENTER_HIBERNATE	0xba
 #define AS3001204_OPCODE_EXIT_DEEP_PWDOWN	0xab
-#define AS3001204_OPCODE_SOFT_RESET_ENABLE	0x66
-#define AS3001204_OPCODE_SOFT_RESET			0x99
 
 // Read register operations (1-0-1 type)
 #define AS3001204_OPCODE_READ_STATUS_REG 	0x05
@@ -72,8 +70,7 @@
 /*
  * 3.1. Private driver functions 
  *
- * FUNCTIONS:   AS3001204_Write_Enable, AS3001204_Write_Disable,
- *              AS3001204_Software_Reset_Enable,
+ * FUNCTIONS:   AS3001204_Write_Enable, AS3001204_Write_Disable
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).
@@ -82,7 +79,6 @@
  */
 static HAL_StatusTypeDef AS3001204_Write_Enable();
 static HAL_StatusTypeDef AS3001204_Write_Disable();
-static HAL_StatusTypeDef AS3001204_Software_Reset_Enable();
 
 /*
  * 3.2. Internal helper functions
@@ -100,6 +96,16 @@ static HAL_StatusTypeDef AS3001204_SPI_Transmit_Memory_Address(uint32_t address)
 // ----------------------
 //  4.1. Basic commands
 // ----------------------
+
+// Likely won't be used; our initialization settings include auto-disabling
+// the software write enable following every write instruction.
+HAL_StatusTypeDef AS3001204_Write_Disable() {
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
+}
+
+HAL_StatusTypeDef AS3001204_Write_Enable() {
+    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
+}
 
 HAL_StatusTypeDef AS3001204_Enter_Hibernate() {
     HAL_StatusTypeDef isError;
@@ -132,19 +138,6 @@ HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down() {
     return isError;
 }
 
-HAL_StatusTypeDef AS3001204_Software_Reset() {
-	HAL_StatusTypeDef isError;
-
-	isError = AS3001204_Software_Reset_Enable();
-	if (isError != HAL_OK) return isError;
-
-	isError = AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET);
-	if (isError != HAL_OK) return isError;
-
-	HAL_Delay(1); // Ensure the AS3001204 has completed the software reset (~50us)
-
-	return isError;
-}
 
 // ----------------------
 //  4.2. Read registers
@@ -318,7 +311,7 @@ HAL_StatusTypeDef AS3001204_Init() {
 	 *  3. Leave output driver strength unchanged; leave read wrapping disabled
 	 *  4. Enforce software write enable (WREN) as prerequisite to all memory write instructions
 	 */
-	uint8_t CONFIG_REGS_INIT[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x00, 0x60, 0x04};
+	uint8_t CONFIG_REGS_INIT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x04};
 
 	/*
 	 * Augmented Storage Array protection register:
@@ -347,26 +340,7 @@ error:
 
 
 // ###############################################################################################
-//  5. Private driver function definitions
-// ###############################################################################################
-
-static HAL_StatusTypeDef AS3001204_Write_Enable() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_ENABLE);
-}
-
-// Likely won't be used; our initialization settings include auto-disabling
-// the software write enable following every write instruction.
-static HAL_StatusTypeDef AS3001204_Write_Disable() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_WRITE_DISABLE);
-}
-
-static HAL_StatusTypeDef AS3001204_Software_Reset_Enable() {
-    return AS3001204_Send_Basic_Command(AS3001204_OPCODE_SOFT_RESET_ENABLE);
-}
-
-
-// ###############################################################################################
-//  6. Internal helper function definitions
+//  5. Internal helper function definitions
 // ###############################################################################################
 
 static HAL_StatusTypeDef AS3001204_Send_Basic_Command(uint8_t opcode) {

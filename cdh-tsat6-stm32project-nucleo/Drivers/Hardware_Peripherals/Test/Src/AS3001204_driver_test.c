@@ -53,7 +53,7 @@ HAL_StatusTypeDef AS3001204_Test_RW_Status_Register() {
 
     // Note that status register bits [5:2] (TBSEL and BPSEL) will be locked if the initialization
     // routine (specifically, for Config Register 1) has been executed.
-    uint8_t STATUS_REG_DEFAULT = 0x00;
+    uint8_t STATUS_REG_DEFAULT = 0x80;
     uint8_t STATUS_REG_TEST = 0xc0;
 
     HAL_StatusTypeDef isError; 
@@ -82,7 +82,7 @@ error:
 
 HAL_StatusTypeDef AS3001204_Test_RW_Config_Registers() {
 
-    uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x05};
+    uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x04};
     uint8_t CONFIG_REGS_TEST[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x74, 0x04};
 
     HAL_StatusTypeDef isError;
@@ -308,49 +308,12 @@ HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down() {
 
 
 //###############################################################################################
-// Software reset test
-//###############################################################################################
-
-HAL_StatusTypeDef AS3001204_Test_Software_Reset() {
-
-    // (A)ugmented (S)torage Array (P)rotection Register
-    uint8_t ASP_REG_DEFAULT = 0x00;
-    uint8_t ASP_REG_TEST = 0xaa;
-
-    HAL_StatusTypeDef isError;
-    uint8_t reg_contents;
-
-    // Write test data
-    isError = AS3001204_Write_ASP_Register(&ASP_REG_TEST);
-    if (isError != HAL_OK) goto error;
-
-    // Software reset
-    isError = AS3001204_Software_Reset();
-    if (isError != HAL_OK) goto error;
-
-    // Read and verify register has been reset
-    isError = AS3001204_Read_ASP_Register(&reg_contents);
-    if (isError != HAL_OK) goto error;
-
-    if (reg_contents != ASP_REG_DEFAULT)
-        isError = HAL_ERROR;
-
-error:
-    return isError;
-
-}
-
-
-//###############################################################################################
 // Complete test suite routine
 //###############################################################################################
 
 HAL_StatusTypeDef AS3001204_Test_MRAM_Driver() {
 
     HAL_StatusTypeDef isError;
-
-    isError = AS3001204_Software_Reset();
-    if (isError != HAL_OK) goto error;
 
     isError = AS3001204_Test_Read_ID_Registers();
     if (isError != HAL_OK) goto error;
@@ -370,8 +333,6 @@ HAL_StatusTypeDef AS3001204_Test_MRAM_Driver() {
     if (isError != HAL_OK) goto error;
     isError = AS3001204_Test_Enter_Exit_Deep_Power_Down();
     if (isError != HAL_OK) goto error;
-
-    isError = AS3001204_Test_Software_Reset();
 
     // Note: There is currently no test for AS3001204_Write_Disable()
     // (AS3001204_Write_Enable() is tested implicitly through its use in other functions)

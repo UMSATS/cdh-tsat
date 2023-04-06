@@ -64,8 +64,7 @@ extern SPI_HandleTypeDef AS3001204_SPI;
  * 4.1. Basic commands
  *
  * FUNCTIONS:   AS3001204_Enter_Hibernate, AS3001204_Exit_Hibernate,
- *              AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power_Down,
- *              AS3001204_Software_Reset
+ *              AS3001204_Enter_Deep_Power_Down, AS3001204_Exit_Deep_Power_Down
  *
  * DESCRIPTION: These functions send basic commands to the MRAM device, which consist only
  *              of an opcode (no memory addresses or datastreams to read/write).
@@ -74,7 +73,6 @@ HAL_StatusTypeDef AS3001204_Enter_Hibernate();
 HAL_StatusTypeDef AS3001204_Exit_Hibernate();
 HAL_StatusTypeDef AS3001204_Enter_Deep_Power_Down();
 HAL_StatusTypeDef AS3001204_Exit_Deep_Power_Down();
-HAL_StatusTypeDef AS3001204_Software_Reset();
 
 /*
  * 4.2. Read registers

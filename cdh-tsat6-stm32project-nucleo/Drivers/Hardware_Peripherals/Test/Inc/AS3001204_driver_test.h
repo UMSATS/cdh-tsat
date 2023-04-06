@@ -74,18 +74,6 @@ HAL_StatusTypeDef AS3001204_Test_RW_Augmented_Storage();
 HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Hibernate();
 HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down();
 
-/*
- * Software reset test
- *
- * FUNCTIONS:   AS3001204_Test_Software_Reset
- *
- * DESCRIPTION: This function tests the AS3001204 driver's ability to perform a software reset
- *              by checking the value of a register before and after the software reset.
- *
- * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
- */
-
-HAL_StatusTypeDef AS3001204_Test_Software_Reset();
 
 /*
  * Complete test suite
