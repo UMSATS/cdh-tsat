@@ -51,7 +51,7 @@ error:
 
 HAL_StatusTypeDef AS3001204_Test_RW_Status_Register() {
 
-    uint8_t STATUS_REG_DEFAULT = 0x80;
+    uint8_t STATUS_REG_DEFAULT = STATUS_REG_INIT;
     uint8_t STATUS_REG_TEST = 0xc0;
 
     HAL_StatusTypeDef isError; 
@@ -80,7 +80,7 @@ error:
 
 HAL_StatusTypeDef AS3001204_Test_RW_Config_Registers() {
 
-    uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x04};
+    uint8_t CONFIG_REGS_DEFAULT[AS3001204_CONFIG_REGS_LENGTH] = CONFIG_REGS_INIT;
     uint8_t CONFIG_REGS_TEST[AS3001204_CONFIG_REGS_LENGTH] = {0x05, 0x0f, 0x74, 0x04};
 
     HAL_StatusTypeDef isError;
@@ -110,7 +110,7 @@ error:
 HAL_StatusTypeDef AS3001204_Test_RW_ASP_Register() {
     
     // (A)ugmented (S)torage Array (P)rotection Register
-    uint8_t ASP_REG_DEFAULT = 0x00;
+    uint8_t ASP_REG_DEFAULT = ASP_REG_INIT;
     uint8_t ASP_REG_TEST = 0xff;
 
     HAL_StatusTypeDef isError; 

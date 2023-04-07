@@ -51,6 +51,13 @@
 #define AS3001204_UNIQUE_ID_LENGTH 			8
 #define AS3001204_ASP_REG_LENGTH 			1
 
+// Init register values
+// Note: These are the values AS3001204_Init() will set the registers to, not the true default
+//       register values resulting from a power cycle
+#define STATUS_REG_INIT     0x80
+#define CONFIG_REGS_INIT    {0x00, 0x00, 0x60, 0x04}
+#define ASP_REG_INIT        0x00
+
 // ###############################################################################################
 //  3. Global declarations
 // ###############################################################################################

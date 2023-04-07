@@ -282,7 +282,7 @@ HAL_StatusTypeDef AS3001204_Init() {
 	 *  Enable hardware write protection
 	 *  Leave other features disabled
 	 */
-	uint8_t STATUS_REG_INIT = 0x80;
+	uint8_t status_reg_init = STATUS_REG_INIT;
 
 	/*
 	 * Configuration registers:
@@ -291,13 +291,13 @@ HAL_StatusTypeDef AS3001204_Init() {
 	 *  3. Leave output driver strength unchanged; leave read wrapping disabled
 	 *  4. Enforce software write enable (WREN) as prerequisite to all memory write instructions
 	 */
-	uint8_t CONFIG_REGS_INIT[AS3001204_CONFIG_REGS_LENGTH] = {0x00, 0x00, 0x60, 0x04};
+	uint8_t config_regs_init[AS3001204_CONFIG_REGS_LENGTH] = CONFIG_REGS_INIT;
 
 	/*
 	 * Augmented Storage Array protection register:
 	 *  Leave ASA section-specific protection disabled
 	 */
-	uint8_t ASP_REG_INIT = 0x00;
+	uint8_t asp_reg_init = ASP_REG_INIT;
 
 	// Ensure the AS3001204 has completed internal initialization (~250us)
 	HAL_Delay(1);
@@ -307,11 +307,11 @@ HAL_StatusTypeDef AS3001204_Init() {
 	HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
 
 	// Write to registers
-	isError = AS3001204_Write_Status_Register(&STATUS_REG_INIT);
+	isError = AS3001204_Write_Status_Register(&status_reg_init);
 	if (isError != HAL_OK) goto error;
-	isError = AS3001204_Write_Config_Registers(CONFIG_REGS_INIT);
+	isError = AS3001204_Write_Config_Registers(config_regs_init);
 	if (isError != HAL_OK) goto error;
-	isError = AS3001204_Write_ASP_Register(&ASP_REG_INIT);
+	isError = AS3001204_Write_ASP_Register(&asp_reg_init);
 
 error:
 	return isError;
