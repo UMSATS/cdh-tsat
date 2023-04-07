@@ -60,6 +60,19 @@ HAL_StatusTypeDef AS3001204_Test_RW_Memory();
 HAL_StatusTypeDef AS3001204_Test_RW_Augmented_Storage();
 
 /*
+ * Write disable test
+ *
+ * FUNCTIONS:   AS3001204_Test_Write_Disable
+ *
+ * DESCRIPTION: This function tests the write disable command by checking if data is
+ *              able to still be written to the AS3001204 after the write disable command
+ *              is sent.
+ *
+ * RETURN:      HAL_OK if successful; HAL_ERROR, HAL_BUSY, or HAL_TIMEOUT if not.
+ */
+HAL_StatusTypeDef AS3001204_Test_Write_Disable();
+
+/*
  * Enter/exit hibernate and deep power down tests
  *
  * FUNCTIONS:   AS3001204_Test_Enter_Exit_Hibernate, AS3001204_Test_Enter_Exit_Deep_Power_Down

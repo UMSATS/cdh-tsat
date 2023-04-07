@@ -220,6 +220,76 @@ error:
 
 
 //###############################################################################################
+// Write disable test
+//###############################################################################################
+
+HAL_StatusTypeDef AS3001204_Test_Write_Disable() {
+
+    const uint32_t MEM_TEST_ADDRESS = 0x00abba;
+    uint8_t SAMPLE_DATA1 = 0x0a;
+    uint8_t SAMPLE_DATA2 = 0x0b;
+    uint8_t ERASED_DATA = 0xff;
+
+    HAL_StatusTypeDef isError;
+    uint8_t test_data;
+
+    // Write sample data 1
+    isError = AS3001204_Write_Memory(&SAMPLE_DATA1, MEM_TEST_ADDRESS, 1);
+    if (isError != HAL_OK) goto error;
+
+    // Write enable
+    // Note: This command is sent since the AS3001204 is configured to automatically write
+    //       disable after a successful write
+    isError = AS3001204_Write_Enable();
+    if (isError != HAL_OK) goto error;
+
+    // Write disable
+    isError = AS3001204_Write_Disable();
+    if (isError != HAL_OK) goto error;
+
+    // Write sample data 2
+    // Note: AS3001204_Write_Memory(...) calls AS3001204_Write_Enable()
+    //       So, we must send the write command independently
+    uint8_t memory_write_opcode = 0x02;
+
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_RESET);
+
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &memory_write_opcode, sizeof(memory_write_opcode), AS3001204_SPI_DELAY);
+    if (isError != HAL_OK) goto error;
+
+    // Separate 3 bytes of address from the uint32 (most significant byte ignored)
+    uint8_t address_bytes[3] = {(MEM_TEST_ADDRESS >> 16) & 0xff, (MEM_TEST_ADDRESS >> 8) & 0xff, (MEM_TEST_ADDRESS) & 0xff};
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, address_bytes, 3, AS3001204_SPI_DELAY);
+    if (isError != HAL_OK) goto error;
+
+    isError = HAL_SPI_Transmit(&AS3001204_SPI, &SAMPLE_DATA2, 1, AS3001204_SPI_DELAY);
+    if (isError != HAL_OK) goto error;
+
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
+
+    // Read back and verify test data
+    isError = AS3001204_Read_Memory(&test_data, MEM_TEST_ADDRESS, 1);
+    if (isError != HAL_OK) goto error;
+
+    if (test_data != SAMPLE_DATA1) {
+        isError = HAL_ERROR;
+        goto error;
+    }
+
+    // Restore to default
+    isError = AS3001204_Write_Memory(&ERASED_DATA, MEM_TEST_ADDRESS, 1);
+
+error:
+    HAL_GPIO_WritePin(AS3001204_nCS_GPIO, AS3001204_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(AS3001204_nWP_GPIO, AS3001204_nWP_PIN, GPIO_PIN_RESET);
+    return isError;
+
+}
+
+
+//###############################################################################################
 // Enter/exit hibernate and deep power down tests
 //###############################################################################################
 
@@ -237,7 +307,7 @@ HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Hibernate() {
     isError = AS3001204_Write_Memory(&SAMPLE_DATA1, MEM_TEST_ADDRESS, 1);
     if (isError != HAL_OK) goto error;
 
-    //Enter hibernate
+    // Enter hibernate
     isError = AS3001204_Enter_Hibernate();
     if (isError != HAL_OK) goto error;
 
@@ -245,7 +315,7 @@ HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Hibernate() {
     isError = AS3001204_Write_Memory(&SAMPLE_DATA2, MEM_TEST_ADDRESS, 1);
     if (isError != HAL_OK) goto error;
 
-    //Exit hibernate
+    // Exit hibernate
     isError = AS3001204_Exit_Hibernate();
     if (isError != HAL_OK) goto error;
 
@@ -279,11 +349,11 @@ HAL_StatusTypeDef AS3001204_Test_Enter_Exit_Deep_Power_Down() {
     isError = AS3001204_Write_Memory(&SAMPLE_DATA, MEM_TEST_ADDRESS, 1);
     if (isError != HAL_OK) goto error;
 
-    //Enter deep power down
+    // Enter deep power down
     isError = AS3001204_Enter_Deep_Power_Down();
     if (isError != HAL_OK) goto error;
 
-    //Exit deep power down
+    // Exit deep power down
     isError = AS3001204_Exit_Deep_Power_Down();
     if (isError != HAL_OK) goto error;
 
@@ -327,12 +397,14 @@ HAL_StatusTypeDef AS3001204_Test_MRAM_Driver() {
     isError = AS3001204_Test_RW_Augmented_Storage();
     if (isError != HAL_OK) goto error;
 
+    isError = AS3001204_Test_Write_Disable();
+    if (isError != HAL_OK) goto error;
+
     isError = AS3001204_Test_Enter_Exit_Hibernate();
     if (isError != HAL_OK) goto error;
     isError = AS3001204_Test_Enter_Exit_Deep_Power_Down();
 
-    // Note: There is currently no test for AS3001204_Write_Disable()
-    // (AS3001204_Write_Enable() is tested implicitly through its use in other functions)
+    // Note: AS3001204_Write_Enable() is tested implicitly through its use in other functions
 
 error:
     return isError;
