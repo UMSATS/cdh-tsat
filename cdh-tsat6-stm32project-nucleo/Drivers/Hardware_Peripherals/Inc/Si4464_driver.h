@@ -53,6 +53,15 @@ typedef enum {
 	SI4464_HAL_TIMEOUT 	= HAL_TIMEOUT
 } Si4464_StatusTypeDef;
 
+typedef enum {
+	SI4464_NO_RETRANSMIT = 0,
+	SI4464_RETRANSMIT	 = 1,
+} Si4464TxRetransmit;
+
+typedef enum {
+	SI4464_TRANSMIT_NOW = 0,
+	SI4464_TRANSMIT_WUT = 1,
+} Si4464TxWhen;
 
 /*
  * TODO: Add detail to function description
