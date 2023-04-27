@@ -265,6 +265,33 @@ Si4464_StatusTypeDef Si4464_Get_RX_FIFO_Len(size_t *returned_size);
 Si4464_StatusTypeDef Si4464_Get_TX_FIFO_Free_Space(size_t *returned_size);
 
 /**
+ * @brief Reads the lesser of the number of received bytes, or the number requested, from the RX FIFO.
+ * 
+ * @param dest The array to send data to.
+ * @param max_buffer_size The max number of bytes to get.
+ * @param num_bytes_returned An output variable for the number of bytes received.
+ * 
+ * @returns SI4464_HAL_OK on success.
+ * @returns The status code of a failing function call.
+ * @returns SI4464_HAL_ERROR if num_bytes_returned or dest are NULL or max_buffer_size is 0.
+ */
+Si4464_StatusTypeDef Si4464_Read_RX_FIFO(uint8_t dest[], size_t max_buffer_size, size_t *num_bytes_returned);
+
+
+/**
+ * @brief Reads the lesser of the number of available bytes, or the number requested, to the TX FIFO.
+ * 
+ * @param src The array to send data from.
+ * @param num_bytes_to_send The max number of requested bytes to send.
+ * @param num_bytes_sent An output variable for the actual number of bytes sent.
+ * 
+ * @returns SI4464_HAL_OK on success.
+ * @returns The status code of a failing function call.
+ * @returns SI4464_HAL_ERROR if num_bytes_sent or src are NULL or num_bytes_to_send is 0.
+ */
+Si4464_StatusTypeDef Si4464_Write_TX_FIFO(uint8_t src[], size_t num_bytes_to_send, size_t *num_bytes_sent);
+
+/**
  * @brief Set the chip select pin of the Si4464
  *
  * @param sel 0 for pull low and 1 for pull high
