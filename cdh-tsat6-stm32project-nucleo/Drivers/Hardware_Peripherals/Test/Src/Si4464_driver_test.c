@@ -25,6 +25,8 @@
 
 #define SI4464_MODEM_CHFLT_RX1_CHFLT_COE 0x00
 
+#define SI4464_NUM_FIFO_SRC_BYTES 12
+
 static uint8_t POWER_UP_ARRAY[] = RADIO_CONFIGURATION_DATA_ARRAY;
 
 //###############################################################################################
@@ -173,6 +175,36 @@ error:
 	return operation_status;
 }
 
+Si4464_StatusTypeDef Test_Si4464_Send_Get_TX_FIFO() {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+	uint8_t fifo_src[SI4464_NUM_FIFO_SRC_BYTES] = {0};
+	size_t num_sent = 123567890; // Dummy value.
+
+	size_t num_reported_pre_send = 1234567890;
+	size_t num_reported_post_send = 1234567890;
+
+	for (size_t i = 0; i < SI4464_NUM_FIFO_SRC_BYTES; i++) {
+		fifo_src[i] = 0xAA;
+	}
+
+	operation_status = Si4464_Get_TX_FIFO_Free_Space(&num_reported_pre_send);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	operation_status = Si4464_Write_TX_FIFO(fifo_src, SI4464_NUM_FIFO_SRC_BYTES, &num_sent);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	operation_status = Si4464_Get_TX_FIFO_Free_Space(&num_reported_post_send);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	if (num_reported_pre_send - num_reported_post_send != SI4464_NUM_FIFO_SRC_BYTES) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+error:
+	return operation_status;
+}
+
 
 //###############################################################################################
 //Public Complete Unit Test Function
@@ -181,9 +213,9 @@ Si4464_StatusTypeDef Test_Si4464()
 {
     Si4464_StatusTypeDef operation_status;
 
-    //the following functions are executed in order of dependencies
+    // The following functions are executed in order of dependencies
 
-    //unit test functions
+    // Unit test functions
     operation_status = Test_Si4464_Init_Device();
     if (operation_status != SI4464_HAL_OK) goto error;
 
@@ -194,6 +226,9 @@ Si4464_StatusTypeDef Test_Si4464()
 
     operation_status = Test_Si4464_Get_Set_Props();
     if (operation_status != SI4464_HAL_OK) goto error;
+
+	operation_status = Test_Si4464_Send_Get_TX_FIFO();
+	if (operation_status != SI4464_HAL_OK) goto error;
 
     operation_status = Test_Si4464_Reset_Device();
     if (operation_status != SI4464_HAL_OK) goto error;
