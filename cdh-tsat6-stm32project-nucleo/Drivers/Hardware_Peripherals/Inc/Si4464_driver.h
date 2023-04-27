@@ -239,6 +239,30 @@ Si4464_StatusTypeDef Si4464_Set_One_Prop(uint8_t group, uint8_t start_prop, uint
  */
 Si4464_StatusTypeDef Si4464_Init_Device();
 
+/**
+ * @brief Gets the amount of bytes currently in the RX FIFO.
+ *
+ * TODO: Add "Unified" FIFO Functions. -NJR
+ *
+ * @param returned_size Where to store the size received from the RF Module.
+ *
+ * @returns SI4464_HAL_OK on success.
+ * @returns SI4464_HAL_ERROR if returned_size is NULL.
+ * @returns The status code of a failing function call otherwise.
+ */
+Si4464_StatusTypeDef Si4464_Get_RX_FIFO_Len(size_t *returned_size);
+
+
+/**
+ * @brief Gets the number of bytes of space currently available in the TX FIFO.
+ *
+ * @param returned_size Where to store the size received from the RF Module.
+ *
+ * @returns SI4464_HAL_OK on success.
+ * @returns SI4464_HAL_ERROR if returned_size is NULL.
+ * @returns The status code of a failing function call otherwise.
+ */
+Si4464_StatusTypeDef Si4464_Get_TX_FIFO_Free_Space(size_t *returned_size);
 
 /**
  * @brief Set the chip select pin of the Si4464

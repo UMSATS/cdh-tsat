@@ -300,6 +300,138 @@ error:
 	return operation_status;
 }
 
+Si4464_StatusTypeDef Si4464_Write_TX_FIFO(uint8_t src[], size_t num_bytes_to_send, size_t *num_bytes_sent) {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+
+	size_t num_space_available = 0;
+	size_t num_can_send = 0;
+
+	// TODO: Check for reading more than max buffer size.
+	if (!src || !num_bytes_sent || num_bytes_to_send == 0) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+	operation_status = Si4464_Get_TX_FIFO_Free_Space(&num_space_available);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	if (num_bytes_to_send > num_space_available) {
+		num_can_send = num_space_available;
+	} else {
+		num_can_send = num_bytes_to_send;
+	}
+	// TODO: Do error checking on length of buffer.
+
+	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_TX_FIFO_WRITE, src, num_can_send);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	// TODO: "This command does not cause CTS to go low, and can be sent while CTS is low. This command
+	// has no response to be read and thus there is no need to monitor CTS after sending this command."
+	//
+	// Does this mean that we **shouldn't** CTS? -NJR
+
+error:
+	return operation_status;
+}
+
+Si4464_StatusTypeDef Si4464_Get_TX_FIFO_Free_Space(size_t *returned_size) {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+	uint8_t fifo_info[2] = {0};
+	uint8_t fifo_info_args = {0};
+
+	if (!returned_size) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+	operation_status = Si4464_Send_Command(SI4464_FIFO_INFO, &fifo_info_args, 1, fifo_info, 2);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	*returned_size = (size_t) fifo_info[1];
+
+error:
+	return operation_status;
+}
+
+Si4464_StatusTypeDef Si4464_Get_RX_FIFO_Len(size_t *returned_size) {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+	uint8_t fifo_info[2] = {0};
+	uint8_t fifo_info_args = {0};
+
+	if (!returned_size) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+	operation_status = Si4464_Send_Command(SI4464_FIFO_INFO, &fifo_info_args, 1, fifo_info, 2);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	*returned_size = (size_t) fifo_info[0];
+
+error:
+	return operation_status;
+}
+
+Si4464_StatusTypeDef Si4464_Read_RX_FIFO(uint8_t dest[], size_t max_buffer_size, size_t *num_bytes_returned) {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+	uint8_t command = SI4464_RX_FIFO_READ;
+
+	size_t num_to_get = 0;
+	size_t num_available = 0;
+
+	// TODO: Check for reading more than max buffer size.
+
+	if (!dest || !num_bytes_returned || max_buffer_size == 0) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+	operation_status = Si4464_Get_RX_FIFO_Len(&num_available);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	if (max_buffer_size > num_available) {
+		num_to_get = num_available;
+	} else {
+		num_to_get = max_buffer_size;
+	}
+
+	// Looks like we shouldn't CTS here.
+	//
+	// > This command is used to read data byte(s) from the RX FIFO. The READ_RX_FIFO
+	// > command should be clocked in on SDI and the reply should be clocked out on
+	// > SDO without deasserting NSEL. If you read more data bytes than the RX FIFO
+	// > contains it will generate a FIFO Underflow interrupt event.
+	operation_status = Radio_SPI_Transmit_Message(&command, 1);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	operation_status = Radio_SPI_Receive_Message(dest, num_to_get);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	*num_bytes_returned = num_to_get;
+
+error:
+	return operation_status;
+}
+
+// TODO: Have a parameter for selecting a channel.
+Si4464_StatusTypeDef Si4464_Transmit(Si4464PowerState state_after_tx, size_t len) {
+	Si4464_StatusTypeDef operation_status = HAL_OK;
+	uint8_t args[4] = {0};
+
+	args[0] = 0; // Channel
+	args[1] = (state_after_tx << 4) | (SI4464_NO_RETRANSMIT << 2) | (SI4464_TRANSMIT_NOW << 0);
+
+	// Set only Channel 0 for now.
+	operation_status = Si4464_Set_Power_State(SI4464_STATE_TX_TUNE);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_START_TX, args, 4);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+error:
+	return operation_status;
+}
+
 
 /***********************************************************
  *
