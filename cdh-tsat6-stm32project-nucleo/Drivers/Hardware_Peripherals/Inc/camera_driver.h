@@ -5,6 +5,7 @@
  *
  * AUTHORS:
  *  - Syed Abraham Ahmed (syed.ahmed@umsats.ca)
+ *  - Amer El Eissawi (amer.eleissawi@umsats.ca)
  *
  * CREATED ON: March 2, 2023
  */
@@ -34,7 +35,7 @@
 #define piCAM_RX_PIN				GPIO_PIN_11
 
 #define piCAM_TX_GPIO				GPIOA
-#define piCAM_TX_PIN				GPIO_PIN_0s
+#define piCAM_TX_PIN				GPIO_PIN_0
 
 #define piCAM_FSH_GPIO				GPIOA
 #define piCAM_FSH_PIN				GPIO_PIN_9
@@ -71,7 +72,58 @@ typedef enum
 
 piCAM_StatusTypeDef piCAM_Boot_Sequence();
 
+/*
+ * FUNCTION: piCAM_init
+ *
+ * DESCRIPTION: Initializes GPIO and UART for piCAM use.
+ *
+ * NOTES: 
+ * 	- Creates a UART4 instance
+ * 	- Sets baud rate to 115200
+ * 	- Initializes all UART registers to communicate with piCAM
+ */
+piCAM_StatusTypeDef piCAM_init();
 
+/*
+ * FUNCTION: piCAM_Capture_Daylight
+ *
+ * DESCRIPTION: Commands piCAM to capture a daylight image
+ *
+ * NOTES: 
+ * 	- Sends the "d" commmand to piCAM
+ */
+piCAM_StatusTypeDef piCAM_Capture_Daylight();
 
+/*
+ * FUNCTION: piCAM_Capture_Daylight
+ *
+ * DESCRIPTION: Commands piCAM to capture a medium ambient light image
+ *
+ * NOTES: 
+ * 	- Sends the "m" commmand to piCAM
+ */
+piCAM_StatusTypeDef piCAM_Capture_Mediumlight();
+
+/*
+ * FUNCTION: piCAM_Capture_Daylight
+ *
+ * DESCRIPTION: Commands piCAM to capture a night time image
+ *
+ * NOTES: 
+ * 	- Sends the "n" commmand to piCAM
+ */
+piCAM_StatusTypeDef piCAM_Capture_Nightlight();
+
+/*
+ * FUNCTION: piCAM_Capture_Daylight
+ *
+ * DESCRIPTION: Commands piCAM to send a test string with telemetry measurments
+ * while also flashing the camera LED.
+ * 
+ *
+ * NOTES: 
+ * 	- Sends the "t" commmand to piCAM
+ */
+piCAM_StatusTypeDef piCAM_Status_Test();
 
 #endif /* HARDWARE_PERIPHERALS_INC_CAMERA_DRIVER_H_ */
