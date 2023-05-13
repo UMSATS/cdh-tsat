@@ -122,7 +122,7 @@ Si4464_StatusTypeDef Test_Si4464_Get_Set_Props(){
 
 
 
-	Si4464_Execute_Command_Stream(POWER_UP_ARRAY, sizeof(POWER_UP_ARRAY));
+//	Si4464_Execute_Command_Stream(POWER_UP_ARRAY, sizeof(POWER_UP_ARRAY));
 
 
 	operation_status = Si4464_Get_Prop(SI4464_MODEM_CHFLT_GROUP, 12, SI4464_MODEM_CHFLT_RX1_CHFLT_COE, original_data);
@@ -213,16 +213,15 @@ Si4464_StatusTypeDef Test_Si4464()
 {
     Si4464_StatusTypeDef operation_status;
 
-    // The following functions are executed in order of dependencies
-
     // Unit test functions
     operation_status = Test_Si4464_Init_Device();
     if (operation_status != SI4464_HAL_OK) goto error;
 
-    HAL_Delay(100);
-
+    // The following functions are executed in order of dependencies
     operation_status = Test_Si4464_Get_CTS();
     if (operation_status != SI4464_HAL_OK) goto error;
+
+    HAL_Delay(100);
 
     operation_status = Test_Si4464_Get_Set_Props();
     if (operation_status != SI4464_HAL_OK) goto error;

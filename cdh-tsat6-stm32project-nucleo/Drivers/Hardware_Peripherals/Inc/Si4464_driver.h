@@ -64,18 +64,6 @@ typedef enum {
 } Si4464TxWhen;
 
 /*
- * TODO: Add detail to function description
- * Writes bytes sent to it to the TX FIFO
- */
-Si4464_StatusTypeDef writeTxBuffer(uint8_t lengthTxData, uint8_t *txData);
-
-/*
- * TODO: Add detail to function description
- * Will send a message using the radio
- */
-Si4464_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData);
-
-/*
  * Using the SPI in an interrupt mode means we must setup callback functions
  * for the TX and RX. The functions below are the Transmit, Receive and Transmit Receive Respectively
  */
@@ -292,7 +280,27 @@ Si4464_StatusTypeDef Si4464_Read_RX_FIFO(uint8_t dest[], size_t max_buffer_size,
 Si4464_StatusTypeDef Si4464_Write_TX_FIFO(uint8_t src[], size_t num_bytes_to_send, size_t *num_bytes_sent);
 
 /**
- * @brief Set the chip select pin of the Si4464
+ * @brief Starts transmit of the data in the TX FIFO.
+ *
+ * @param state_after_tx What to do with the Si4464 afterwards.
+ *
+ * @param len The number of bytes to send.
+ *
+ * @returns SI4464_HAL_OK if okay, otherwise the relevant error.
+ */
+Si4464_StatusTypeDef Si4464_Transmit(Si4464PowerState state_after_tx, size_t len);
+
+/**
+ * @brief Gets the current channel to be transmitted on.
+ *
+ * @param out_channel Where to return the channel.
+ *
+ * @returns SI4464_HAL_OK on success, otherwise the relevant error.
+ */
+Si4464_StatusTypeDef Si4464_Get_Channel(uint8_t *out_channel);
+
+/**
+ * @brief Set the chip select pin of the Si4464.
  *
  * @param sel 0 for pull low and 1 for pull high
  */

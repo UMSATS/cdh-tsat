@@ -23,28 +23,6 @@ static uint8_t POWER_UP_ARRAY[] = RADIO_CONFIGURATION_DATA_ARRAY;
  *
  ************************************************************/
 
-Si4464_StatusTypeDef Si4464_Transmit_Message(uint8_t lengthTxData, uint8_t *txData){
-	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
-
-	operation_status = writeTxBuffer(lengthTxData, txData);
-	if (operation_status != SI4464_HAL_OK) goto error;
-
-	Si4464_Nsel(0);
-	while(!Si4464_Get_CTS()){
-		// Wait for radio
-	}
-
-	operation_status = Si4464_Send_Command(SI4464_START_TX, NULL, 0, NULL, 0);
-
-	if (operation_status != SI4464_HAL_OK) goto error;
-
-	while(!Si4464_Get_CTS()){
-		// Wait for message to send
-	}
-	Si4464_Nsel(1);
-error:
-	return operation_status;
-}
 Si4464_StatusTypeDef Si4464_Get_Part_Info(Si4464PartInfo *info_data)
 {
 	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
@@ -413,6 +391,28 @@ error:
 	return operation_status;
 }
 
+Si4464_StatusTypeDef Si4464_Get_Channel(uint8_t *out_channel) {
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+	uint8_t returned_data[] = {0};
+
+	if (!out_channel) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+	operation_status = Si4464_Send_Command(SI4464_REQUEST_DEVICE_STATE, NULL, 0, returned_data, sizeof(returned_data));
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	*out_channel = returned_data[1];
+
+error:
+	return operation_status;
+}
+
+//Si4464_StatusTypeDef Si4464_Set_Channel(uint8_t channel) {
+//
+//}
+
 // TODO: Have a parameter for selecting a channel.
 Si4464_StatusTypeDef Si4464_Transmit(Si4464PowerState state_after_tx, size_t len) {
 	Si4464_StatusTypeDef operation_status = HAL_OK;
@@ -420,10 +420,6 @@ Si4464_StatusTypeDef Si4464_Transmit(Si4464PowerState state_after_tx, size_t len
 
 	args[0] = 0; // Channel
 	args[1] = (state_after_tx << 4) | (SI4464_NO_RETRANSMIT << 2) | (SI4464_TRANSMIT_NOW << 0);
-
-	// Set only Channel 0 for now.
-	operation_status = Si4464_Set_Power_State(SI4464_STATE_TX_TUNE);
-	if (operation_status != SI4464_HAL_OK) goto error;
 
 	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_START_TX, args, 4);
 	if (operation_status != SI4464_HAL_OK) goto error;
