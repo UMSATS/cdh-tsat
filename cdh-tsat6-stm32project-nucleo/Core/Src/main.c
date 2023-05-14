@@ -24,7 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Si446x/Si446x.h"
+#include "Si4464_driver.h"
+#include "Si4464_driver_config.h"
+#include "Si4464_driver_test.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 #include "AS3001204_driver.h"
@@ -148,6 +150,10 @@ int main(void)
   as3001204_operation_status = AS3001204_Test_MRAM_Driver();
   if (as3001204_operation_status != HAL_OK) goto error;
   exit(0);*/
+
+  //WORK IN-PROGRESS: Si4464 init & testing
+  /*Si4464_Reset_Device();
+  Test_Si4464();*/
 
 /*error:
   exit(1);*/
