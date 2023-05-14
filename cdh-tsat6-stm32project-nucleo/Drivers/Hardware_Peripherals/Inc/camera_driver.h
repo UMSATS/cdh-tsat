@@ -126,4 +126,40 @@ piCAM_StatusTypeDef piCAM_Capture_Nightlight();
  */
 piCAM_StatusTypeDef piCAM_Status_Test();
 
+/*
+ * FUNCTION: piCAM_Process_Image
+ *
+ * DESCRIPTION: Converts the ASCI representation of the image sent by piCAM into
+ *  a binary array representing the jpeg image.
+ * 
+ *
+ * NOTES: 
+ * 	- The binary array is padded with 0's where the length of the array of ASCI
+ *  data is larger than that of the converted binary image.
+ */
+piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *);
+
+/************************************************************************************************
+/Private Helper Function Definitions
+/************************************************************************************************/
+
+/*
+ * FUNCTION: piCAM_ASCI_Byte_to_Binary
+ *
+ * DESCRIPTION: Converts a single byte represented by ASCI data in a byte array into a 
+ * binary byte.
+ *
+ */
+uint8_t piCAM_ASCI_Byte_to_Binary(uint8_t *);
+
+/*
+ * FUNCTION: piCAM_ASCI_Word_to_Binary
+ *
+ * DESCRIPTION: Converts a single word represented by ASCI data in a byte array into a
+ * binary word.
+ *
+ */
+uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *);
+
+
 #endif /* HARDWARE_PERIPHERALS_INC_CAMERA_DRIVER_H_ */
