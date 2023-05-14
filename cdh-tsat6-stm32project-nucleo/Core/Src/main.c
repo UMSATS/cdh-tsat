@@ -150,7 +150,7 @@ int main(void)
   as3001204_operation_status = AS3001204_Test_MRAM_Driver();
   if (as3001204_operation_status != HAL_OK) goto error;
   exit(0);*/
-  
+
   //WORK IN-PROGRESS: Si4464 init & testing
   /*Si4464_Reset_Device();
   Test_Si4464();*/
