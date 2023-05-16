@@ -136,11 +136,20 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  HAL_UART_Transmit(&huart4, "Hello World!", sizeof("Hello World!"), HAL_MAX_DELAY);
+
+  piCAM_Boot_Up_Sequence();
+
+  HAL_Delay(50);
+
+  HAL_UART_Transmit(&huart4, "Hello World!", sizeof("Hello World!"), HAL_MAX_DELAY);
+
+
   while (1)
   {
 	//Set a breakpoint here to view data grabbed from si446x module. -NJR
     /* USER CODE END WHILE */
-
 
 
     /* USER CODE BEGIN 3 */
@@ -432,6 +441,8 @@ static void MX_USART2_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -490,6 +501,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
 
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */

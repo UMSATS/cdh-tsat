@@ -30,9 +30,6 @@ extern UART_HandleTypeDef piCAM_UART;
 /************************************************************************************************
 /Public Driver Function Definitions
 /************************************************************************************************/
-piCAM_StatusTypeDef piCAM_Boot_Sequence()
-{
-}
 
 piCAM_StatusTypeDef piCAM_init()
 {
@@ -50,11 +47,34 @@ piCAM_StatusTypeDef piCAM_init()
     piCAM_UART.Init.OverSampling = UART_OVERSAMPLING_16;
     piCAM_UART.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
     piCAM_UART.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&piCAM_UART) != HAL_OK)
+    if (HAL_UART_Init(&piCAM_UART) != piCAM_HAL_OK)
     {
-        return piCAM_HAL_ERROR;
+    	return piCAM_HAL_ERROR;
     }
     return piCAM_HAL_OK;
+}
+
+piCAM_StatusTypeDef piCAM_Boot_Up_Sequence()
+{
+    //Disables UART4 To Prevent Bootstrapping
+    disable_piCAM_UART();
+
+    //Hold the lines LOW for 1 second
+    HAL_GPIO_WritePin(piCAM_ON_GPIO, piCAM_ON_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(piCAM_RX_GPIO, piCAM_RX_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(piCAM_TX_GPIO, piCAM_TX_PIN, GPIO_PIN_RESET);
+
+    HAL_Delay(1000);
+
+    //Set ON signal to logic HIGH
+    HAL_GPIO_WritePin(piCAM_ON_GPIO, piCAM_ON_PIN, GPIO_PIN_SET);
+
+    //Activate idle levels (logic HIGH) on RXD and TXD
+    HAL_GPIO_WritePin(piCAM_RX_GPIO, piCAM_RX_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(piCAM_TX_GPIO, piCAM_TX_PIN, GPIO_PIN_SET);
+
+    //Enables UART4
+    enable_piCAM_UART();
 }
 
 piCAM_StatusTypeDef piCAM_Capture_Daylight()
@@ -139,4 +159,42 @@ uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *convert)
     uint16_t highByte = piCAM_ASCI_Byte_to_Binary(convert);
     uint16_t lowByte = piCAM_ASCI_Byte_to_Binary(convert + 2);
     return (highByte << 8) | lowByte;
+}
+
+void disable_piCAM_UART()
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	//DeInitializes the UART4 interface
+    HAL_UART_DeInit(&piCAM_UART);
+
+    //Disables UART4 Interrupt
+    HAL_NVIC_DisableIRQ(piCAM_UART_IRQn);
+
+    /*Configure GPIO pin : CAM_TX_ANTI_BOOTSTRAP_Pin */
+    GPIO_InitStruct.Pin = piCAM_TX_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(piCAM_TX_GPIO, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : CAM_RX_ANTI_BOOTSTRAP_Pin */
+    GPIO_InitStruct.Pin = piCAM_RX_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(piCAM_RX_GPIO, &GPIO_InitStruct);
+}
+
+void enable_piCAM_UART()
+{
+	//DeInitializes GPIO RX and TX Pins
+	HAL_GPIO_DeInit(piCAM_RX_GPIO, piCAM_RX_PIN);
+	HAL_GPIO_DeInit(piCAM_TX_GPIO, piCAM_TX_PIN);
+
+	//Initializes the UART4 interface
+    piCAM_init();
+
+    //Enables UART4 Interrupt
+    HAL_NVIC_EnableIRQ(piCAM_UART_IRQn);
 }

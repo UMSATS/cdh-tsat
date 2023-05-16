@@ -25,7 +25,10 @@
 
 //Initial Definitions
 #define piCAM_UART					huart4
+#define piCAM_UART_IRQn				UART4_IRQn
+
 #define piCAM_UART_DELAY			HAL_MAX_DELAY
+
 
 //Pin Definitions
 #define piCAM_ON_GPIO				GPIOA
@@ -60,24 +63,11 @@ typedef enum
 /************************************************************************************************/
 
 /*
- * FUNCTION: piCAM_Boot_Sequence
- *
- * DESCRIPTION: Follows the boot up sequence for the piCAM.
- *
- * NOTES:
- * 	- ON, RX, and TX are low for at least a second
- * 	- ON shall be held log 1
- *	- Activating log 1 on RX and TX
- */
-
-piCAM_StatusTypeDef piCAM_Boot_Sequence();
-
-/*
  * FUNCTION: piCAM_init
  *
  * DESCRIPTION: Initializes GPIO and UART for piCAM use.
  *
- * NOTES: 
+ * NOTES:
  * 	- Creates a UART4 instance
  * 	- Sets baud rate to 115200
  * 	- Initializes all UART registers to communicate with piCAM
@@ -85,12 +75,26 @@ piCAM_StatusTypeDef piCAM_Boot_Sequence();
 piCAM_StatusTypeDef piCAM_init();
 
 /*
+ * FUNCTION: piCAM_Boot_Sequence
+ *
+ * DESCRIPTION: Follows the boot up sequence for the piCAM.
+ *
+ * NOTES:
+ *  - Disables UART Interface
+ * 	- ON, RX, and TX are low for at least a second
+ * 	- ON shall be held logic 1
+ *	- Activating logic 1 on RX and TX
+ *	- Enables UART Interface
+ */
+
+piCAM_StatusTypeDef piCAM_Boot_Up_Sequence();
+/*
  * FUNCTION: piCAM_Capture_Daylight
  *
  * DESCRIPTION: Commands piCAM to capture a daylight image
  *
  * NOTES: 
- * 	- Sends the "d" commmand to piCAM
+ * 	- Sends the "d" command to piCAM
  */
 piCAM_StatusTypeDef piCAM_Capture_Daylight();
 
@@ -100,7 +104,7 @@ piCAM_StatusTypeDef piCAM_Capture_Daylight();
  * DESCRIPTION: Commands piCAM to capture a medium ambient light image
  *
  * NOTES: 
- * 	- Sends the "m" commmand to piCAM
+ * 	- Sends the "m" command to piCAM
  */
 piCAM_StatusTypeDef piCAM_Capture_Mediumlight();
 
@@ -110,7 +114,7 @@ piCAM_StatusTypeDef piCAM_Capture_Mediumlight();
  * DESCRIPTION: Commands piCAM to capture a night time image
  *
  * NOTES: 
- * 	- Sends the "n" commmand to piCAM
+ * 	- Sends the "n" command to piCAM
  */
 piCAM_StatusTypeDef piCAM_Capture_Nightlight();
 
@@ -122,7 +126,7 @@ piCAM_StatusTypeDef piCAM_Capture_Nightlight();
  * 
  *
  * NOTES: 
- * 	- Sends the "t" commmand to piCAM
+ * 	- Sends the "t" command to piCAM
  */
 piCAM_StatusTypeDef piCAM_Status_Test();
 
