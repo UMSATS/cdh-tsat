@@ -148,13 +148,13 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *);
 /************************************************************************************************/
 
 /*
- * FUNCTION: piCAM_ASCI_Byte_to_Binary
+ * FUNCTION: piCAM_ASCII_Byte_to_Binary
  *
  * DESCRIPTION: Converts a single byte represented by ASCI data in a byte array into a 
  * binary byte.
  *
  */
-uint8_t piCAM_ASCI_Byte_to_Binary(uint8_t *);
+uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *);
 
 /*
  * FUNCTION: piCAM_ASCI_Word_to_Binary

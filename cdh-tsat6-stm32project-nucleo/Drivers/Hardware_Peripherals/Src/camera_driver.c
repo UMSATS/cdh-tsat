@@ -114,10 +114,11 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
     {
         for (int i = 0; i < 28; i++)
         {
-            *firstFree = piCAM_ASCI_Byte_to_Binary(iterator);
+            *firstFree = piCAM_ASCII_Byte_to_Binary(iterator);
             firstFree++;
             iterator += 2;
         }
+        currentSentence = piCAM_ASCI_Word_to_Binary(iterator + 4);
         iterator += 12;
     }
 
@@ -132,7 +133,7 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
 /************************************************************************************************
 /Private Helper Function Definitions
 /************************************************************************************************/
-uint8_t piCAM_ASCI_Byte_to_Binary(uint8_t *convert)
+uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *convert)
 {
     const uint8_t binary[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     const uint8_t digits[] = "0123456789ABCDEF";
@@ -156,8 +157,8 @@ uint8_t piCAM_ASCI_Byte_to_Binary(uint8_t *convert)
 
 uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *convert)
 {
-    uint16_t highByte = piCAM_ASCI_Byte_to_Binary(convert);
-    uint16_t lowByte = piCAM_ASCI_Byte_to_Binary(convert + 2);
+    uint16_t highByte = piCAM_ASCII_Byte_to_Binary(convert);
+    uint16_t lowByte = piCAM_ASCII_Byte_to_Binary(convert + 2);
     return (highByte << 8) | lowByte;
 }
 
