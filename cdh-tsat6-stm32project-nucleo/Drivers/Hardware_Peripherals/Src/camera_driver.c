@@ -119,7 +119,7 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
             iterator += 2;
         }
         currentSentence = piCAM_ASCI_Word_to_Binary(iterator + 4);
-        iterator += 12;
+        iterator += 11;
     }
 
     for (int i = 0; firstFree != &outputImage[imageLength]; i++)
