@@ -10,30 +10,30 @@
  * CREATED ON: March 2, 2023
  */
 
-/************************************************************************************************
-/Include Directives
-/************************************************************************************************/
+/*----------------------------------------------------------------------------------------------
+Include Directives
+-----------------------------------------------------------------------------------------------*/
 #include <stdint.h>
 
 #include "stm32l4xx_hal.h"
 #include "camera_driver.h"
 
-/************************************************************************************************
-/Global Variable Declarations
-/************************************************************************************************/
+/*----------------------------------------------------------------------------------------------
+Global Variable Declarations
+-----------------------------------------------------------------------------------------------*/
 extern UART_HandleTypeDef piCAM_UART;
 extern DMA_HandleTypeDef piCAM_DMA;
 
-/************************************************************************************************
-/Static Buffer Definition
-/************************************************************************************************/
+/*----------------------------------------------------------------------------------------------
+Static Buffer Definition
+-----------------------------------------------------------------------------------------------*/
 extern uint8_t piCAM_Payload[piCAM_PAYLOAD_LENGTH] = {0};
 
-/************************************************************************************************
-/Driver Function Prototypes
-/************************************************************************************************
+/*----------------------------------------------------------------------------------------------
+Driver Function Prototypes
+-----------------------------------------------------------------------------------------------*/
 
- /* FUNCTION: disable_piCAM_UART()
+/* FUNCTION: disable_piCAM_UART()
  *
  * DESCRIPTION: Disables UART interface (huart4) channel and IRQ. Redefines pins as GPIO outputs
  *
@@ -53,14 +53,14 @@ void disable_piCAM_UART();
  */
 void disable_piCAM_UART();
 
-/************************************************************************************************
-/Public Driver Function Definitions
-/************************************************************************************************/
+/*----------------------------------------------------------------------------------------------
+Public Driver Function Definitions
+-----------------------------------------------------------------------------------------------*/
 
 piCAM_StatusTypeDef piCAM_Init()
 {
     // Initialize the GPIO port clock
-	__HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
 
     // Initialize UART4 to be used a piCAM_UART
     piCAM_UART.Instance = UART4;
@@ -75,14 +75,14 @@ piCAM_StatusTypeDef piCAM_Init()
     piCAM_UART.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
     if (HAL_UART_Init(&piCAM_UART) != piCAM_HAL_OK)
     {
-    	return piCAM_HAL_ERROR;
+        return piCAM_HAL_ERROR;
     }
     return piCAM_HAL_OK;
 }
 
 void piCAM_DMA_Init()
 {
-  /* DMA controller clock enable */
+    /* DMA controller clock enable */
     __HAL_RCC_DMA2_CLK_ENABLE();
 
     /* DMA interrupt init */
@@ -106,24 +106,24 @@ piCAM_StatusTypeDef piCAM_DMA_Start()
 
 void piCAM_Boot_Up_Sequence()
 {
-    //Disables UART4 To Prevent Bootstrapping
+    // Disables UART4 To Prevent Bootstrapping
     disable_piCAM_UART();
 
-    //Hold the lines LOW for 1 second
+    // Hold the lines LOW for 1 second
     HAL_GPIO_WritePin(piCAM_ON_GPIO, piCAM_ON_PIN, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(piCAM_RX_GPIO, piCAM_RX_PIN, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(piCAM_TX_GPIO, piCAM_TX_PIN, GPIO_PIN_RESET);
 
     HAL_Delay(1000);
 
-    //Set ON signal to logic HIGH
+    // Set ON signal to logic HIGH
     HAL_GPIO_WritePin(piCAM_ON_GPIO, piCAM_ON_PIN, GPIO_PIN_SET);
 
-    //Activate idle levels (logic HIGH) on RXD and TXD
+    // Activate idle levels (logic HIGH) on RXD and TXD
     HAL_GPIO_WritePin(piCAM_RX_GPIO, piCAM_RX_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(piCAM_TX_GPIO, piCAM_TX_PIN, GPIO_PIN_SET);
 
-    //Enables UART4
+    // Enables UART4
     enable_piCAM_UART();
 }
 
@@ -180,9 +180,9 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
     return piCAM_HAL_OK;
 }
 
-/************************************************************************************************
-/Private Helper Function Definitions
-/************************************************************************************************/
+/*----------------------------------------------------------------------------------------------
+Private Helper Function Definitions
+-----------------------------------------------------------------------------------------------*/
 uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *convert)
 {
     const uint8_t binary[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -202,7 +202,7 @@ uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *convert)
         }
     }
     // Return the value of the byte
-    return (highNibble << 4) | lowNibble; 
+    return (highNibble << 4) | lowNibble;
 }
 
 uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *convert)
@@ -214,12 +214,12 @@ uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *convert)
 
 void disable_piCAM_UART()
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-	//DeInitializes the UART4 interface
+    // DeInitializes the UART4 interface
     HAL_UART_DeInit(&piCAM_UART);
 
-    //Disables UART4 Interrupt
+    // Disables UART4 Interrupt
     HAL_NVIC_DisableIRQ(piCAM_UART_IRQn);
 
     /*Configure GPIO pin : CAM_TX_ANTI_BOOTSTRAP_Pin */
@@ -239,20 +239,20 @@ void disable_piCAM_UART()
 
 void enable_piCAM_UART()
 {
-	//DeInitializes GPIO RX and TX Pins
-	HAL_GPIO_DeInit(piCAM_RX_GPIO, piCAM_RX_PIN);
-	HAL_GPIO_DeInit(piCAM_TX_GPIO, piCAM_TX_PIN);
+    // DeInitializes GPIO RX and TX Pins
+    HAL_GPIO_DeInit(piCAM_RX_GPIO, piCAM_RX_PIN);
+    HAL_GPIO_DeInit(piCAM_TX_GPIO, piCAM_TX_PIN);
 
-	//Initializes the UART4 interface
+    // Initializes the UART4 interface
     piCAM_Init();
 
-    //Enables UART4 Interrupt
+    // Enables UART4 Interrupt
     HAL_NVIC_EnableIRQ(piCAM_UART_IRQn);
 }
 
-/************************************************************************************************
-/Public Testing Function Definitions
-/************************************************************************************************/
+/*----------------------------------------------------------------------------------------------
+Public Testing Function Definitions
+-----------------------------------------------------------------------------------------------*/
 void piCAM_Test_Procedure()
 {
     piCAM_Boot_Up_Sequence();
