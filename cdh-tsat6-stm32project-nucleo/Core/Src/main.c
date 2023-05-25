@@ -55,6 +55,7 @@ SPI_HandleTypeDef hspi3;
 
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_uart4_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -63,6 +64,7 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_CAN1_Init(void);
@@ -106,6 +108,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_CAN1_Init();
@@ -113,47 +116,17 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-    //this code performs the W25N unit tests
-    //this code should be completed after power cycling the W25N
-    /*W25N_StatusTypeDef operation_status;
-    
-    operation_status = W25N_Init();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    operation_status = Test_W25N();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    exit(0);
-
-  error:
-    exit(1);*/
-
-  /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
-  //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
-  //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  HAL_UART_Transmit(&huart4, "Hello World!", sizeof("Hello World!"), HAL_MAX_DELAY);
-
-  piCAM_Boot_Up_Sequence();
-
-  HAL_Delay(50);
-
-  HAL_UART_Transmit(&huart4, "Hello World!", sizeof("Hello World!"), HAL_MAX_DELAY);
-
-
-  while (1)
-  {
-	//Set a breakpoint here to view data grabbed from si446x module. -NJR
+	while (1) {
+    piCAM_Test_Procedure();
     /* USER CODE END WHILE */
 
-
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -430,6 +403,22 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
 
 }
 

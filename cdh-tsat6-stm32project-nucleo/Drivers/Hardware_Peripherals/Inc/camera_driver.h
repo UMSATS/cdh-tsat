@@ -25,6 +25,7 @@
 
 //Initial Definitions
 #define piCAM_UART					huart4
+#define piCAM_DMA					hdma_uart4_rx
 #define piCAM_UART_IRQn				UART4_IRQn
 
 #define piCAM_UART_DELAY			HAL_MAX_DELAY
@@ -44,6 +45,8 @@
 #define piCAM_FSH_PIN				GPIO_PIN_9
 
 #define piCAM_BYTES_PER_SENTANCE
+#define piCAM_PAYLOAD_LENGTH	 	131072
+
 /************************************************************************************************
 /Public Type Definitions
 /************************************************************************************************/
@@ -59,7 +62,7 @@ typedef enum
 } piCAM_StatusTypeDef;
 
 /************************************************************************************************
-/Public Driver Function Prototype
+/Public Driver Function Prototypes
 /************************************************************************************************/
 
 /*
@@ -72,7 +75,27 @@ typedef enum
  * 	- Sets baud rate to 115200
  * 	- Initializes all UART registers to communicate with piCAM
  */
-piCAM_StatusTypeDef piCAM_init();
+piCAM_StatusTypeDef piCAM_Init();
+
+/*
+ * FUNCTION: piCAM_DMA_Init
+ *
+ * DESCRIPTION: Initializes DMA for piCAM use.
+ *
+ * NOTES:
+ *	- Simply configures DMA for UART4
+ */
+void piCAM_DMA_Init();
+
+/*
+ * FUNCTION: piCAM_DMA_Start
+ *
+ * DESCRIPTION: Starts DMA for piCAM use.
+ *
+ * NOTES:
+ *	- Receives data from piCAM onto Payload static buffer	
+ */
+piCAM_StatusTypeDef piCAM_DMA_Start();
 
 /*
  * FUNCTION: piCAM_Boot_Sequence
@@ -86,8 +109,7 @@ piCAM_StatusTypeDef piCAM_init();
  *	- Activating logic 1 on RX and TX
  *	- Enables UART Interface
  */
-
-piCAM_StatusTypeDef piCAM_Boot_Up_Sequence();
+void piCAM_Boot_Up_Sequence();
 /*
  * FUNCTION: piCAM_Capture_Daylight
  *
@@ -144,7 +166,7 @@ piCAM_StatusTypeDef piCAM_Status_Test();
 piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *);
 
 /************************************************************************************************
-/Private Helper Function Definitions
+/Private Helper Function Prototypes
 /************************************************************************************************/
 
 /*
@@ -165,5 +187,23 @@ uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *);
  */
 uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *);
 
+/************************************************************************************************
+/Public Testing Function Prototypes
+/************************************************************************************************/
+
+/*
+ * FUNCTION: piCAM_Test_Procedure
+ *
+ * DESCRIPTION: Tests piCAM functionality by sending a test command and receiving a test string.
+ * Following captures and recieves an image from piCAM which is then processed.
+ *
+ * NOTES:
+ * 	- Boots up piCAM
+ * 	- Sends a test command to piCAM
+ *  - Sends a capture command to piCAM
+ * 	- Receives image from piCAM
+ * 	- Processes image
+ */
+void piCAM_Test_Procedure();
 
 #endif /* HARDWARE_PERIPHERALS_INC_CAMERA_DRIVER_H_ */

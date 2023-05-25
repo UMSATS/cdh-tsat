@@ -22,16 +22,42 @@
 /Global Variable Declarations
 /************************************************************************************************/
 extern UART_HandleTypeDef piCAM_UART;
+extern DMA_HandleTypeDef piCAM_DMA;
+
+/************************************************************************************************
+/Static Buffer Definition
+/************************************************************************************************/
+extern uint8_t piCAM_Payload[piCAM_PAYLOAD_LENGTH] = {0};
 
 /************************************************************************************************
 /Driver Function Prototypes
 /************************************************************************************************
 
+ /* FUNCTION: disable_piCAM_UART()
+ *
+ * DESCRIPTION: Disables UART interface (huart4) channel and IRQ. Redefines pins as GPIO outputs
+ *
+ * NOTES:
+ *  - This function is needed to prevent bootstrapping when powering on the camera
+ *  - This function is prototyped with enabling the UART4 lines with enable_piCAM_UART();
+ */
+void disable_piCAM_UART();
+
+/* FUNCTION: enable_piCAM_UART()
+ *
+ * DESCRIPTION: enables UART interface (huart4) channel and IRQ.
+ *
+ * NOTES:
+ *  - This function is needed to prevent bootstrapping when powering on the camera
+ *  - This function is prototyped with disabling the UART4 lines with disable_piCAM_UART();
+ */
+void disable_piCAM_UART();
+
 /************************************************************************************************
 /Public Driver Function Definitions
 /************************************************************************************************/
 
-piCAM_StatusTypeDef piCAM_init()
+piCAM_StatusTypeDef piCAM_Init()
 {
     // Initialize the GPIO port clock
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -54,7 +80,31 @@ piCAM_StatusTypeDef piCAM_init()
     return piCAM_HAL_OK;
 }
 
-piCAM_StatusTypeDef piCAM_Boot_Up_Sequence()
+void piCAM_DMA_Init()
+{
+  /* DMA controller clock enable */
+    __HAL_RCC_DMA2_CLK_ENABLE();
+
+    /* DMA interrupt init */
+    /* DMA2_Channel5_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    if (huart->Instance == piCAM_UART.Instance)
+    {
+        piCAM_Process_Image(piCAM_Payload);
+    }
+}
+
+piCAM_StatusTypeDef piCAM_DMA_Start()
+{
+    return HAL_UARTEx_ReceiveToIdle_DMA(&piCAM_UART, piCAM_Payload, piCAM_PAYLOAD_LENGTH);
+}
+
+void piCAM_Boot_Up_Sequence()
 {
     //Disables UART4 To Prevent Bootstrapping
     disable_piCAM_UART();
@@ -194,8 +244,19 @@ void enable_piCAM_UART()
 	HAL_GPIO_DeInit(piCAM_TX_GPIO, piCAM_TX_PIN);
 
 	//Initializes the UART4 interface
-    piCAM_init();
+    piCAM_Init();
 
     //Enables UART4 Interrupt
     HAL_NVIC_EnableIRQ(piCAM_UART_IRQn);
+}
+
+/************************************************************************************************
+/Public Testing Function Definitions
+/************************************************************************************************/
+void piCAM_Test_Procedure()
+{
+    piCAM_Boot_Up_Sequence();
+    piCAM_Status_Test();
+    piCAM_Capture_Daylight();
+    piCAM_DMA_Start();
 }
