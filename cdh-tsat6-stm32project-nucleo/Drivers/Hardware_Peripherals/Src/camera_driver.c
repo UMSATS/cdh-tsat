@@ -27,6 +27,27 @@ extern UART_HandleTypeDef piCAM_UART;
 /Driver Function Prototypes
 /************************************************************************************************
 
+ /* FUNCTION: disable_piCAM_UART()
+ *
+ * DESCRIPTION: Disables UART interface (huart4) channel and IRQ. Redefines pins as GPIO outputs
+ *
+ * NOTES:
+ *  - This function is needed to prevent bootstrapping when powering on the camera
+ *  - This function is prototyped with enabling the UART4 lines with enable_piCAM_UART();
+ */
+void disable_piCAM_UART();
+
+/* FUNCTION: enable_piCAM_UART()
+ *
+ * DESCRIPTION: enables UART interface (huart4) channel and IRQ.
+ *
+ * NOTES:
+ *  - This function is needed to prevent bootstrapping when powering on the camera
+ *  - This function is prototyped with disabling the UART4 lines with disable_piCAM_UART();
+ */
+void disable_piCAM_UART();
+
+
 /************************************************************************************************
 /Public Driver Function Definitions
 /************************************************************************************************/
