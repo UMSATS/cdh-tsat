@@ -18,16 +18,16 @@ const char *src_callsign = "NOCALL";
 const char *dest_callsign = "NOCALL";
 
 // TODO: Figure out these. -NJR
-const uint8_t src_ssid = 0;
-const uint8_t dest_ssid = 0;
+const uint8_t src_ssid = 7;
+const uint8_t dest_ssid = 7;
 
 #define CALLSIGN_LEN 6
 
 #define TRANSFER_FRAME_HEADER_LEN 16
-#define FLAG_LEN 8
+#define FLAG_LEN 1
 #define FCS_LEN 2 // CRC Length
 
-#define MIN_PACKET_SIZE ((2 * FLAG_LEN) + TRANSFER_FRAME_HEADER_LEN + FLAG_LEN)
+#define MIN_PACKET_SIZE ((2 * FLAG_LEN) + TRANSFER_FRAME_HEADER_LEN + FCS_LEN)
 
 #define AX25_FLAG_SEQUENCE 0x7E
 #define AX25_CONTROL_BITS 0x03 // TODO: Right? -NJR
@@ -67,6 +67,26 @@ error:
     return operation_status;
 }
 
+AX25_HALStatusTypedef AX25_Add_Bits_To_Array(uint8_t dest[], size_t max_size, uint8_t to_add, size_t byte_at, size_t bit_at)
+{
+	AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
+	if (!dest || max_size < byte_at || bit_at > 8) {
+		operation_status = AX25_HAL_ERROR;
+		goto error;
+	}
+
+	for (size_t i = bit_at; i < 8; i++) {
+		AX25_Bitwise_Append(dest + byte_at, i, (to_add & (1 << i - bit_at)));
+	}
+
+	for (size_t i = 0; i < bit_at; i++) {
+		AX25_Bitwise_Append(dest + byte_at + 1, i, (to_add & (1 << (i + (8 - bit_at)))));
+	}
+
+error:
+	return operation_status;
+}
+
 AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size, uint8_t output_array[], size_t output_size, size_t *output_result_len, size_t *output_result_extra_bits)
 {
     AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
@@ -94,15 +114,17 @@ AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_si
 
     while (current_input_byte < input_size && !output_array_overrun) {
         if (num_consecutive_ones == MAX_CONSECUTIVE_SYMBOLS) {
-            bitwise_append(output_array + current_output_byte, current_output_bit, false);
+            AX25_Bitwise_Append(output_array + current_output_byte, current_output_bit, false);
 
             num_consecutive_ones = 0;
             current_output_bit++;
         } else {
-            bitwise_append(output_array + current_output_byte, current_output_bit, ((input_array[current_input_byte]) & (1 << current_input_bit)));
+            AX25_Bitwise_Append(output_array + current_output_byte, current_output_bit, ((input_array[current_input_byte]) & (1 << current_input_bit)));
 
             if (input_array[current_input_byte] & (1 << current_input_bit)) {
                 num_consecutive_ones++;
+            } else {
+            	num_consecutive_ones = 0;
             }
 
             current_input_bit++;
@@ -129,7 +151,7 @@ AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_si
     } else {
         // Special case for if the array ends with 5 bits.
         if (num_consecutive_ones == MAX_CONSECUTIVE_SYMBOLS) {
-            bitwise_append(output_array + current_output_byte, current_output_bit, false);
+            AX25_Bitwise_Append(output_array + current_output_byte, current_output_bit, false);
 
             current_output_bit ++;
             if (current_output_bit >= UINT8_WIDTH) {
@@ -148,11 +170,16 @@ error:
 
 
 // TODO: We can use the CRC Peripheral for this. -NJR
-AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len)
+AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len)
 {
     AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
 
-    if (!scratch_space || !out_array || !data_to_send) {
+    size_t scratch_space_used = MIN_PACKET_SIZE - (2 * FLAG_LEN);
+
+    size_t final_len = 0;
+    size_t extra_bits = 0;
+
+    if (!scratch_space || !out_array || !data_to_send || !out_len) {
         operation_status = AX25_HAL_ERROR;
         goto error;
     }
@@ -165,7 +192,7 @@ AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_s
         goto error;
     }
 
-    if (data_len < scratch_space_max_len - MIN_PACKET_SIZE) {
+    if (data_len > scratch_space_max_len - MIN_PACKET_SIZE) {
         operation_status = AX25_HAL_ERROR;
         goto error;
     }
@@ -191,7 +218,25 @@ AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_s
     scratch_space[INFO_FIELD_POSITION + data_len + 0] = 0xFF;
     scratch_space[INFO_FIELD_POSITION + data_len + 1] = 0xFF;
 
+    scratch_space_used += data_len;
+
+    out_array[0] = AX25_FLAG_SEQUENCE;
+
     // TODO: Form bitstuffed packet here. -NJR
+    // Plus one for the flag there.
+    AX25_Bitstuff_Array(scratch_space, scratch_space_used, out_array + 1, out_array_max_len - 1, &final_len, &extra_bits);
+
+    // Final flag sequence.
+    AX25_Add_Bits_To_Array(out_array, out_array_max_len, AX25_FLAG_SEQUENCE, final_len, extra_bits);
+
+    final_len += 1;
+
+    // Just send the extra bits! nothing else we can do here.
+    if (extra_bits > 0) {
+    	*out_len = final_len + 1;
+    } else {
+    	*out_len = final_len;
+    }
 
 error:
     return operation_status;

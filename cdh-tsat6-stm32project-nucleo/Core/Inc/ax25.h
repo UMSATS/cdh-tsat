@@ -40,7 +40,7 @@ AX25_StatusTypeDef AX25_Bitwise_Append(uint8_t *dest, size_t bit_position, bool 
  * @returns AX25_HAL_OK on success.
  * @returns AX25_HAL_ERROR if any array is NULL or zero size, or if output_array is not large enough to fit the final packet.
  */
-AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size, uint8_t output_array[], size_t output_size, size_t *output_result_len, size_t *output_result_extra_bits);
+AX25_StatusTypeDef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size, uint8_t output_array[], size_t output_size, size_t *output_result_len, size_t *output_result_extra_bits);
 
 /**
  * @brief Attempts to form an AX.25 Packet.
@@ -55,4 +55,4 @@ AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_si
  * @returns AX25_HAL_OK on success
  * @returns AX25_HAL_ERROR if any array is NULL or not large enough, or if the bitstuffing fails.
  */
-AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len);
+AX25_StatusTypeDef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len);

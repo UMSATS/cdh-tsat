@@ -35,6 +35,7 @@
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
 #include "can.h"
+#include "ax25.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -161,6 +162,36 @@ int main(void)
   /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
   //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
   //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
+
+  #define scratch_size 1024
+  #define output_size 2048
+
+  uint8_t scratch_space[scratch_size] = {0x00};
+  uint8_t output[output_size] = {0x00};
+
+  size_t len_to_transmit = 0;
+
+  uint8_t a[5] = {0xff, 0xff, 0xff, 0xff};
+  uint8_t b[10] = {0x00};
+
+  size_t len = 0;
+  size_t len_bits = 0;
+
+  for (size_t i = 0; i < output_size; i++) {
+	  output[i] = 0x00;
+  }
+
+  for (size_t i = 0; i < scratch_size; i++) {
+	  scratch_space[i] = 0x00;
+  }
+
+  AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, "Hello, world!", sizeof("Hello, world!"), output, output_size, &len_to_transmit);
+
+//  AX25_Add_Bits_To_Array(b, 10, 0x7e, 0, 0);
+//  AX25_Add_Bits_To_Array(b, 10, 0x7e, 1, 1);
+
+
+
 
   /* USER CODE END 2 */
 
