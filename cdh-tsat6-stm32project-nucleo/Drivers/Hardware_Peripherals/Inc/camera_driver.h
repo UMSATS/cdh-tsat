@@ -45,7 +45,7 @@ Public Define Directives
 #define piCAM_FSH_PIN				GPIO_PIN_9
 
 #define piCAM_BYTES_PER_SENTANCE
-#define piCAM_PAYLOAD_LENGTH	 	131072
+#define piCAM_PAYLOAD_LENGTH	 	131071
 
 /*----------------------------------------------------------------------------------------------
 Public Type Definitions

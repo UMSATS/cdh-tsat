@@ -117,12 +117,12 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
+  piCAM_Test_Procedure();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
-    piCAM_Test_Procedure();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
