@@ -95,14 +95,6 @@ HAL_StatusTypeDef CAN_Message_Received(){
 	    // *NOTE* Send message to queue per your subsystem here
 
 		// *NOTE* program custom handling per your subsystem here
-		CANMessage_t ping;
-		ping.DestinationID = 0x2;
-		ping.command = rxData[0];
-		ping.priority = 1;
-		for(uint8_t i = 0; i <= 6; i++){
-			ping.data[i] = rxData[i+1] + 1;
-		}
-		operation_status = CAN_Transmit_Message(ping);
 	}
 
 error:
