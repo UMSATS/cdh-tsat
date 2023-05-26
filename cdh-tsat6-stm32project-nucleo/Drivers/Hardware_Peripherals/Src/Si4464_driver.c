@@ -420,6 +420,8 @@ Si4464_StatusTypeDef Si4464_Transmit(Si4464PowerState state_after_tx, size_t len
 
 	args[0] = 0; // Channel
 	args[1] = (state_after_tx << 4) | (SI4464_NO_RETRANSMIT << 2) | (SI4464_TRANSMIT_NOW << 0);
+	args[2] = (uint8_t) ((len & 0x1F00) >> 8);
+	args[3] = (uint8_t) (len & 0x00FF);
 
 	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_START_TX, args, 4);
 	if (operation_status != SI4464_HAL_OK) goto error;
