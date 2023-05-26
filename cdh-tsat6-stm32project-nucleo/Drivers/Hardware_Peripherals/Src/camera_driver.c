@@ -91,14 +91,6 @@ void piCAM_DMA_Init()
     HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
 }
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-    if (huart->Instance == piCAM_UART.Instance)
-    {
-        piCAM_Process_Image(piCAM_Payload);
-    }
-}
-
 piCAM_StatusTypeDef piCAM_DMA_Start()
 {
     return HAL_UARTEx_ReceiveToIdle_DMA(&piCAM_UART, piCAM_Payload, piCAM_PAYLOAD_LENGTH);
@@ -151,10 +143,10 @@ piCAM_StatusTypeDef piCAM_Status_Test()
     return HAL_UART_Transmit(&piCAM_UART, command, sizeof(command), HAL_MAX_DELAY);
 }
 
-piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
+piCAM_StatusTypeDef piCAM_Process_Image()
 {
-    uint8_t *firstFree = outputImage;
-    uint8_t *iterator = outputImage + 1;
+    uint8_t *firstFree = piCAM_Payload;
+    uint8_t *iterator = piCAM_Payload + 1;
     uint16_t totalSentences = piCAM_ASCI_Word_to_Binary(iterator + 5);
     uint32_t imageLength = ((uint32_t)totalSentences) * 67;
     iterator += 9;
@@ -170,7 +162,7 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
         iterator += 11;
     }
 
-    for (int i = 0; firstFree != &outputImage[imageLength]; i++)
+    for (int i = 0; firstFree != &piCAM_Payload[imageLength]; i++)
     {
         *firstFree = 0x00;
         firstFree++;

@@ -161,7 +161,7 @@ piCAM_StatusTypeDef piCAM_Status_Test();
  * 	- The binary array is padded with 0's where the length of the array of ASCI
  *  data is larger than that of the converted binary image.
  */
-piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *);
+piCAM_StatusTypeDef piCAM_Process_Image();
 
 /*----------------------------------------------------------------------------------------------
 Private Helper Function Prototypes
