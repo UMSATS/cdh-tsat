@@ -31,6 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+extern UART_HandleTypeDef huart2;
 
 /* USER CODE END Includes */
 

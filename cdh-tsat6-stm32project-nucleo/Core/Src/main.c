@@ -185,13 +185,13 @@ int main(void)
 	  scratch_space[i] = 0x00;
   }
 
-  AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, "Hello, world!", sizeof("Hello, world!"), output, output_size, &len_to_transmit);
+  AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, "I am in excruciating pain", sizeof("I am in excruciating pain"), output, output_size, &len_to_transmit);
 
 //  AX25_Add_Bits_To_Array(b, 10, 0x7e, 0, 0);
 //  AX25_Add_Bits_To_Array(b, 10, 0x7e, 1, 1);
 
-
-
+	Si4464_StatusTypeDef status_radio = SI4464_HAL_TIMEOUT;
+  status_radio = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
 
   /* USER CODE END 2 */
 
@@ -204,6 +204,12 @@ int main(void)
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 	HAL_Delay(1000);
+
+
+	size_t num_sent = 99;
+
+	status_radio = Si4464_Write_TX_FIFO(output, len_to_transmit, &num_sent);
+	status_radio = Si4464_Transmit(SI4464_STATE_TX_TUNE, len_to_transmit);
 
     /* USER CODE END WHILE */
 

@@ -3,6 +3,10 @@
 #include <stdbool.h>
 #include <string.h> // For memcpy
 
+#include "main.h"
+
+extern UART_HandleTypeDef huart2;
+
 #define AX25_HAL_OK 0
 #define AX25_HAL_ERROR 1
 
@@ -14,8 +18,8 @@ typedef int AX25_HALStatusTypedef;
 
 #define UINT8_WIDTH 8
 
-const char *src_callsign = "NOCALL";
-const char *dest_callsign = "NOCALL";
+const unsigned char src_callsign[6] = "VE4NJR";
+const unsigned char dest_callsign[6] = "NOCALL";
 
 // TODO: Figure out these. -NJR
 const uint8_t src_ssid = 7;
@@ -37,7 +41,7 @@ const uint8_t dest_ssid = 7;
 #define SRC_CALL_POSITION DEST_CALL_POSITION + 7
 #define CONTROL_BITS_POSITION SRC_CALL_POSITION + 7
 #define PROTOCALL_ID_POSITION CONTROL_BITS_POSITION + 1
-#define INFO_FIELD_POSITION CONTROL_BITS_POSITION + 1
+#define INFO_FIELD_POSITION PROTOCALL_ID_POSITION + 1
 
 /**
  * @brief Sets the n'th bit starting from the LSB
@@ -197,22 +201,25 @@ AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_s
         goto error;
     }
 
-    for (size_t i = DEST_CALL_POSITION; i < SRC_CALL_POSITION - 1; i++) {
+    for (size_t i = 0; i < 6; i++) {
         // Callsigns are shifted left by one bit. the lowest bit position is always 0.
-        scratch_space[i] = (dest_callsign[i - DEST_CALL_POSITION] << 1);
+        scratch_space[i + DEST_CALL_POSITION] = (dest_callsign[i] << 1);
     }
     // The ssid is the lowest 4 bits (0 - 15) and is shifted left one.
     scratch_space[SRC_CALL_POSITION - 1] = (dest_ssid & 0x0F) << 1;
 
-    for (size_t i = SRC_CALL_POSITION; i < CONTROL_BITS_POSITION - 1; i++) {
-        scratch_space[i] = (src_callsign[i - SRC_CALL_POSITION] << 1);
+    for (size_t i = 0; i < 6; i++) {
+        scratch_space[i + SRC_CALL_POSITION] = (src_callsign[i] << 1);
     }
+	HAL_UART_Transmit(&huart2, scratch_space, INFO_FIELD_POSITION + data_len, HAL_MAX_DELAY);
     scratch_space[CONTROL_BITS_POSITION - 1] = (src_ssid & 0x0F) << 1;
 
+	HAL_UART_Transmit(&huart2, scratch_space, INFO_FIELD_POSITION + data_len, HAL_MAX_DELAY);
     scratch_space[CONTROL_BITS_POSITION] = AX25_CONTROL_BITS;
     scratch_space[PROTOCALL_ID_POSITION] = AX25_PROTOCOL_ID;
 
     memcpy(scratch_space + INFO_FIELD_POSITION, data_to_send, data_len);
+
 
     // TODO: Use the CRC Module to figure out the CRC. _What_ CRC, I do not currently know. -NJR
     scratch_space[INFO_FIELD_POSITION + data_len + 0] = 0xFF;
