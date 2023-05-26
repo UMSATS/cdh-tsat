@@ -154,13 +154,12 @@ piCAM_StatusTypeDef piCAM_Status_Test()
 piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
 {
     uint8_t *firstFree = outputImage;
-    uint8_t *iterator = outputImage;
-    uint16_t currentSentence = piCAM_ASCI_Word_to_Binary(iterator + 1);
+    uint8_t *iterator = outputImage + 1;
     uint16_t totalSentences = piCAM_ASCI_Word_to_Binary(iterator + 5);
     uint32_t imageLength = ((uint32_t)totalSentences) * 67;
     iterator += 9;
 
-    while (currentSentence != totalSentences + 1)
+    for(int i = 0; i < totalSentences; i++)
     {
         for (int i = 0; i < 28; i++)
         {
@@ -168,7 +167,6 @@ piCAM_StatusTypeDef piCAM_Process_Image(uint8_t *outputImage)
             firstFree++;
             iterator += 2;
         }
-        currentSentence = piCAM_ASCI_Word_to_Binary(iterator + 4);
         iterator += 11;
     }
 
