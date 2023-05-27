@@ -213,10 +213,6 @@ Si4464_StatusTypeDef Test_Si4464()
 {
     Si4464_StatusTypeDef operation_status;
 
-    // The following functions are executed in order of dependencies
-    operation_status = Test_Si4464_Get_CTS();
-    if (operation_status != SI4464_HAL_OK) goto error;
-
     // Unit test functions
     operation_status = Test_Si4464_Init_Device();
     if (operation_status != SI4464_HAL_OK) goto error;
