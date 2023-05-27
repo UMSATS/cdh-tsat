@@ -22,7 +22,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "W25N_driver.h"
+#include "W25N_driver_test.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include "LEDs_driver.h"
+#include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,6 +78,7 @@ static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 static void MX_RTC_Init(void);
 void StartBlinkLED1(void const * argument);
+void StartBlinkLED2(void const * argument);
 void StartBlinkLED3(void const * argument);
 void StartToggleWDI(void const * argument);
 
@@ -115,6 +126,37 @@ int main(void)
   MX_UART4_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
+  MAX6822_Init();
+
+  LEDs_Init();
+
+  LTC1154_Init();
+
+  HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;
+
+  W25N_StatusTypeDef w25n_operation_status;
+  w25n_operation_status = W25N_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+
+  HAL_StatusTypeDef as3001204_operation_status;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;
+
+  //this code performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = W25N_Reset_And_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+
+  //this code performs the AS3001204 unit tests
+  //this code should be completed after power cycling the AS3001204
+  /*as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;*/
 
   /* USER CODE END 2 */
 
@@ -140,7 +182,7 @@ int main(void)
   blinkLED1Handle = osThreadCreate(osThread(blinkLED1), NULL);
 
   /* definition and creation of blinkLED2 */
-  osThreadDef(blinkLED2, StartBlinkLED1, osPriorityNormal, 0, 128);
+  osThreadDef(blinkLED2, StartBlinkLED2, osPriorityNormal, 0, 128);
   blinkLED2Handle = osThreadCreate(osThread(blinkLED2), NULL);
 
   /* definition and creation of blinkLED3 */
@@ -167,6 +209,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   }
+
+error:
+  exit(1);
   /* USER CODE END 3 */
 }
 
@@ -532,7 +577,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartBlinkLED1 */
@@ -548,9 +607,29 @@ void StartBlinkLED1(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED1_Toggle();
+    osDelay(1000);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartBlinkLED2 */
+/**
+* @brief Function implementing the blinkLED2 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlinkLED2 */
+void StartBlinkLED2(void const * argument)
+{
+  /* USER CODE BEGIN StartBlinkLED2 */
+  /* Infinite loop */
+  for(;;)
+  {
+    LED2_Toggle();
+    osDelay(500);
+  }
+  /* USER CODE END StartBlinkLED2 */
 }
 
 /* USER CODE BEGIN Header_StartBlinkLED3 */
@@ -566,7 +645,8 @@ void StartBlinkLED3(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED3_Toggle();
+    osDelay(250);
   }
   /* USER CODE END StartBlinkLED3 */
 }
@@ -584,7 +664,8 @@ void StartToggleWDI(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    MAX6822_WDI_Toggle();
+    osDelay(100);
   }
   /* USER CODE END StartToggleWDI */
 }
