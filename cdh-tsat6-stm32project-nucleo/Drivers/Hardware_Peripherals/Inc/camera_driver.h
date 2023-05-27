@@ -25,8 +25,7 @@ Public Define Directives
 
 //Initial Definitions
 #define piCAM_UART					huart4
-#define piCAM_DMA					hdma_uart4_rx
-#define piCAM_UART_IRQn				UART4_IRQn
+#define piCAM_UART_IRQn			UART4_IRQn
 
 #define piCAM_UART_DELAY			HAL_MAX_DELAY
 
@@ -79,16 +78,6 @@ Public Driver Function Prototypes
 piCAM_StatusTypeDef piCAM_Init();
 
 /*
- * FUNCTION: piCAM_DMA_Init
- *
- * DESCRIPTION: Initializes DMA for piCAM use.
- *
- * NOTES:
- *	- Simply configures DMA for UART4
- */
-void piCAM_DMA_Init();
-
-/*
  * FUNCTION: piCAM_DMA_Start
  *
  * DESCRIPTION: Starts DMA for piCAM use.
@@ -122,6 +111,7 @@ piCAM_StatusTypeDef piCAM_Receive_Check();
  *	- Activating logic 1 on RX and TX
  *	- Enables UART Interface
  */
+
 void piCAM_Boot_Up_Sequence();
 /*
  * FUNCTION: piCAM_Capture_Daylight
