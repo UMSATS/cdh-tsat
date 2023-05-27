@@ -164,7 +164,7 @@ AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_si
             }
         }
 
-        *output_result_len = current_output_byte;
+        *output_result_len = current_output_byte + 1;
         *output_result_extra_bits = current_output_bit;
     }
 
