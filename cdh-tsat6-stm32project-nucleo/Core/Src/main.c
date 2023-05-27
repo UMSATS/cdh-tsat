@@ -29,13 +29,14 @@
 #include "Si4464_driver_test.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+
+#include "camera_driver.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
 #include "can.h"
-#include "camera_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -155,6 +156,25 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   exit(0);*/
 
+  //this code initializes the piCAM & performs the piCAM unit test (piCAM_Test_Procedure())
+  /*
+   * HAL_StatusTypeDef piCAM_operation_status;
+   * piCAM_operation_status = piCAM_Init();
+   * if (piCAM_operation_status != HAL_OK) goto error;
+   *
+   * piCAM_Test_Procedure();
+   *
+   * NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
+   * It ONLY follows this specific sequence
+   * - Follows Boot Up Sequence
+   * - HAL Delay of 3000ms
+   * - Sends "t\0" over UART4 for test string
+   * - HAL Delay of 3000ms
+   * - Sends "d\0" over UART4 for image capture request, then immediately after
+   * we start DMA for specific image data.
+   */
+
+
   //WORK IN-PROGRESS: Si4464 init & testing
   /*Si4464_Reset_Device();
   Test_Si4464();*/
@@ -176,7 +196,7 @@ int main(void)
 
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(1000);
+	HAL_Delay(1000);
 
     /* USER CODE END WHILE */
 
@@ -556,10 +576,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	piCAM_Receive_Check();
-}
 /**
   * @brief  Rx Fifo 0 message pending callback
   * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
@@ -575,6 +591,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
         //TODO: Implement error handling for CAN message receives
     }
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	piCAM_Receive_Check();
+}
+
 /* USER CODE END 4 */
 
 /**
