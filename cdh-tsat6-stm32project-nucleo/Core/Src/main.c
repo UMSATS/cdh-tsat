@@ -24,12 +24,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Si446x/Si446x.h"
-
+#include "Si4464_driver.h"
+#include "Si4464_driver_config.h"
+#include "Si4464_driver_test.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 
 #include "camera_driver.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include "LEDs_driver.h"
+#include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,7 +79,7 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
-W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -117,12 +124,61 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
-  piCAM_Test_Procedure();
+  //this code initializes the MAX6822
+  /*MAX6822_Init();*/
+
+  //this code initializes the LEDs
+  /*LEDs_Init();*/
+
+  //this code initializes the LTC1154
+  /*LTC1154_Init();*/
+
+  //this code initializes the CAN Bus
+  /*HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;*/
+
+  //this code initializes the W25N & performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*W25N_StatusTypeDef w25n_operation_status;
+  w25n_operation_status = W25N_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  exit(0);*/
+
+  //this code initializes the AS3001204 & performs the AS3001204 unit tests
+  //this code should be completed after power cycling the AS3001204
+  /*HAL_StatusTypeDef as3001204_operation_status;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  exit(0);*/
+
+  //WORK IN-PROGRESS: Si4464 init & testing
+  /*Si4464_Reset_Device();
+  Test_Si4464();*/
+
+/*error:
+  exit(1);*/
+
+  /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
+  //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
+  //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1) {
+  while (1)
+  {
+	//Set a breakpoint here to view data grabbed from si446x module. -NJR
+
+    //Repeatedly toggle the green LED
+    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  HAL_Delay(1000);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -440,16 +496,22 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
-                          |M_nRESET_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|FLASH_nHOLD_Pin|MRAM_nCS_Pin
-                          |MRAM_nWP_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin
-                          |LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|FLASH_nCS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, FLASH_nHOLD_Pin|MRAM_nCS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(M_nRESET_GPIO_Port, M_nRESET_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -495,6 +557,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief  Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
+}
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	piCAM_Receive_Check();

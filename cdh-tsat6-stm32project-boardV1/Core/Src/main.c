@@ -28,6 +28,12 @@
 #include "W25N_driver.h"
 #include "camera_driver.h"
 #include "W25N_driver_test.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include "LEDs_driver.h"
+#include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +62,10 @@ SPI_HandleTypeDef hspi3;
 UART_HandleTypeDef huart4;
 DMA_HandleTypeDef hdma_uart4_rx;
 
-osThreadId defaultTaskHandle;
+osThreadId blinkLED1Handle;
+osThreadId blinkLED2Handle;
+osThreadId blinkLED3Handle;
+osThreadId toggleWDIHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -71,7 +80,10 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_RTC_Init(void);
 static void MX_UART4_Init(void);
-void StartDefaultTask(void const * argument);
+void StartBlinkLED1(void const * argument);
+void StartBlinkLED2(void const * argument);
+void StartBlinkLED3(void const * argument);
+void StartToggleWDI(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -119,20 +131,41 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
 
+  MAX6822_Init();
+
+  LEDs_Init();
+
+  LTC1154_Init();
+
+  HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;
+
+  W25N_StatusTypeDef w25n_operation_status;
+  w25n_operation_status = W25N_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+
+  HAL_StatusTypeDef as3001204_operation_status;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;
+
+  //this code performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = W25N_Reset_And_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+
     //this code performs the W25N unit tests
     //this code should be completed after power cycling the W25N
     /*W25N_StatusTypeDef operation_status;
 
-    operation_status = W25N_Init();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    operation_status = Test_W25N();
-    if (operation_status != W25N_HAL_OK) goto error;
-
-    exit(0);
-
-  error:
-    exit(1);*/
+  //this code performs the AS3001204 unit tests
+  //this code should be completed after power cycling the AS3001204
+  /*as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;*/
 
   /* USER CODE END 2 */
 
@@ -153,9 +186,21 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* definition and creation of blinkLED1 */
+  osThreadDef(blinkLED1, StartBlinkLED1, osPriorityNormal, 0, 128);
+  blinkLED1Handle = osThreadCreate(osThread(blinkLED1), NULL);
+
+  /* definition and creation of blinkLED2 */
+  osThreadDef(blinkLED2, StartBlinkLED2, osPriorityNormal, 0, 128);
+  blinkLED2Handle = osThreadCreate(osThread(blinkLED2), NULL);
+
+  /* definition and creation of blinkLED3 */
+  osThreadDef(blinkLED3, StartBlinkLED3, osPriorityNormal, 0, 128);
+  blinkLED3Handle = osThreadCreate(osThread(blinkLED3), NULL);
+
+  /* definition and creation of toggleWDI */
+  osThreadDef(toggleWDI, StartToggleWDI, osPriorityNormal, 0, 128);
+  toggleWDIHandle = osThreadCreate(osThread(toggleWDI), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -174,6 +219,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   }
+
+error:
+  exit(1);
   /* USER CODE END 3 */
 }
 
@@ -196,7 +244,7 @@ void SystemClock_Config(void)
   /** Configure LSE Drive Capability
   */
   HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_MEDIUMHIGH);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -229,6 +277,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
+  /** Enables the Clock Security System
+  */
+  HAL_RCC_EnableCSS();
 }
 
 /**
@@ -492,18 +544,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, WDI_Pin|M_nRESET_Pin|UHF_nCS_Pin|FLASH_nCS_Pin
-                          |FLASH_nHOLD_Pin|UHF_SDN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, WDI_Pin|UHF_SDN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, M_nRESET_Pin|UHF_nCS_Pin|FLASH_nCS_Pin|FLASH_nHOLD_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, CAM_FSH_Pin|CAM_ON_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin|LED3_Pin|FLASH_nWP_Pin
-                          |RELEASE_nEN_Pin|RELEASE_Pin, GPIO_PIN_RESET);
+                          |RELEASE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(MRAM_nCS_GPIO_Port, MRAM_nCS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MRAM_nCS_GPIO_Port, MRAM_nCS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RELEASE_nEN_GPIO_Port, RELEASE_nEN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : WDI_Pin M_nRESET_Pin UHF_nCS_Pin FLASH_nCS_Pin
                            FLASH_nHOLD_Pin UHF_SDN_Pin */
@@ -550,24 +607,97 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	piCAM_Receive_Check();
 }
+/**
+  * @brief  Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
+}
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartBlinkLED1 */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the blinkLED1 thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+/* USER CODE END Header_StartBlinkLED1 */
+void StartBlinkLED1(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED1_Toggle();
+    osDelay(1000);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartBlinkLED2 */
+/**
+* @brief Function implementing the blinkLED2 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlinkLED2 */
+void StartBlinkLED2(void const * argument)
+{
+  /* USER CODE BEGIN StartBlinkLED2 */
+  /* Infinite loop */
+  for(;;)
+  {
+    LED2_Toggle();
+    osDelay(500);
+  }
+  /* USER CODE END StartBlinkLED2 */
+}
+
+/* USER CODE BEGIN Header_StartBlinkLED3 */
+/**
+* @brief Function implementing the blinkLED3 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlinkLED3 */
+void StartBlinkLED3(void const * argument)
+{
+  /* USER CODE BEGIN StartBlinkLED3 */
+  /* Infinite loop */
+  for(;;)
+  {
+    LED3_Toggle();
+    osDelay(250);
+  }
+  /* USER CODE END StartBlinkLED3 */
+}
+
+/* USER CODE BEGIN Header_StartToggleWDI */
+/**
+* @brief Function implementing the toggleWDI thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartToggleWDI */
+void StartToggleWDI(void const * argument)
+{
+  /* USER CODE BEGIN StartToggleWDI */
+  /* Infinite loop */
+  for(;;)
+  {
+    MAX6822_WDI_Toggle();
+    osDelay(100);
+  }
+  /* USER CODE END StartToggleWDI */
 }
 
 /**
