@@ -22,6 +22,7 @@
 #include "stm32l4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "camera_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -205,10 +206,16 @@ void SysTick_Handler(void)
 void UART4_IRQHandler(void)
 {
   /* USER CODE BEGIN UART4_IRQn 0 */
-  piCAM_Process_Image();
+
   /* USER CODE END UART4_IRQn 0 */
   HAL_UART_IRQHandler(&huart4);
   /* USER CODE BEGIN UART4_IRQn 1 */
+
+  if (__HAL_UART_GET_FLAG(&huart4, UART_FLAG_IDLE) != RESET)
+    {
+      __HAL_UART_CLEAR_IDLEFLAG(&huart4);
+
+    }
 
   /* USER CODE END UART4_IRQn 1 */
 }

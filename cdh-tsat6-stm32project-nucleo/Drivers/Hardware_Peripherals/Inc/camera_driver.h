@@ -44,9 +44,10 @@ Public Define Directives
 #define piCAM_FSH_GPIO				GPIOA
 #define piCAM_FSH_PIN				GPIO_PIN_9
 
-#define piCAM_BYTES_PER_SENTANCE
+#define piCAM_BYTES_PER_SENTENCE	67
 #define piCAM_PAYLOAD_LENGTH	 	131071
 
+#define PICAM_CURRENT_SENTENCE_OFFSET 1
 /*----------------------------------------------------------------------------------------------
 Public Type Definitions
 -----------------------------------------------------------------------------------------------*/
@@ -93,9 +94,21 @@ void piCAM_DMA_Init();
  * DESCRIPTION: Starts DMA for piCAM use.
  *
  * NOTES:
- *	- Receives data from piCAM onto Payload static buffer	
+ *	- Receives data from piCAM onto Payload static buffer
+ *	- The initial while loop ensures the UART register is cleared by receiving "tmp"
  */
 piCAM_StatusTypeDef piCAM_DMA_Start();
+
+/*
+ * FUNCTION: piCAM_Receive_Check
+ *
+ * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
+ * the read cycle and calls piCAM_Process_Image();
+ *
+ * NOTES:
+ * -
+ */
+piCAM_StatusTypeDef piCAM_Receive_Check();
 
 /*
  * FUNCTION: piCAM_Boot_Sequence

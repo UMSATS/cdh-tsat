@@ -14,6 +14,7 @@
 Include Directives
 -----------------------------------------------------------------------------------------------*/
 #include <stdint.h>
+#include <string.h>
 
 #include "stm32l4xx_hal.h"
 #include "camera_driver.h"
@@ -25,9 +26,10 @@ extern UART_HandleTypeDef piCAM_UART;
 extern DMA_HandleTypeDef piCAM_DMA;
 
 /*----------------------------------------------------------------------------------------------
-Static Buffer Definition
+Static Buffer Definition / Current Sentence (for Receive Check) Declaration
 -----------------------------------------------------------------------------------------------*/
-extern uint8_t piCAM_Payload[piCAM_PAYLOAD_LENGTH] = {0};
+uint8_t piCAM_Payload[piCAM_PAYLOAD_LENGTH] = {0xFF};
+size_t piCAM_current_sentence = 0;
 
 /*----------------------------------------------------------------------------------------------
 Driver Function Prototypes
@@ -51,7 +53,7 @@ void disable_piCAM_UART();
  *  - This function is needed to prevent bootstrapping when powering on the camera
  *  - This function is prototyped with disabling the UART4 lines with disable_piCAM_UART();
  */
-void disable_piCAM_UART();
+void enable_piCAM_UART();
 
 /*----------------------------------------------------------------------------------------------
 Public Driver Function Definitions
@@ -59,6 +61,8 @@ Public Driver Function Definitions
 
 piCAM_StatusTypeDef piCAM_Init()
 {
+	piCAM_StatusTypeDef operation_status;
+
     // Initialize the GPIO port clock
     __HAL_RCC_GPIOC_CLK_ENABLE();
 
@@ -73,11 +77,13 @@ piCAM_StatusTypeDef piCAM_Init()
     piCAM_UART.Init.OverSampling = UART_OVERSAMPLING_16;
     piCAM_UART.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
     piCAM_UART.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&piCAM_UART) != piCAM_HAL_OK)
-    {
-        return piCAM_HAL_ERROR;
-    }
-    return piCAM_HAL_OK;
+
+    operation_status = HAL_UART_Init(&piCAM_UART);
+    if (operation_status != piCAM_HAL_OK)goto error;
+
+error:
+	return operation_status;
+
 }
 
 void piCAM_DMA_Init()
@@ -93,7 +99,13 @@ void piCAM_DMA_Init()
 
 piCAM_StatusTypeDef piCAM_DMA_Start()
 {
-    return HAL_UARTEx_ReceiveToIdle_DMA(&piCAM_UART, piCAM_Payload, piCAM_PAYLOAD_LENGTH);
+	uint8_t tmp;
+
+	while (__HAL_UART_GET_FLAG(&piCAM_UART, UART_FLAG_RXNE)) {
+		HAL_UART_Receive(&piCAM_UART, &tmp, 1, 0);
+	}
+
+    return HAL_UART_Receive_DMA(&piCAM_UART, piCAM_Payload, piCAM_BYTES_PER_SENTENCE);
 }
 
 void piCAM_Boot_Up_Sequence()
@@ -143,11 +155,44 @@ piCAM_StatusTypeDef piCAM_Status_Test()
     return HAL_UART_Transmit(&piCAM_UART, command, sizeof(command), HAL_MAX_DELAY);
 }
 
+piCAM_StatusTypeDef piCAM_Receive_Check()
+{
+	piCAM_StatusTypeDef operation_status;
+
+	char current_index[5] = {'\0'};
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		current_index[i] = piCAM_Payload[i + (piCAM_current_sentence * piCAM_BYTES_PER_SENTENCE) + PICAM_CURRENT_SENTENCE_OFFSET];
+	}
+
+	piCAM_current_sentence++;
+
+	if (strncmp(current_index, "FACE", 4) != 0)
+	{
+		operation_status = HAL_UART_Receive_DMA(&huart4, piCAM_Payload + (piCAM_BYTES_PER_SENTENCE * piCAM_current_sentence), piCAM_BYTES_PER_SENTENCE);
+
+		if (operation_status != piCAM_HAL_OK) goto error;
+	}
+	else
+	{
+		operation_status = piCAM_Process_Image();
+		if (operation_status != piCAM_HAL_OK) goto error;
+	}
+
+	return operation_status;
+error:
+	return operation_status;
+}
+
 piCAM_StatusTypeDef piCAM_Process_Image()
 {
+
+	piCAM_current_sentence = 0;
+
     uint8_t *firstFree = piCAM_Payload;
     uint8_t *iterator = piCAM_Payload + 1;
-    uint16_t totalSentences = piCAM_ASCI_Word_to_Binary(iterator + 5);
+    uint16_t totalSentences = piCAM_ASCI_Word_to_Binary(iterator + 4);
     uint32_t imageLength = ((uint32_t)totalSentences) * 67;
     iterator += 9;
 
@@ -199,6 +244,7 @@ uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *convert)
 {
     uint16_t highByte = piCAM_ASCII_Byte_to_Binary(convert);
     uint16_t lowByte = piCAM_ASCII_Byte_to_Binary(convert + 2);
+
     return (highByte << 8) | lowByte;
 }
 
@@ -229,6 +275,7 @@ void disable_piCAM_UART()
 
 void enable_piCAM_UART()
 {
+
     // DeInitializes GPIO RX and TX Pins
     HAL_GPIO_DeInit(piCAM_RX_GPIO, piCAM_RX_PIN);
     HAL_GPIO_DeInit(piCAM_TX_GPIO, piCAM_TX_PIN);
@@ -246,9 +293,13 @@ Public Testing Function Definitions
 void piCAM_Test_Procedure()
 {
     piCAM_Boot_Up_Sequence();
+
     HAL_Delay(3000);
     piCAM_Status_Test();
+
+
     HAL_Delay(3000);
     piCAM_Capture_Daylight();
+
     piCAM_DMA_Start();
 }
