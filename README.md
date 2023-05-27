@@ -1,5 +1,5 @@
 # cdh-tsat6
-Contains software for the TSAT6 (2020-2022) Command and Data Handling (CDH) board, which uses an STM32 microcontroller.
+Contains software for the TSAT6 (2020-2023) Command and Data Handling (CDH) board, which uses an STM32 microcontroller.
 
 ## Project Directories
 **cdh-tsat6-stm32project-nucleo** : STM32 Project used to test code on the Nucelo development board
