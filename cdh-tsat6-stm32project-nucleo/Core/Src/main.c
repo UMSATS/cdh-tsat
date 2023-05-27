@@ -156,6 +156,25 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   exit(0);*/
 
+  //this code initializes the piCAM & performs the piCAM unit test (piCAM_Test_Procedure())
+  /*
+   * HAL_StatusTypeDef piCAM_operation_status;
+   * piCAM_operation_status = piCAM_Init();
+   * if (piCAM_operation_status != HAL_OK) goto error;
+   *
+   * piCAM_Test_Procedure();
+   *
+   * NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
+   * It ONLY follows this specific sequence
+   * - Follows Boot Up Sequence
+   * - HAL Delay of 3000ms
+   * - Sends "t\0" over UART4 for test string
+   * - HAL Delay of 3000ms
+   * - Sends "d\0" over UART4 for image capture request, then immediately after
+   * we start DMA for specific image data.
+   */
+
+
   //WORK IN-PROGRESS: Si4464 init & testing
   /*Si4464_Reset_Device();
   Test_Si4464();*/
@@ -177,7 +196,7 @@ int main(void)
 
     //Repeatedly toggle the green LED
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(1000);
+	HAL_Delay(1000);
 
     /* USER CODE END WHILE */
 

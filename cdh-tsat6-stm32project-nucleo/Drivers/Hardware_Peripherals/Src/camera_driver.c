@@ -297,7 +297,6 @@ void piCAM_Test_Procedure()
     HAL_Delay(3000);
     piCAM_Status_Test();
 
-
     HAL_Delay(3000);
     piCAM_Capture_Daylight();
 

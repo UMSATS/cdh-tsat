@@ -149,6 +149,10 @@ int main(void)
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;
 
+  HAL_StatusTypeDef piCAM_operation_status;
+  piCAM_operation_status = piCAM_Init();
+  if (piCAM_operation_status != HAL_OK) goto error;
+
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
   /*w25n_operation_status = Test_W25N();
@@ -162,10 +166,28 @@ int main(void)
 
   //this code performs the AS3001204 unit tests
   //this code should be completed after power cycling the AS3001204
-  /*as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  //as3001204_operation_status = AS3001204_Test_MRAM_Driver();
   if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  //this code initializes the piCAM & performs the piCAM unit test (piCAM_Test_Procedure())
+  /*
+   * HAL_StatusTypeDef piCAM_operation_status;
+   * piCAM_operation_status = piCAM_Init();
+   * if (piCAM_operation_status != HAL_OK) goto error;
+   *
+   * piCAM_Test_Procedure();
+   *
+   * NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
+   * It ONLY follows this specific sequence
+   * - Follows Boot Up Sequence
+   * - HAL Delay of 3000ms
+   * - Sends "t\0" over UART4 for test string
+   * - HAL Delay of 3000ms
+   * - Sends "d\0" over UART4 for image capture request, then immediately after
+   * we start DMA for specific image data.
+   */
 
   /* USER CODE END 2 */
 
