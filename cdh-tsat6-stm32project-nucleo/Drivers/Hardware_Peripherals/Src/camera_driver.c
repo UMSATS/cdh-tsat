@@ -193,7 +193,7 @@ piCAM_StatusTypeDef piCAM_Process_Image()
     uint8_t *firstFree = piCAM_Payload;
     uint8_t *iterator = piCAM_Payload + 1;
     uint16_t totalSentences = piCAM_ASCI_Word_to_Binary(iterator + 4);
-    uint32_t imageLength = ((uint32_t)totalSentences) * 67;
+    uint32_t imageLength = ((uint32_t)totalSentences) * piCAM_BYTES_PER_SENTENCE;
     iterator += 9;
 
     for(int i = 0; i < totalSentences; i++)
