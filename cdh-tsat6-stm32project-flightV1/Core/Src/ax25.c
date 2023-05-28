@@ -3,14 +3,8 @@
 #include <stdbool.h>
 #include <string.h> // For memcpy
 
-#include "main.h"
+#include "ax25.h"
 
-extern UART_HandleTypeDef huart2;
-
-#define AX25_HAL_OK 0
-#define AX25_HAL_ERROR 1
-
-typedef int AX25_HALStatusTypedef;
 
 #define NUM_TESTS 3
 
@@ -47,9 +41,9 @@ const uint8_t dest_ssid = 7;
  * @brief Sets the n'th bit starting from the LSB
  * 
  */
-AX25_HALStatusTypedef AX25_Bitwise_Append(uint8_t *dest, size_t bit_position, bool is_one)
+AX25_StatusTypeDef AX25_Bitwise_Append(uint8_t *dest, size_t bit_position, bool is_one)
 {
-    AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
+    AX25_StatusTypeDef operation_status = AX25_HAL_OK;
 
     if (!dest) {
         operation_status = AX25_HAL_ERROR;
@@ -71,9 +65,9 @@ error:
     return operation_status;
 }
 
-AX25_HALStatusTypedef AX25_Add_Bits_To_Array(uint8_t dest[], size_t max_size, uint8_t to_add, size_t byte_at, size_t bit_at)
+AX25_StatusTypeDef AX25_Add_Bits_To_Array(uint8_t dest[], size_t max_size, uint8_t to_add, size_t byte_at, size_t bit_at)
 {
-	AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
+	AX25_StatusTypeDef operation_status = AX25_HAL_OK;
 	if (!dest || max_size < byte_at || bit_at > 8) {
 		operation_status = AX25_HAL_ERROR;
 		goto error;
@@ -91,9 +85,9 @@ error:
 	return operation_status;
 }
 
-AX25_HALStatusTypedef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size, uint8_t output_array[], size_t output_size, size_t *output_result_len, size_t *output_result_extra_bits)
+AX25_StatusTypeDef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size, uint8_t output_array[], size_t output_size, size_t *output_result_len, size_t *output_result_extra_bits)
 {
-    AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
+    AX25_StatusTypeDef operation_status = AX25_HAL_OK;
     bool output_array_overrun = false;
 
     size_t current_output_byte = 0;
@@ -174,9 +168,9 @@ error:
 
 
 // TODO: We can use the CRC Peripheral for this. -NJR
-AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, const uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len)
+AX25_StatusTypeDef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, const uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len)
 {
-    AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
+    AX25_StatusTypeDef operation_status = AX25_HAL_OK;
 
     size_t scratch_space_used = MIN_PACKET_SIZE - (2 * FLAG_LEN);
 
@@ -211,10 +205,8 @@ AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_s
     for (size_t i = 0; i < 6; i++) {
         scratch_space[i + SRC_CALL_POSITION] = (src_callsign[i] << 1);
     }
-	HAL_UART_Transmit(&huart2, scratch_space, INFO_FIELD_POSITION + data_len, HAL_MAX_DELAY);
     scratch_space[CONTROL_BITS_POSITION - 1] = (src_ssid & 0x0F) << 1;
 
-	HAL_UART_Transmit(&huart2, scratch_space, INFO_FIELD_POSITION + data_len, HAL_MAX_DELAY);
     scratch_space[CONTROL_BITS_POSITION] = AX25_CONTROL_BITS;
     scratch_space[PROTOCALL_ID_POSITION] = AX25_PROTOCOL_ID;
 

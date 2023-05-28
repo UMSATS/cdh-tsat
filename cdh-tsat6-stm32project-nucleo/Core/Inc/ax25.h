@@ -8,6 +8,11 @@
  *
  */
 
+#ifndef INCLUDE_AX25_H_
+#define INCLUDE_AX25_H_
+
+#include "stm32l4xx_hal.h"
+
 typedef enum {
 	AX25_HAL_OK     	= HAL_OK,
 	AX25_HAL_ERROR  	= HAL_ERROR,
@@ -55,4 +60,6 @@ AX25_StatusTypeDef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size,
  * @returns AX25_HAL_OK on success
  * @returns AX25_HAL_ERROR if any array is NULL or not large enough, or if the bitstuffing fails.
  */
-AX25_StatusTypeDef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len);
+AX25_StatusTypeDef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, const uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len);
+
+#endif
