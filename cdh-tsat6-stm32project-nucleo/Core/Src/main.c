@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string.h>
+
 #include "Si4464_driver.h"
 #include "Si4464_driver_config.h"
 #include "Si4464_driver_test.h"
@@ -172,12 +174,6 @@ int main(void)
 
   size_t len_to_transmit = 0;
 
-  uint8_t a[5] = {0xff, 0xff, 0xff, 0xff};
-  uint8_t b[10] = {0x00};
-
-  size_t len = 0;
-  size_t len_bits = 0;
-
   for (size_t i = 0; i < output_size; i++) {
 	  output[i] = 0x00;
   }
@@ -185,15 +181,15 @@ int main(void)
   for (size_t i = 0; i < scratch_size; i++) {
 	  scratch_space[i] = 0x00;
   }
+
   const char *message = "VE4NJR TEST";
   AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, message, strlen(message), output, output_size, &len_to_transmit);
 
-//  AX25_Add_Bits_To_Array(b, 10, 0x7e, 0, 0);
-//  AX25_Add_Bits_To_Array(b, 10, 0x7e, 1, 1);
-
-	Si4464_StatusTypeDef status_radio = SI4464_HAL_TIMEOUT;
+  Si4464_StatusTypeDef status_radio = SI4464_HAL_TIMEOUT;
   status_radio = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
-	size_t num_avail = 255;
+  size_t num_avail = 255;
+
+  (void) status;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -215,6 +211,7 @@ int main(void)
 
 	status_radio = Si4464_Get_TX_FIFO_Free_Space(&num_avail);
 
+	(void) status_radio;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

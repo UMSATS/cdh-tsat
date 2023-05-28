@@ -80,7 +80,7 @@ AX25_HALStatusTypedef AX25_Add_Bits_To_Array(uint8_t dest[], size_t max_size, ui
 	}
 
 	for (size_t i = bit_at; i < 8; i++) {
-		AX25_Bitwise_Append(dest + byte_at, i, (to_add & (1 << i - bit_at)));
+		AX25_Bitwise_Append(dest + byte_at, i, (to_add & (1 << (i - bit_at))));
 	}
 
 	for (size_t i = 0; i < bit_at; i++) {
@@ -174,7 +174,7 @@ error:
 
 
 // TODO: We can use the CRC Peripheral for this. -NJR
-AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len)
+AX25_HALStatusTypedef AX25_Form_Packet(uint8_t scratch_space[], size_t scratch_space_max_len, const uint8_t data_to_send[], size_t data_len, uint8_t out_array[], size_t out_array_max_len, size_t *out_len)
 {
     AX25_HALStatusTypedef operation_status = AX25_HAL_OK;
 
