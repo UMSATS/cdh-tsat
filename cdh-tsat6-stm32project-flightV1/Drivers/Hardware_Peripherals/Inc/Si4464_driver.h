@@ -15,6 +15,9 @@
 #include "stm32l4xx_hal.h"
 #include "main.h"
 
+#define SI4464_RX_TX_FIFO_SIZE 64
+#define SI4464_COMBINED_FIFO_SIZE 128
+
 // The SPI bus used for the radio module
 extern SPI_HandleTypeDef hspi2;
 

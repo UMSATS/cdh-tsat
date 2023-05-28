@@ -201,6 +201,11 @@ Si4464_StatusTypeDef Test_Si4464_Send_Get_TX_FIFO() {
 		goto error;
 	}
 
+	if (num_sent != (num_reported_pre_send - num_reported_post_send)) {
+		operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
 error:
 	return operation_status;
 }
