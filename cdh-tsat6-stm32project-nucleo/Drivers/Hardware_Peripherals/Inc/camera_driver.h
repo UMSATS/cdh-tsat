@@ -78,28 +78,6 @@ Public Driver Function Prototypes
 piCAM_StatusTypeDef piCAM_Init();
 
 /*
- * FUNCTION: piCAM_DMA_Start
- *
- * DESCRIPTION: Starts DMA for piCAM use.
- *
- * NOTES:
- *	- Receives data from piCAM onto Payload static buffer
- *	- The initial while loop ensures the UART register is cleared by receiving "tmp"
- */
-piCAM_StatusTypeDef piCAM_DMA_Start();
-
-/*
- * FUNCTION: piCAM_Receive_Check
- *
- * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
- * the read cycle and calls piCAM_Process_Image();
- *
- * NOTES:
- * -
- */
-piCAM_StatusTypeDef piCAM_Receive_Check();
-
-/*
  * FUNCTION: piCAM_Boot_Sequence
  *
  * DESCRIPTION: Follows the boot up sequence for the piCAM.
@@ -111,8 +89,29 @@ piCAM_StatusTypeDef piCAM_Receive_Check();
  *	- Activating logic 1 on RX and TX
  *	- Enables UART Interface
  */
-
 void piCAM_Boot_Up_Sequence();
+
+/*
+ * FUNCTION: piCAM_DMA_Init
+ *
+ * DESCRIPTION: Initializes DMA for piCAM use.
+ *
+ * NOTES:
+ *	- Simply configures DMA for UART4
+ */
+void piCAM_DMA_Init();
+
+/*
+ * FUNCTION: piCAM_DMA_Start
+ *
+ * DESCRIPTION: Starts DMA for piCAM use.
+ *
+ * NOTES:
+ *	- Receives data from piCAM onto Payload static buffer
+ *	- The initial while loop ensures the UART register is cleared by receiving "tmp"
+ */
+piCAM_StatusTypeDef piCAM_DMA_Start();
+
 /*
  * FUNCTION: piCAM_Capture_Daylight
  *
@@ -124,7 +123,7 @@ void piCAM_Boot_Up_Sequence();
 piCAM_StatusTypeDef piCAM_Capture_Daylight();
 
 /*
- * FUNCTION: piCAM_Capture_Daylight
+ * FUNCTION: piCAM_Capture_Mediumlight
  *
  * DESCRIPTION: Commands piCAM to capture a medium ambient light image
  *
@@ -134,7 +133,7 @@ piCAM_StatusTypeDef piCAM_Capture_Daylight();
 piCAM_StatusTypeDef piCAM_Capture_Mediumlight();
 
 /*
- * FUNCTION: piCAM_Capture_Daylight
+ * FUNCTION: piCAM_Capture_Nightlight
  *
  * DESCRIPTION: Commands piCAM to capture a night time image
  *
@@ -144,7 +143,7 @@ piCAM_StatusTypeDef piCAM_Capture_Mediumlight();
 piCAM_StatusTypeDef piCAM_Capture_Nightlight();
 
 /*
- * FUNCTION: piCAM_Capture_Daylight
+ * FUNCTION: piCAM_Status_Test
  *
  * DESCRIPTION: Commands piCAM to send a test string with telemetry measurments
  * while also flashing the camera LED.
@@ -153,6 +152,17 @@ piCAM_StatusTypeDef piCAM_Capture_Nightlight();
  * 	- Sends the "t" command to piCAM
  */
 piCAM_StatusTypeDef piCAM_Status_Test();
+
+/*
+ * FUNCTION: piCAM_Receive_Check
+ *
+ * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
+ * the read cycle and calls piCAM_Process_Image();
+ *
+ * NOTES:
+ * -
+ */
+piCAM_StatusTypeDef piCAM_Receive_Check();
 
 /*
  * FUNCTION: piCAM_Process_Image

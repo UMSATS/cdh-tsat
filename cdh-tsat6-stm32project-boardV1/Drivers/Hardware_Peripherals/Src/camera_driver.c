@@ -86,28 +86,6 @@ error:
 
 }
 
-void piCAM_DMA_Init()
-{
-    /* DMA controller clock enable */
-    __HAL_RCC_DMA2_CLK_ENABLE();
-
-    /* DMA interrupt init */
-    /* DMA2_Channel5_IRQn interrupt configuration */
-    HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
-}
-
-piCAM_StatusTypeDef piCAM_DMA_Start()
-{
-	uint8_t tmp;
-
-	while (__HAL_UART_GET_FLAG(&piCAM_UART, UART_FLAG_RXNE)) {
-		HAL_UART_Receive(&piCAM_UART, &tmp, 1, 0);
-	}
-
-    return HAL_UART_Receive_DMA(&piCAM_UART, piCAM_Payload, piCAM_BYTES_PER_SENTENCE);
-}
-
 void piCAM_Boot_Up_Sequence()
 {
     // Disables UART4 To Prevent Bootstrapping
@@ -129,6 +107,28 @@ void piCAM_Boot_Up_Sequence()
 
     // Enables UART4
     enable_piCAM_UART();
+}
+
+void piCAM_DMA_Init()
+{
+    /* DMA controller clock enable */
+    __HAL_RCC_DMA2_CLK_ENABLE();
+
+    /* DMA interrupt init */
+    /* DMA2_Channel5_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
+}
+
+piCAM_StatusTypeDef piCAM_DMA_Start()
+{
+	uint8_t tmp;
+
+	while (__HAL_UART_GET_FLAG(&piCAM_UART, UART_FLAG_RXNE)) {
+		HAL_UART_Receive(&piCAM_UART, &tmp, 1, 0);
+	}
+
+    return HAL_UART_Receive_DMA(&piCAM_UART, piCAM_Payload, piCAM_BYTES_PER_SENTENCE);
 }
 
 piCAM_StatusTypeDef piCAM_Capture_Daylight()
@@ -187,7 +187,6 @@ error:
 
 piCAM_StatusTypeDef piCAM_Process_Image()
 {
-
 	piCAM_current_sentence = 0;
 
     uint8_t *firstFree = piCAM_Payload;
