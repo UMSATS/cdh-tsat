@@ -50,7 +50,10 @@
 // Command:                  RF_GPIO_PIN_CFG
 // Description:              Configures the GPIO pins.
 */
-#define RF_GPIO_PIN_CFG 0x13, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00
+// Set GPIOs 0 and 1 to always be HIGH for the old comms board (0x03). -NJR
+// Now the GPIOs are set to TX_STATE (0x20) -NJR
+#define RF_GPIO_PIN_CFG 0x13, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00
+//#define RF_GPIO_PIN_CFG 0x13, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00
 
 /*
 // Set properties:           RF_GLOBAL_XO_TUNE_2
