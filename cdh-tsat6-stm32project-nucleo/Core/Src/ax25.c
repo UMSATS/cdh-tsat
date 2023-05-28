@@ -151,7 +151,7 @@ AX25_StatusTypeDef AX25_Bitstuff_Array(uint8_t input_array[], size_t input_size,
     }
 
     if (output_array_overrun) {
-        operation_status = AX25_HAL_ERROR;
+        operation_status = AX25_BITSTUFF_ERROR;
     } else {
         // Special case for if the array ends with 5 bits.
         if (num_consecutive_ones == MAX_CONSECUTIVE_SYMBOLS) {
