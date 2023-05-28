@@ -153,6 +153,7 @@ int main(void)
   exit(0);*/
 
   //WORK IN-PROGRESS: Si4464 init & testing
+  Si4464_Reset_Device();
   Si4464_Get_CTS();
   Test_Si4464();
 
@@ -184,7 +185,7 @@ int main(void)
   for (size_t i = 0; i < scratch_size; i++) {
 	  scratch_space[i] = 0x00;
   }
-  const char *message = "TEST TEST 1234567890 VE4NJR";
+  const char *message = "VE4NJR TEST";
   AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, message, strlen(message), output, output_size, &len_to_transmit);
 
 //  AX25_Add_Bits_To_Array(b, 10, 0x7e, 0, 0);
