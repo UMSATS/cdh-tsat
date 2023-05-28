@@ -183,7 +183,7 @@ int main(void)
   }
 
   const char *message = "VE4NJR TEST";
-  AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, message, strlen(message), output, output_size, &len_to_transmit);
+  AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, (const uint8_t *) message, (size_t) strlen(message), output, output_size, &len_to_transmit);
 
   Si4464_StatusTypeDef status_radio = SI4464_HAL_TIMEOUT;
   status_radio = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
