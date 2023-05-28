@@ -283,6 +283,7 @@ Si4464_StatusTypeDef Si4464_Write_TX_FIFO(uint8_t src[], size_t num_bytes_to_sen
 
 	size_t num_space_available = 0;
 	size_t num_can_send = 0;
+	size_t free_space_after_write = 0;
 
 	// TODO: Check for reading more than max buffer size.
 	if (!src || !num_bytes_sent || num_bytes_to_send == 0) {
@@ -302,6 +303,12 @@ Si4464_StatusTypeDef Si4464_Write_TX_FIFO(uint8_t src[], size_t num_bytes_to_sen
 
 	operation_status = Si4464_Send_Command_Ignore_Received(SI4464_TX_FIFO_WRITE, src, num_can_send);
 	if (operation_status != SI4464_HAL_OK) goto error;
+
+	operation_status = Si4464_Get_TX_FIFO_Free_Space(&free_space_after_write);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+	// TODO: This assumes the write is practically atomic (No TX is happening during write. -NJR
+	*num_bytes_sent = num_space_available - free_space_after_write;
 
 	// TODO: "This command does not cause CTS to go low, and can be sent while CTS is low. This command
 	// has no response to be read and thus there is no need to monitor CTS after sending this command."

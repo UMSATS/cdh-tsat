@@ -50,8 +50,8 @@
 // These numbers are fairly arbitarily defined. however, we can figure out
 // some mathematically-sound numbers based off of the max bitstuffed length and
 // going backwards from there. -NJR
-#define AX25_SCRATCH_SPACE_LEN 18
-#define AX25_MESSAGE_MAX_LEN 32
+#define AX25_SCRATCH_SPACE_LEN 32
+#define AX25_MESSAGE_MAX_LEN 18
 #define AX25_OUTPUT_MAX_LEN 63
 /* USER CODE END PD */
 
