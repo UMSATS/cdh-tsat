@@ -150,8 +150,7 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
 
   Si4464_StatusTypeDef si4464_operation_status;
-  si4464_operation_status = Si4464_Reset_Device();
-  if (si4464_operation_status != HAL_OK) goto error;
+  Si4464_Reset_Device();
   Si4464_Get_CTS(); // Doesn't pass errors via return value.
   si4464_operation_status = Si4464_Init_Device();
   if (si4464_operation_status != SI4464_HAL_OK) goto error;
@@ -173,7 +172,7 @@ int main(void)
 
   // This code performs the Si4464 unit tests.
   // This code should be completed after power cycling the Si4464.
-  si4464_operation_status = Si4464_Test_Device();
+  si4464_operation_status = Test_Si4464();
   if (si4464_operation_status != SI4464_HAL_OK) goto error;
 
   /* USER CODE END 2 */
