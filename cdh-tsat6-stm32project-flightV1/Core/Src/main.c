@@ -32,7 +32,11 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+#include "Si4464_driver.h"
+#include "Si4464_driver_test.h"
+
 #include "can.h"
+#include "ax25.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -144,6 +148,14 @@ int main(void)
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;
 
+  Si4464_StatusTypeDef si4464_operation_status;
+  si4464_operation_status = Si4464_Reset_Device();
+  if (si4464_operation_status != HAL_OK) goto error;
+  Si4464_Get_CTS(); // Doesn't pass errors via return value.
+  si4464_operation_status = Si4464_Init_Device();
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;
+
+
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
   /*w25n_operation_status = Test_W25N();
@@ -157,6 +169,11 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  // This code performs the Si4464 unit tests.
+  // This code should be completed after power cycling the Si4464.
+  si4464_operation_status = Si4464_Test_Device();
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;
 
   /* USER CODE END 2 */
 
