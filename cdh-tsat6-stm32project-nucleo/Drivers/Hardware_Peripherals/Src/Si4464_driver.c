@@ -319,6 +319,22 @@ error:
 	return operation_status;
 }
 
+Si4464_StatusTypeDef Si4464_Set_Output_Power(uint32_t power_level)
+{
+	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
+
+	if (power_level > 127) {
+		operation_status = SI4464_HAL_OK;
+		goto error;
+	}
+
+	operation_status = Si4464_Set_One_Prop(SI4464_GROUP_PA, SI4464_PROP_PA_PWR_LVL, (uint8_t) power_level);
+	if (operation_status != SI4464_HAL_OK) goto error;
+
+error:
+	return operation_status;
+}
+
 Si4464_StatusTypeDef Si4464_Get_TX_FIFO_Free_Space(size_t *returned_size) {
 	Si4464_StatusTypeDef operation_status = SI4464_HAL_OK;
 	uint8_t fifo_info[2] = {0};

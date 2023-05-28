@@ -18,6 +18,9 @@
 #define SI4464_RX_TX_FIFO_SIZE 64
 #define SI4464_COMBINED_FIFO_SIZE 128
 
+#define SI4464_GROUP_PA 0x22
+#define SI4464_PROP_PA_PWR_LVL 0x01
+
 // The SPI bus used for the radio module
 extern SPI_HandleTypeDef hspi2;
 
@@ -281,6 +284,16 @@ Si4464_StatusTypeDef Si4464_Read_RX_FIFO(uint8_t dest[], size_t max_buffer_size,
  * @returns SI4464_HAL_ERROR if num_bytes_sent or src are NULL or num_bytes_to_send is 0.
  */
 Si4464_StatusTypeDef Si4464_Write_TX_FIFO(uint8_t src[], size_t num_bytes_to_send, size_t *num_bytes_sent);
+
+/**
+ * @brief sets the PA output of the Si4464 chip.
+ *
+ * @param power_level the power level (from 0-127).
+ *
+ * @returns SI4464_HAL_OK on success.
+ * @returns SI4464_HAL_ERROR on error or if power_level is not in the range 0 to 127 (inclusive).
+ */
+Si4464_StatusTypeDef Si4464_Set_Output_Power(uint32_t power_level);
 
 /**
  * @brief Starts transmit of the data in the TX FIFO.
