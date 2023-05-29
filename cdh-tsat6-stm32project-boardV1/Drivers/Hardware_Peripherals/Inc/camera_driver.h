@@ -199,4 +199,23 @@ uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *);
  */
 uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *);
 
+/*----------------------------------------------------------------------------------------------
+Public Testing Function Prototypes
+-----------------------------------------------------------------------------------------------*/
+
+/*
+ * FUNCTION: piCAM_Test_Procedure
+ *
+ * DESCRIPTION: Tests piCAM functionality by sending a test command and receiving a test string.
+ * Following captures and recieves an image from piCAM which is then processed.
+ *
+ * NOTES:
+ * 	- Boots up piCAM
+ * 	- Sends a test command to piCAM
+ *  - Sends a capture command to piCAM
+ * 	- Receives image from piCAM
+ * 	- Processes image
+ */
+void piCAM_Test_Procedure();
+
 #endif /* HARDWARE_PERIPHERALS_INC_CAMERA_DRIVER_H_ */

@@ -78,6 +78,17 @@ Public Driver Function Prototypes
 piCAM_StatusTypeDef piCAM_Init();
 
 /*
+ * FUNCTION: piCAM_DMA_Start
+ *
+ * DESCRIPTION: Starts DMA for piCAM use.
+ *
+ * NOTES:
+ *	- Receives data from piCAM onto Payload static buffer
+ *	- The initial while loop ensures the UART register is cleared by receiving "tmp"
+ */
+piCAM_StatusTypeDef piCAM_DMA_Start();
+
+/*
  * FUNCTION: piCAM_Receive_Check
  *
  * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
@@ -89,7 +100,15 @@ piCAM_StatusTypeDef piCAM_Init();
 piCAM_StatusTypeDef piCAM_Receive_Check();
 
 /*
- * FUNCTION: piCAM_
+ * FUNCTION: piCAM_Receive_Check
+ *
+ * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
+ * the read cycle and calls piCAM_Process_Image();
+ *
+ * NOTES:
+ * -
+ */
+piCAM_StatusTypeDef piCAM_Receive_Check();
 
 /*
  * FUNCTION: piCAM_DMA_Init
