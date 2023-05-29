@@ -78,18 +78,18 @@ Public Driver Function Prototypes
 piCAM_StatusTypeDef piCAM_Init();
 
 /*
- * FUNCTION: piCAM_Boot_Sequence
+ * FUNCTION: piCAM_Receive_Check
  *
- * DESCRIPTION: Follows the boot up sequence for the piCAM.
+ * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
+ * the read cycle and calls piCAM_Process_Image();
  *
  * NOTES:
- *  - Disables UART Interface
- * 	- ON, RX, and TX are low for at least a second
- * 	- ON shall be held logic 1
- *	- Activating logic 1 on RX and TX
- *	- Enables UART Interface
+ * -
  */
-void piCAM_Boot_Up_Sequence();
+piCAM_StatusTypeDef piCAM_Receive_Check();
+
+/*
+ * FUNCTION: piCAM_
 
 /*
  * FUNCTION: piCAM_DMA_Init
@@ -197,24 +197,5 @@ uint8_t piCAM_ASCII_Byte_to_Binary(uint8_t *);
  *
  */
 uint16_t piCAM_ASCI_Word_to_Binary(uint8_t *);
-
-/*----------------------------------------------------------------------------------------------
-Public Testing Function Prototypes
------------------------------------------------------------------------------------------------*/
-
-/*
- * FUNCTION: piCAM_Test_Procedure
- *
- * DESCRIPTION: Tests piCAM functionality by sending a test command and receiving a test string.
- * Following captures and recieves an image from piCAM which is then processed.
- *
- * NOTES:
- * 	- Boots up piCAM
- * 	- Sends a test command to piCAM
- *  - Sends a capture command to piCAM
- * 	- Receives image from piCAM
- * 	- Processes image
- */
-void piCAM_Test_Procedure();
 
 #endif /* HARDWARE_PERIPHERALS_INC_CAMERA_DRIVER_H_ */
