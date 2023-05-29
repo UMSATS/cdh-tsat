@@ -25,23 +25,24 @@ Public Define Directives
 
 //Initial Definitions
 #define piCAM_UART					huart4
-#define piCAM_UART_IRQn			UART4_IRQn
+#define piCAM_DMA					hdma_uart4_rx
+#define piCAM_UART_IRQn				UART4_IRQn
 
 #define piCAM_UART_DELAY			HAL_MAX_DELAY
 
 
 //Pin Definitions
 #define piCAM_ON_GPIO				GPIOA
-#define piCAM_ON_PIN 				GPIO_PIN_10
+#define piCAM_ON_PIN 				GPIO_PIN_3
 
-#define piCAM_RX_GPIO				GPIOC
-#define piCAM_RX_PIN				GPIO_PIN_11
+#define piCAM_RX_GPIO				GPIOA
+#define piCAM_RX_PIN				GPIO_PIN_1
 
 #define piCAM_TX_GPIO				GPIOA
 #define piCAM_TX_PIN				GPIO_PIN_0
 
 #define piCAM_FSH_GPIO				GPIOA
-#define piCAM_FSH_PIN				GPIO_PIN_9
+#define piCAM_FSH_PIN				GPIO_PIN_2
 
 #define piCAM_BYTES_PER_SENTENCE	67
 #define piCAM_PAYLOAD_LENGTH	 	131071
@@ -78,37 +79,18 @@ Public Driver Function Prototypes
 piCAM_StatusTypeDef piCAM_Init();
 
 /*
- * FUNCTION: piCAM_DMA_Start
+ * FUNCTION: piCAM_Boot_Sequence
  *
- * DESCRIPTION: Starts DMA for piCAM use.
- *
- * NOTES:
- *	- Receives data from piCAM onto Payload static buffer
- *	- The initial while loop ensures the UART register is cleared by receiving "tmp"
- */
-piCAM_StatusTypeDef piCAM_DMA_Start();
-
-/*
- * FUNCTION: piCAM_Receive_Check
- *
- * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
- * the read cycle and calls piCAM_Process_Image();
+ * DESCRIPTION: Follows the boot up sequence for the piCAM.
  *
  * NOTES:
- * -
+ *  - Disables UART Interface
+ * 	- ON, RX, and TX are low for at least a second
+ * 	- ON shall be held logic 1
+ *	- Activating logic 1 on RX and TX
+ *	- Enables UART Interface
  */
-piCAM_StatusTypeDef piCAM_Receive_Check();
-
-/*
- * FUNCTION: piCAM_Receive_Check
- *
- * DESCRIPTION: Follows the nnnn current sentence portion of the raw data. If it is FACE, it stops
- * the read cycle and calls piCAM_Process_Image();
- *
- * NOTES:
- * -
- */
-piCAM_StatusTypeDef piCAM_Receive_Check();
+void piCAM_Boot_Up_Sequence();
 
 /*
  * FUNCTION: piCAM_DMA_Init

@@ -27,6 +27,7 @@
 
 #include "W25N_driver.h"
 #include "camera_driver.h"
+#include "camera_driver_test.h"
 #include "W25N_driver_test.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
