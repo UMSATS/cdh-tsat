@@ -77,7 +77,7 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 osThreadId transmitTelemetryHandle;
 
-uint8_t telemetry_message[AX25_MESSAGE_MAX_LEN] = {0};
+uint8_t telemetry_message[AX25_MESSAGE_MAX_LEN] = "MISSION COMPLETE";
 uint8_t ax25_scratch_space[AX25_SCRATCH_SPACE_LEN] = {0};
 uint8_t ax25_output[AX25_OUTPUT_MAX_LEN] = {0};
 
@@ -165,7 +165,6 @@ int main(void)
   Si4464_Get_CTS(); // Doesn't pass errors via return value.
   si4464_operation_status = Si4464_Init_Device();
   if (si4464_operation_status != SI4464_HAL_OK) goto error;
-
   si4464_operation_status = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
   if (si4464_operation_status != SI4464_HAL_OK) goto error;
 
