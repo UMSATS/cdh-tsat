@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,6 +50,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+// These numbers are fairly arbitarily defined. however, we can figure out
+// some mathematically-sound numbers based off of the max bitstuffed length and
+// going backwards from there. -NJR
+#define AX25_SCRATCH_SPACE_LEN 32
+#define AX25_MESSAGE_MAX_LEN 18
+#define AX25_OUTPUT_MAX_LEN 63
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -67,7 +74,12 @@ UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_uart4_rx;
 
+osThreadId defaultTaskHandle;
+osThreadId transmitTelemetHandle;
 /* USER CODE BEGIN PV */
+uint8_t telemetry_message[AX25_MESSAGE_MAX_LEN] = {'V', 'E', '4', 'N', 'J', 'R', ' ', 'T', 'E', 'S', 'T'};
+uint8_t ax25_scratch_space[AX25_SCRATCH_SPACE_LEN] = {0};
+uint8_t ax25_output[AX25_OUTPUT_MAX_LEN] = {0};
 
 /* USER CODE END PV */
 
@@ -81,6 +93,9 @@ static void MX_CAN1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
+void StartDefaultTask(void const * argument);
+void StartTransmitTelemetry(void const * argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -181,60 +196,47 @@ int main(void)
   Si4464_Reset_Device();
   Si4464_Get_CTS();
   Test_Si4464();
+  Si4464_Set_One_Prop(0x12, 0x06, 0x01);
 
-/*error:
-  exit(1);*/
-
-  /* Commented Code Out For UART Camera Telemetry piCAM Skyfox Labs (Delete If Necessary) -Syed Abraham Ahmed*/
-  //uint8_t testData[] = "@000080932197E12197E12197E12197E12197E12197E12197E12197E12197E121\r\n";
-  //HAL_UART_Transmit (&huart4, testData, sizeof(testData),10);
-
-  #define scratch_size 1024
-  #define output_size 2048
-
-  uint8_t scratch_space[scratch_size] = {0x00};
-  uint8_t output[output_size] = {0x00};
-
-  size_t len_to_transmit = 0;
-
-  for (size_t i = 0; i < output_size; i++) {
-	  output[i] = 0x00;
-  }
-
-  for (size_t i = 0; i < scratch_size; i++) {
-	  scratch_space[i] = 0x00;
-  }
-
-  const char *message = "VE4NJR TEST";
-  AX25_StatusTypeDef status = AX25_Form_Packet(scratch_space, scratch_size, message, strlen(message), output, output_size, &len_to_transmit);
-
-  Si4464_StatusTypeDef status_radio = SI4464_HAL_TIMEOUT;
-  status_radio = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
-  size_t num_avail = 255;
-
-  (void) status;
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+  /* definition and creation of transmitTelemet */
+  osThreadDef(transmitTelemet, StartTransmitTelemetry, osPriorityNormal, 0, 128);
+  transmitTelemetHandle = osThreadCreate(osThread(transmitTelemet), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	//Set a breakpoint here to view data grabbed from si446x module. -NJR
-
-    //Repeatedly toggle the green LED
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	HAL_Delay(1000);
-
-
-	size_t num_sent = 99;
-
-	status_radio = Si4464_Write_TX_FIFO(output, len_to_transmit, &num_sent);
-	status_radio = Si4464_Transmit(SI4464_STATE_TX_TUNE, len_to_transmit);
-
-
-	status_radio = Si4464_Get_TX_FIFO_Free_Space(&num_avail);
-
-	(void) status_radio;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -635,6 +637,90 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartTransmitTelemetry */
+/**
+* @brief Function implementing the transmitTelemet thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTransmitTelemetry */
+void StartTransmitTelemetry(void const * argument)
+{
+  /* USER CODE BEGIN StartTransmitTelemetry */
+  /* Infinite loop */
+  for(;;)
+  {
+	size_t len_to_transmit = 0;
+	Si4464_StatusTypeDef si4464_operation_status = SI4464_HAL_OK;
+	AX25_StatusTypeDef ax25_operation_status = AX25_HAL_OK;
+	size_t num_bytes_sent = 0;
+
+	// TODO: We cast the pointer value here to avoid -Wpointer-sign.
+	ax25_operation_status = AX25_Form_Packet(ax25_scratch_space, AX25_SCRATCH_SPACE_LEN,
+			telemetry_message, (size_t) strlen((char *) telemetry_message), ax25_output,
+			AX25_OUTPUT_MAX_LEN, &len_to_transmit);
+
+	if (ax25_operation_status != AX25_HAL_OK) goto error;
+
+	si4464_operation_status = Si4464_Write_TX_FIFO(ax25_output, len_to_transmit, &num_bytes_sent);
+	if (si4464_operation_status != SI4464_HAL_OK) goto error;
+//	if (num_bytes_sent != len_to_transmit) {
+//		// TODO: More descriptive error codes.
+//		ax25_operation_status = AX25_HAL_ERROR;
+//		si4464_operation_status = SI4464_HAL_ERROR;
+//		goto error;
+//	}
+
+	si4464_operation_status = Si4464_Transmit(SI4464_STATE_TX_TUNE, len_to_transmit);
+	if (si4464_operation_status != SI4464_HAL_OK) goto error;
+
+error:
+	// TODO: What do we do in case of errors here?
+    osDelay(1000);
+  }
+  /* USER CODE END StartTransmitTelemetry */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

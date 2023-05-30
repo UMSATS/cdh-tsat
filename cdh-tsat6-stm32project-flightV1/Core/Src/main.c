@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
@@ -32,7 +33,11 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+#include "Si4464_driver.h"
+#include "Si4464_driver_test.h"
+
 #include "can.h"
+#include "ax25.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,6 +47,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+// These numbers are fairly arbitarily defined. however, we can figure out
+// some mathematically-sound numbers based off of the max bitstuffed length and
+// going backwards from there. -NJR
+#define AX25_SCRATCH_SPACE_LEN 18
+#define AX25_MESSAGE_MAX_LEN 32
+#define AX25_OUTPUT_MAX_LEN 63
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -65,6 +76,11 @@ osThreadId blinkLED2Handle;
 osThreadId blinkLED3Handle;
 osThreadId toggleWDIHandle;
 /* USER CODE BEGIN PV */
+osThreadId transmitTelemetryHandle;
+
+uint8_t telemetry_message[AX25_MESSAGE_MAX_LEN] = {0};
+uint8_t ax25_scratch_space[AX25_SCRATCH_SPACE_LEN] = {0};
+uint8_t ax25_output[AX25_OUTPUT_MAX_LEN] = {0};
 
 /* USER CODE END PV */
 
@@ -83,6 +99,7 @@ void StartBlinkLED3(void const * argument);
 void StartToggleWDI(void const * argument);
 
 /* USER CODE BEGIN PFP */
+void StartTransmitTelemetry(void const * argument);
 
 /* USER CODE END PFP */
 
@@ -144,6 +161,17 @@ int main(void)
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;
 
+  Si4464_StatusTypeDef si4464_operation_status;
+  Si4464_Reset_Device();
+  Si4464_Get_CTS(); // Doesn't pass errors via return value.
+  si4464_operation_status = Si4464_Init_Device();
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;
+
+  si4464_operation_status = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;
+
+
+
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
   /*w25n_operation_status = Test_W25N();
@@ -157,6 +185,11 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  // This code performs the Si4464 unit tests.
+  // This code should be completed after power cycling the Si4464.
+  si4464_operation_status = Test_Si4464();
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;
 
   /* USER CODE END 2 */
 
@@ -194,6 +227,11 @@ int main(void)
   toggleWDIHandle = osThreadCreate(osThread(toggleWDI), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
+
+  /* definition and creatoin of transmitTelemetry */
+  osThreadDef(transmitTelemetry, StartTransmitTelemetry, osPriorityNormal, 0, 128);
+  transmitTelemetryHandle = osThreadCreate(osThread(transmitTelemetry), NULL);
+
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
@@ -668,6 +706,49 @@ void StartToggleWDI(void const * argument)
     osDelay(100);
   }
   /* USER CODE END StartToggleWDI */
+}
+
+/**
+  * @brief  Function implementing the transmitTelemetry thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END StartTransmitTelemetry */
+void StartTransmitTelemetry(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+	size_t len_to_transmit = 0;
+	Si4464_StatusTypeDef si4464_operation_status = SI4464_HAL_OK;
+	AX25_StatusTypeDef ax25_operation_status = AX25_HAL_OK;
+	size_t num_bytes_sent = 0;
+
+	// TODO: We cast the pointer value here to avoid -Wpointer-sign.
+	ax25_operation_status = AX25_Form_Packet(ax25_scratch_space, AX25_SCRATCH_SPACE_LEN,
+			telemetry_message, (size_t) strlen((char *) telemetry_message), ax25_output,
+			AX25_OUTPUT_MAX_LEN, &len_to_transmit);
+
+	if (ax25_operation_status != AX25_HAL_OK) goto error;
+
+	si4464_operation_status = Si4464_Write_TX_FIFO(ax25_output, len_to_transmit, &num_bytes_sent);
+	if (si4464_operation_status != SI4464_HAL_OK) goto error;
+	if (num_bytes_sent != len_to_transmit) {
+		// TODO: More descriptive error codes.
+		ax25_operation_status = AX25_HAL_ERROR;
+		si4464_operation_status = SI4464_HAL_ERROR;
+		goto error;
+	}
+
+	si4464_operation_status = Si4464_Transmit(SI4464_STATE_TX_TUNE, len_to_transmit);
+	if (si4464_operation_status != SI4464_HAL_OK) goto error;
+
+error:
+	// TODO: What do we do in case of errors here?
+    osDelay(1000);
+  }
+  /* USER CODE END 5 */
 }
 
 /**

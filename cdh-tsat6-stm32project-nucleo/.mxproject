@@ -8,18 +8,21 @@ CDefines=USE_HAL_DRIVER;STM32L452xx;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
 [PreviousGenFiles]
 AdvancedFolderStructure=true
-HeaderFileListSize=3
-HeaderFiles#0=..\Core\Inc\stm32l4xx_it.h
-HeaderFiles#1=..\Core\Inc\stm32l4xx_hal_conf.h
-HeaderFiles#2=..\Core\Inc\main.h
+HeaderFileListSize=4
+HeaderFiles#0=../Core/Inc/FreeRTOSConfig.h
+HeaderFiles#1=../Core/Inc/stm32l4xx_it.h
+HeaderFiles#2=../Core/Inc/stm32l4xx_hal_conf.h
+HeaderFiles#3=../Core/Inc/main.h
 HeaderFolderListSize=1
-HeaderPath#0=..\Core\Inc
+HeaderPath#0=../Core/Inc
 HeaderFiles=;
-SourceFileListSize=3
-SourceFiles#0=..\Core\Src\stm32l4xx_it.c
-SourceFiles#1=..\Core\Src\stm32l4xx_hal_msp.c
-SourceFiles#2=..\Core\Src\main.c
+SourceFileListSize=5
+SourceFiles#0=../Core/Src/freertos.c
+SourceFiles#1=../Core/Src/stm32l4xx_it.c
+SourceFiles#2=../Core/Src/stm32l4xx_hal_msp.c
+SourceFiles#3=../Core/Src/stm32l4xx_hal_timebase_tim.c
+SourceFiles#4=../Core/Src/main.c
 SourceFolderListSize=1
-SourcePath#0=..\Core\Src
+SourcePath#0=../Core/Src
 SourceFiles=;
 
