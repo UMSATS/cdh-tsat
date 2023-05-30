@@ -190,6 +190,7 @@ void TIM1_UP_TIM16_IRQHandler(void)
   /* USER CODE END TIM1_UP_TIM16_IRQn 1 */
 }
 
+/**
   * @brief This function handles UART4 global interrupt.
   */
 void UART4_IRQHandler(void)

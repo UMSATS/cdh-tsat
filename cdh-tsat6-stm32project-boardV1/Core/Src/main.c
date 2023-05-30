@@ -27,9 +27,9 @@
 #include <string.h>
 
 #include "W25N_driver.h"
+#include "W25N_driver_test.h"
 #include "camera_driver.h"
 #include "camera_driver_test.h"
-#include "W25N_driver_test.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -37,7 +37,6 @@
 #include "LTC1154_driver.h"
 #include "Si4464_driver.h"
 #include "Si4464_driver_test.h"
-
 #include "can.h"
 #include "ax25.h"
 /* USER CODE END Includes */
