@@ -70,16 +70,143 @@ SPI_HandleTypeDef hspi3;
 
 UART_HandleTypeDef huart4;
 
-osThreadId blinkLED1Handle;
-osThreadId blinkLED2Handle;
-osThreadId blinkLED3Handle;
-osThreadId toggleWDIHandle;
+/* Definitions for blinkLED1 */
+osThreadId_t blinkLED1Handle;
+const osThreadAttr_t blinkLED1_attributes = {
+  .name = "blinkLED1",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for blinkLED2 */
+osThreadId_t blinkLED2Handle;
+const osThreadAttr_t blinkLED2_attributes = {
+  .name = "blinkLED2",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for blinkLED3 */
+osThreadId_t blinkLED3Handle;
+const osThreadAttr_t blinkLED3_attributes = {
+  .name = "blinkLED3",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for toggleWDI */
+osThreadId_t toggleWDIHandle;
+const osThreadAttr_t toggleWDI_attributes = {
+  .name = "toggleWDI",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for commandHandler */
+osThreadId_t commandHandlerHandle;
+const osThreadAttr_t commandHandler_attributes = {
+  .name = "commandHandler",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for flashUnitTest */
+osThreadId_t flashUnitTestHandle;
+const osThreadAttr_t flashUnitTest_attributes = {
+  .name = "flashUnitTest",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for mramUnitTest */
+osThreadId_t mramUnitTestHandle;
+const osThreadAttr_t mramUnitTest_attributes = {
+  .name = "mramUnitTest",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for enableRelease */
+osThreadId_t enableReleaseHandle;
+const osThreadAttr_t enableRelease_attributes = {
+  .name = "enableRelease",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for executeRelease */
+osThreadId_t executeReleaseHandle;
+const osThreadAttr_t executeRelease_attributes = {
+  .name = "executeRelease",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for takePicture */
+osThreadId_t takePictureHandle;
+const osThreadAttr_t takePicture_attributes = {
+  .name = "takePicture",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for sendUHFBeacon */
+osThreadId_t sendUHFBeaconHandle;
+const osThreadAttr_t sendUHFBeacon_attributes = {
+  .name = "sendUHFBeacon",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for getTaskList */
+osThreadId_t getTaskListHandle;
+const osThreadAttr_t getTaskList_attributes = {
+  .name = "getTaskList",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for timeTagTask */
+osThreadId_t timeTagTaskHandle;
+const osThreadAttr_t timeTagTask_attributes = {
+  .name = "timeTagTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for canQueue */
+osMessageQueueId_t canQueueHandle;
+const osMessageQueueAttr_t canQueue_attributes = {
+  .name = "canQueue"
+};
+/* Definitions for flashUnitTestQueue */
+osMessageQueueId_t flashUnitTestQueueHandle;
+const osMessageQueueAttr_t flashUnitTestQueue_attributes = {
+  .name = "flashUnitTestQueue"
+};
+/* Definitions for mramUnitTestQueue */
+osMessageQueueId_t mramUnitTestQueueHandle;
+const osMessageQueueAttr_t mramUnitTestQueue_attributes = {
+  .name = "mramUnitTestQueue"
+};
+/* Definitions for releaseEnableQueue */
+osMessageQueueId_t releaseEnableQueueHandle;
+const osMessageQueueAttr_t releaseEnableQueue_attributes = {
+  .name = "releaseEnableQueue"
+};
+/* Definitions for releaseExecuteQueue */
+osMessageQueueId_t releaseExecuteQueueHandle;
+const osMessageQueueAttr_t releaseExecuteQueue_attributes = {
+  .name = "releaseExecuteQueue"
+};
+/* Definitions for takePictureQueue */
+osMessageQueueId_t takePictureQueueHandle;
+const osMessageQueueAttr_t takePictureQueue_attributes = {
+  .name = "takePictureQueue"
+};
+/* Definitions for sendUHFQueue */
+osMessageQueueId_t sendUHFQueueHandle;
+const osMessageQueueAttr_t sendUHFQueue_attributes = {
+  .name = "sendUHFQueue"
+};
+/* Definitions for getTaskListQueue */
+osMessageQueueId_t getTaskListQueueHandle;
+const osMessageQueueAttr_t getTaskListQueue_attributes = {
+  .name = "getTaskListQueue"
+};
+/* Definitions for timeTagQueue */
+osMessageQueueId_t timeTagQueueHandle;
+const osMessageQueueAttr_t timeTagQueue_attributes = {
+  .name = "timeTagQueue"
+};
 /* USER CODE BEGIN PV */
-osThreadId transmitTelemetryHandle;
-
-uint8_t telemetry_message[AX25_MESSAGE_MAX_LEN] = "MISSION COMPLETE";
-uint8_t ax25_scratch_space[AX25_SCRATCH_SPACE_LEN] = {0};
-uint8_t ax25_output[AX25_OUTPUT_MAX_LEN] = {0};
 
 /* USER CODE END PV */
 
@@ -92,13 +219,21 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 static void MX_RTC_Init(void);
-void StartBlinkLED1(void const * argument);
-void StartBlinkLED2(void const * argument);
-void StartBlinkLED3(void const * argument);
-void StartToggleWDI(void const * argument);
+void StartBlinkLED1(void *argument);
+void StartBlinkLED2(void *argument);
+void StartBlinkLED3(void *argument);
+void StartToggleWDI(void *argument);
+void StartCommandHandler(void *argument);
+void StartFlashUnitTest(void *argument);
+void StartMRAMUnitTest(void *argument);
+void StartEnableRelease(void *argument);
+void StartExecuteRelease(void *argument);
+void StartTakePicture(void *argument);
+void StartSendUHFBeacon(void *argument);
+void StartGetTaskList(void *argument);
+void StartTimeTagTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-void StartTransmitTelemetry(void const * argument);
 
 /* USER CODE END PFP */
 
@@ -192,6 +327,9 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -204,39 +342,89 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of canQueue */
+  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage_t), &canQueue_attributes);
+
+  /* creation of flashUnitTestQueue */
+  flashUnitTestQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &flashUnitTestQueue_attributes);
+
+  /* creation of mramUnitTestQueue */
+  mramUnitTestQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &mramUnitTestQueue_attributes);
+
+  /* creation of releaseEnableQueue */
+  releaseEnableQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &releaseEnableQueue_attributes);
+
+  /* creation of releaseExecuteQueue */
+  releaseExecuteQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &releaseExecuteQueue_attributes);
+
+  /* creation of takePictureQueue */
+  takePictureQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &takePictureQueue_attributes);
+
+  /* creation of sendUHFQueue */
+  sendUHFQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &sendUHFQueue_attributes);
+
+  /* creation of getTaskListQueue */
+  getTaskListQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &getTaskListQueue_attributes);
+
+  /* creation of timeTagQueue */
+  timeTagQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &timeTagQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of blinkLED1 */
-  osThreadDef(blinkLED1, StartBlinkLED1, osPriorityNormal, 0, 128);
-  blinkLED1Handle = osThreadCreate(osThread(blinkLED1), NULL);
+  /* creation of blinkLED1 */
+  blinkLED1Handle = osThreadNew(StartBlinkLED1, NULL, &blinkLED1_attributes);
 
-  /* definition and creation of blinkLED2 */
-  osThreadDef(blinkLED2, StartBlinkLED2, osPriorityNormal, 0, 128);
-  blinkLED2Handle = osThreadCreate(osThread(blinkLED2), NULL);
+  /* creation of blinkLED2 */
+  blinkLED2Handle = osThreadNew(StartBlinkLED2, NULL, &blinkLED2_attributes);
 
-  /* definition and creation of blinkLED3 */
-  osThreadDef(blinkLED3, StartBlinkLED3, osPriorityNormal, 0, 128);
-  blinkLED3Handle = osThreadCreate(osThread(blinkLED3), NULL);
+  /* creation of blinkLED3 */
+  blinkLED3Handle = osThreadNew(StartBlinkLED3, NULL, &blinkLED3_attributes);
 
-  /* definition and creation of toggleWDI */
-  osThreadDef(toggleWDI, StartToggleWDI, osPriorityNormal, 0, 128);
-  toggleWDIHandle = osThreadCreate(osThread(toggleWDI), NULL);
+  /* creation of toggleWDI */
+  toggleWDIHandle = osThreadNew(StartToggleWDI, NULL, &toggleWDI_attributes);
+
+  /* creation of commandHandler */
+  commandHandlerHandle = osThreadNew(StartCommandHandler, NULL, &commandHandler_attributes);
+
+  /* creation of flashUnitTest */
+  flashUnitTestHandle = osThreadNew(StartFlashUnitTest, NULL, &flashUnitTest_attributes);
+
+  /* creation of mramUnitTest */
+  mramUnitTestHandle = osThreadNew(StartMRAMUnitTest, NULL, &mramUnitTest_attributes);
+
+  /* creation of enableRelease */
+  enableReleaseHandle = osThreadNew(StartEnableRelease, NULL, &enableRelease_attributes);
+
+  /* creation of executeRelease */
+  executeReleaseHandle = osThreadNew(StartExecuteRelease, NULL, &executeRelease_attributes);
+
+  /* creation of takePicture */
+  takePictureHandle = osThreadNew(StartTakePicture, NULL, &takePicture_attributes);
+
+  /* creation of sendUHFBeacon */
+  sendUHFBeaconHandle = osThreadNew(StartSendUHFBeacon, NULL, &sendUHFBeacon_attributes);
+
+  /* creation of getTaskList */
+  getTaskListHandle = osThreadNew(StartGetTaskList, NULL, &getTaskList_attributes);
+
+  /* creation of timeTagTask */
+  timeTagTaskHandle = osThreadNew(StartTimeTagTask, NULL, &timeTagTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-
-  /* definition and creatoin of transmitTelemetry */
-  osThreadDef(transmitTelemetry, StartTransmitTelemetry, osPriorityNormal, 0, 128);
-  transmitTelemetryHandle = osThreadCreate(osThread(transmitTelemetry), NULL);
 
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
   /* Start scheduler */
   osKernelStart();
-
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -268,24 +456,20 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_MEDIUMHIGH);
-
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
   RCC_OscInitStruct.PLL.PLLN = 20;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -304,10 +488,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-
-  /** Enables the Clock Security System
-  */
-  HAL_RCC_EnableCSS();
 }
 
 /**
@@ -546,6 +726,8 @@ static void MX_UART4_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -611,6 +793,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(MRAM_nCS_GPIO_Port, &GPIO_InitStruct);
 
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -638,7 +822,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
   * @retval None
   */
 /* USER CODE END Header_StartBlinkLED1 */
-void StartBlinkLED1(void const * argument)
+void StartBlinkLED1(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -657,7 +841,7 @@ void StartBlinkLED1(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_StartBlinkLED2 */
-void StartBlinkLED2(void const * argument)
+void StartBlinkLED2(void *argument)
 {
   /* USER CODE BEGIN StartBlinkLED2 */
   /* Infinite loop */
@@ -676,7 +860,7 @@ void StartBlinkLED2(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_StartBlinkLED3 */
-void StartBlinkLED3(void const * argument)
+void StartBlinkLED3(void *argument)
 {
   /* USER CODE BEGIN StartBlinkLED3 */
   /* Infinite loop */
@@ -695,7 +879,7 @@ void StartBlinkLED3(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_StartToggleWDI */
-void StartToggleWDI(void const * argument)
+void StartToggleWDI(void *argument)
 {
   /* USER CODE BEGIN StartToggleWDI */
   /* Infinite loop */
@@ -707,68 +891,218 @@ void StartToggleWDI(void const * argument)
   /* USER CODE END StartToggleWDI */
 }
 
+/* USER CODE BEGIN Header_StartCommandHandler */
 /**
-  * @brief  Function implementing the transmitTelemetry thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END StartTransmitTelemetry */
-void StartTransmitTelemetry(void const * argument)
+* @brief Function implementing the commandHandler thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCommandHandler */
+void StartCommandHandler(void *argument)
 {
-  /* USER CODE BEGIN 5 */
+  /* USER CODE BEGIN StartCommandHandler */
+    CANMessage_t can_message;
   /* Infinite loop */
   for(;;)
   {
-	size_t len_to_transmit = 0;
-	Si4464_StatusTypeDef si4464_operation_status = SI4464_HAL_OK;
-	AX25_StatusTypeDef ax25_operation_status = AX25_HAL_OK;
-	size_t num_bytes_sent = 0;
-
-	// TODO: We cast the pointer value here to avoid -Wpointer-sign.
-	ax25_operation_status = AX25_Form_Packet(ax25_scratch_space, AX25_SCRATCH_SPACE_LEN,
-			telemetry_message, (size_t) strlen((char *) telemetry_message), ax25_output,
-			AX25_OUTPUT_MAX_LEN, &len_to_transmit);
-
-	if (ax25_operation_status != AX25_HAL_OK) goto error;
-
-	si4464_operation_status = Si4464_Write_TX_FIFO(ax25_output, len_to_transmit, &num_bytes_sent);
-	if (si4464_operation_status != SI4464_HAL_OK) goto error;
-	if (num_bytes_sent != len_to_transmit) {
-		// TODO: More descriptive error codes.
-		ax25_operation_status = AX25_HAL_ERROR;
-		si4464_operation_status = SI4464_HAL_ERROR;
-		goto error;
-	}
-
-	si4464_operation_status = Si4464_Transmit(SI4464_STATE_TX_TUNE, len_to_transmit);
-	if (si4464_operation_status != SI4464_HAL_OK) goto error;
-
-error:
-	// TODO: What do we do in case of errors here?
-    osDelay(1000);
+    osMessageQueueGet(canQueueHandle, &can_message, NULL, osWaitForever);
+    switch (can_message.command) {
+    case 0x41:
+        osMessageQueuePut(flashUnitTestQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x42:
+        osMessageQueuePut(mramUnitTestQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x43:
+        osMessageQueuePut(releaseEnableQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x44:
+        osMessageQueuePut(releaseExecuteQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x45:
+        osMessageQueuePut(takePictureQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x46:
+        osMessageQueuePut(sendUHFQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x47:
+        osMessageQueuePut(getTaskListQueueHandle, &can_message, 0, 200);
+        break;
+    case 0x48:
+        osMessageQueuePut(timeTagQueueHandle, &can_message, 0, 200);
+        break;
+    default:
+        break;
+    }
   }
-  /* USER CODE END 5 */
+  /* USER CODE END StartCommandHandler */
 }
 
+/* USER CODE BEGIN Header_StartFlashUnitTest */
 /**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+* @brief Function implementing the flashUnitTest thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartFlashUnitTest */
+void StartFlashUnitTest(void *argument)
 {
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6) {
-    HAL_IncTick();
+  /* USER CODE BEGIN StartFlashUnitTest */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(flashUnitTestQueueHandle, &can_message, NULL, osWaitForever);
   }
-  /* USER CODE BEGIN Callback 1 */
+  /* USER CODE END StartFlashUnitTest */
+}
 
-  /* USER CODE END Callback 1 */
+/* USER CODE BEGIN Header_StartMRAMUnitTest */
+/**
+* @brief Function implementing the mramUnitTest thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartMRAMUnitTest */
+void StartMRAMUnitTest(void *argument)
+{
+  /* USER CODE BEGIN StartMRAMUnitTest */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(mramUnitTestQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartMRAMUnitTest */
+}
+
+/* USER CODE BEGIN Header_StartEnableRelease */
+/**
+* @brief Function implementing the enableRelease thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartEnableRelease */
+void StartEnableRelease(void *argument)
+{
+  /* USER CODE BEGIN StartEnableRelease */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(releaseEnableQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartEnableRelease */
+}
+
+/* USER CODE BEGIN Header_StartExecuteRelease */
+/**
+* @brief Function implementing the executeRelease thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartExecuteRelease */
+void StartExecuteRelease(void *argument)
+{
+  /* USER CODE BEGIN StartExecuteRelease */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(releaseExecuteQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartExecuteRelease */
+}
+
+/* USER CODE BEGIN Header_StartTakePicture */
+/**
+* @brief Function implementing the takePicture thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTakePicture */
+void StartTakePicture(void *argument)
+{
+  /* USER CODE BEGIN StartTakePicture */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(takePictureQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartTakePicture */
+}
+
+/* USER CODE BEGIN Header_StartSendUHFBeacon */
+/**
+* @brief Function implementing the sendUHFBeacon thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartSendUHFBeacon */
+void StartSendUHFBeacon(void *argument)
+{
+  /* USER CODE BEGIN StartSendUHFBeacon */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(sendUHFQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartSendUHFBeacon */
+}
+
+/* USER CODE BEGIN Header_StartGetTaskList */
+/**
+* @brief Function implementing the getTaskList thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartGetTaskList */
+void StartGetTaskList(void *argument)
+{
+  /* USER CODE BEGIN StartGetTaskList */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(getTaskListQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartGetTaskList */
+}
+
+/* USER CODE BEGIN Header_StartTimeTagTask */
+/**
+* @brief Function implementing the timeTagTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTimeTagTask */
+void StartTimeTagTask(void *argument)
+{
+  /* USER CODE BEGIN StartTimeTagTask */
+    CANMessage_t can_message;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+  /* Infinite loop */
+  for(;;)
+  {
+      osMessageQueueGet(timeTagQueueHandle, &can_message, NULL, osWaitForever);
+      CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  /* USER CODE END StartTimeTagTask */
 }
 
 /**

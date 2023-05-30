@@ -17,6 +17,7 @@
 // Include Directives
 //###############################################################################################
 #include "stm32l4xx_hal.h"
+#include "cmsis_os.h"
 
 //###############################################################################################
 // Define Directives & Extern Variables
@@ -27,6 +28,7 @@
 #define SOURCE_ID  0x1 // The ID number of the device MAX VALUE: 0x3
 
 extern CAN_HandleTypeDef hcan1; // Set this to the CAN type found in generated main.c file
+extern osMessageQId canQueueHandle; // FreeRTOS CAN queue
 
 //###############################################################################################
 // Structs
@@ -52,6 +54,11 @@ HAL_StatusTypeDef CAN_Message_Received(); // Interrupt handler for the CAN Bus
 
 HAL_StatusTypeDef CAN_Send_Default_ACK(
         CANMessage_t myMessage // The message that the default ACK should be sent for
+);
+
+HAL_StatusTypeDef CAN_Send_Default_ACK_With_Data(
+        CANMessage_t myMessage, // The message that the default ACK should be sent for
+        uint8_t *p_data // The 6 bytes of data that should be sent
 );
 
 #endif /* INCLUDE_CAN_H_ */

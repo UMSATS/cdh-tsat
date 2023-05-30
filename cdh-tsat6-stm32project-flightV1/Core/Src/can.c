@@ -100,6 +100,7 @@ HAL_StatusTypeDef CAN_Message_Received(){
 	        .command = rxData[0],
 	        .data = {rxData[1], rxData[2], rxData[3], rxData[4], rxData[5], rxData[6], rxData[7]}
 	    };
+	    osMessageQueuePut(canQueueHandle, &can_message, 0, 200);
 		// *NOTE* program custom handling per your subsystem here
 	}
 
@@ -121,6 +122,25 @@ HAL_StatusTypeDef CAN_Send_Default_ACK(CANMessage_t myMessage){
         .DestinationID = myMessage.SenderID,
         .command = 0x01,
         .data = {myMessage.command, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+    };
+    return CAN_Transmit_Message(ack_message);
+}
+
+/**
+ * @brief Send a CAN default ACK message for the given CAN message, with data
+ *
+ * @param myMessage: The received CAN message to send the ACK for
+ * @param p_data: The 6 bytes of data to send
+ *
+ * @return HAL_StatusTypeDef
+ */
+HAL_StatusTypeDef CAN_Send_Default_ACK_With_Data(CANMessage_t myMessage, uint8_t *p_data){
+    CANMessage_t ack_message = {
+        .priority = myMessage.priority,
+        .SenderID = SOURCE_ID,
+        .DestinationID = myMessage.SenderID,
+        .command = 0x01,
+        .data = {myMessage.command, p_data[0], p_data[1], p_data[2], p_data[3], p_data[4], p_data[5]}
     };
     return CAN_Transmit_Message(ack_message);
 }
