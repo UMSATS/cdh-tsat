@@ -35,6 +35,7 @@
 #include "LTC1154_driver.h"
 #include "Si4464_driver.h"
 #include "Si4464_driver_test.h"
+
 #include "can.h"
 #include "ax25.h"
 /* USER CODE END Includes */
@@ -49,8 +50,8 @@
 // These numbers are fairly arbitarily defined. however, we can figure out
 // some mathematically-sound numbers based off of the max bitstuffed length and
 // going backwards from there. -NJR
-#define AX25_SCRATCH_SPACE_LEN 32
-#define AX25_MESSAGE_MAX_LEN 18
+#define AX25_SCRATCH_SPACE_LEN 18
+#define AX25_MESSAGE_MAX_LEN 32
 #define AX25_OUTPUT_MAX_LEN 63
 /* USER CODE END PD */
 
@@ -277,7 +278,6 @@ int main(void)
   MX_UART4_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-
   MAX6822_Init();
 
   LEDs_Init();
@@ -322,8 +322,8 @@ int main(void)
 
   // This code performs the Si4464 unit tests.
   // This code should be completed after power cycling the Si4464.
-  /*si4464_operation_status = Test_Si4464();
-  if (si4464_operation_status != SI4464_HAL_OK) goto error;*/
+  si4464_operation_status = Test_Si4464();
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;
 
   /* USER CODE END 2 */
 
