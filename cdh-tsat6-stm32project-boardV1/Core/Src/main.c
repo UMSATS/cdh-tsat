@@ -27,6 +27,8 @@
 #include <string.h>
 
 #include "W25N_driver.h"
+#include "camera_driver.h"
+#include "camera_driver_test.h"
 #include "W25N_driver_test.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
@@ -70,11 +72,9 @@ SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
 UART_HandleTypeDef huart4;
+DMA_HandleTypeDef hdma_uart4_rx;
 
-osThreadId blinkLED1Handle;
-osThreadId blinkLED2Handle;
-osThreadId blinkLED3Handle;
-osThreadId toggleWDIHandle;
+osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 osThreadId transmitTelemetryHandle;
 
@@ -87,16 +87,14 @@ uint8_t ax25_output[AX25_OUTPUT_MAX_LEN] = {0};
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_RTC_Init(void);
 static void MX_UART4_Init(void);
-void StartBlinkLED1(void const * argument);
-void StartBlinkLED2(void const * argument);
-void StartBlinkLED3(void const * argument);
-void StartToggleWDI(void const * argument);
+void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 void StartTransmitTelemetry(void const * argument);
@@ -136,6 +134,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CAN1_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -171,7 +170,9 @@ int main(void)
   si4464_operation_status = Si4464_Set_One_Prop(0x12, 0x06, 0x01);
   if (si4464_operation_status != SI4464_HAL_OK) goto error;
 
-
+  HAL_StatusTypeDef piCAM_operation_status;
+  piCAM_operation_status = piCAM_Init();
+  if (piCAM_operation_status != HAL_OK) goto error;
 
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
@@ -189,8 +190,26 @@ int main(void)
 
   // This code performs the Si4464 unit tests.
   // This code should be completed after power cycling the Si4464.
-  si4464_operation_status = Test_Si4464();
-  if (si4464_operation_status != SI4464_HAL_OK) goto error;
+  /*si4464_operation_status = Test_Si4464();
+  if (si4464_operation_status != SI4464_HAL_OK) goto error;*/
+
+  //this code initializes the piCAM & performs the piCAM unit test (piCAM_Test_Procedure())
+  /*
+   * HAL_StatusTypeDef piCAM_operation_status;
+   * piCAM_operation_status = piCAM_Init();
+   * if (piCAM_operation_status != HAL_OK) goto error;
+   *
+   * piCAM_Test_Procedure();
+   *
+   * NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
+   * It ONLY follows this specific sequence
+   * - Follows Boot Up Sequence
+   * - HAL Delay of 3000ms
+   * - Sends "t\0" over UART4 for test string
+   * - HAL Delay of 3000ms
+   * - Sends "d\0" over UART4 for image capture request, then immediately after
+   * we start DMA for specific image data.
+   */
 
   /* USER CODE END 2 */
 
@@ -211,21 +230,9 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of blinkLED1 */
-  osThreadDef(blinkLED1, StartBlinkLED1, osPriorityNormal, 0, 128);
-  blinkLED1Handle = osThreadCreate(osThread(blinkLED1), NULL);
-
-  /* definition and creation of blinkLED2 */
-  osThreadDef(blinkLED2, StartBlinkLED2, osPriorityNormal, 0, 128);
-  blinkLED2Handle = osThreadCreate(osThread(blinkLED2), NULL);
-
-  /* definition and creation of blinkLED3 */
-  osThreadDef(blinkLED3, StartBlinkLED3, osPriorityNormal, 0, 128);
-  blinkLED3Handle = osThreadCreate(osThread(blinkLED3), NULL);
-
-  /* definition and creation of toggleWDI */
-  osThreadDef(toggleWDI, StartToggleWDI, osPriorityNormal, 0, 128);
-  toggleWDIHandle = osThreadCreate(osThread(toggleWDI), NULL);
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
 
@@ -236,8 +243,8 @@ int main(void)
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
-  /* Start scheduler */ osKernelStart();
-
+  /* Start scheduler */
+  osKernelStart();
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -540,6 +547,22 @@ static void MX_UART4_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -547,6 +570,8 @@ static void MX_UART4_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -612,6 +637,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(MRAM_nCS_GPIO_Port, &GPIO_InitStruct);
 
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -630,16 +657,22 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
         //TODO: Implement error handling for CAN message receives
     }
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	piCAM_Receive_Check();
+}
+
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartBlinkLED1 */
+/* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the blinkLED1 thread.
+  * @brief  Function implementing the defaultTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartBlinkLED1 */
-void StartBlinkLED1(void const * argument)
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -649,63 +682,6 @@ void StartBlinkLED1(void const * argument)
     osDelay(1000);
   }
   /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_StartBlinkLED2 */
-/**
-* @brief Function implementing the blinkLED2 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartBlinkLED2 */
-void StartBlinkLED2(void const * argument)
-{
-  /* USER CODE BEGIN StartBlinkLED2 */
-  /* Infinite loop */
-  for(;;)
-  {
-    LED2_Toggle();
-    osDelay(500);
-  }
-  /* USER CODE END StartBlinkLED2 */
-}
-
-/* USER CODE BEGIN Header_StartBlinkLED3 */
-/**
-* @brief Function implementing the blinkLED3 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartBlinkLED3 */
-void StartBlinkLED3(void const * argument)
-{
-  /* USER CODE BEGIN StartBlinkLED3 */
-  /* Infinite loop */
-  for(;;)
-  {
-    LED3_Toggle();
-    osDelay(250);
-  }
-  /* USER CODE END StartBlinkLED3 */
-}
-
-/* USER CODE BEGIN Header_StartToggleWDI */
-/**
-* @brief Function implementing the toggleWDI thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartToggleWDI */
-void StartToggleWDI(void const * argument)
-{
-  /* USER CODE BEGIN StartToggleWDI */
-  /* Infinite loop */
-  for(;;)
-  {
-    MAX6822_WDI_Toggle();
-    osDelay(100);
-  }
-  /* USER CODE END StartToggleWDI */
 }
 
 /**
