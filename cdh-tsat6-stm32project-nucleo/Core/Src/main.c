@@ -31,10 +31,8 @@
 #include "Si4464_driver_test.h"
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
-
 #include "camera_driver.h"
 #include "camera_driver_test.h"
-
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -178,7 +176,6 @@ int main(void)
    * - Sends "d\0" over UART4 for image capture request, then immediately after
    * we start DMA for specific image data.
    */
-
 
   //WORK IN-PROGRESS: Si4464 init & testing
   Si4464_Reset_Device();

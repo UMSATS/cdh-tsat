@@ -94,7 +94,7 @@ HAL_StatusTypeDef CAN_Message_Received(){
 	if(receivedDestinationId == SOURCE_ID){
 	    // *NOTE* Send message to queue per your subsystem here
 	    CANMessage_t can_message = {
-	        .priority = rxMessage.RTR == CAN_RTR_REMOTE ? 0x7F : rxMessage.ExtId >> 24,
+	        .priority = rxMessage.StdId >> 4,
 	        .SenderID = (RECEIVED_SENDER_ID_MASK & rxMessage.StdId) >> 2,
 	        .DestinationID = receivedDestinationId,
 	        .command = rxData[0],
