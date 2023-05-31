@@ -22,7 +22,7 @@
 #define SI4464_PROP_PA_PWR_LVL 0x01
 
 // The SPI bus used for the radio module
-extern SPI_HandleTypeDef hspi2;
+extern SPI_HandleTypeDef hspi1;
 
 typedef struct {
     uint8_t chip_rev;
