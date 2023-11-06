@@ -163,10 +163,10 @@ const osThreadAttr_t takePicture_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for getTaskList */
-osThreadId_t getTaskListHandle;
-const osThreadAttr_t getTaskList_attributes = {
-  .name = "getTaskList",
+/* Definitions for getTasksNum */
+osThreadId_t getTasksNumHandle;
+const osThreadAttr_t getTasksNum_attributes = {
+  .name = "getTasksNum",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -206,7 +206,7 @@ void StartMramUnitTest(void *argument);
 void StartDeployA(void *argument);
 void StartDeployB(void *argument);
 void StartTakePicture(void *argument);
-void StartGetTaskList(void *argument);
+void StartGetTasksNum(void *argument);
 void StartTimeTagTask(void *argument);
 /* USER CODE END PFP */
 
@@ -876,13 +876,17 @@ void StartTakePicture(void *argument)
 }
 
 /**
-* @brief Function implementing the getTaskList thread.
+* @brief Function implementing the getTasksNum thread.
 * @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
 * @retval None
 */
-void StartGetTaskList(void *argument)
+void StartGetTasksNum(void *argument)
 {
-  //TODO: Implement StartGetTaskList
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+  uint8_t tasks_num = (uint8_t) osThreadGetCount();
+  uint8_t response_data[6] = {tasks_num,0,0,0,0,0};
+
+  CAN_Send_Default_ACK_With_Data(can_message, response_data);
 
   osThreadExit();
 }
@@ -1012,7 +1016,7 @@ void StartCanCmdHandler(void *argument)
         takePictureHandle = osThreadNew(StartTakePicture, &can_message, &takePicture_attributes);
         break;
       case 0x47:
-        getTaskListHandle = osThreadNew(StartGetTaskList, &can_message, &getTaskList_attributes);
+        getTasksNumHandle = osThreadNew(StartGetTasksNum, &can_message, &getTasksNum_attributes);
         break;
       case 0x48:
         timeTagTaskHandle = osThreadNew(StartTimeTagTask, &can_message, &timeTagTask_attributes);
