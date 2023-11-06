@@ -35,6 +35,7 @@
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
 #include "can.h"
+#include "telemetry.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,13 +100,83 @@ const osThreadAttr_t canCmdHandler_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for telemHandler */
+osThreadId_t telemHandlerHandle;
+const osThreadAttr_t telemHandler_attributes = {
+  .name = "telemHandler",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
   .name = "canQueue"
 };
+/* Definitions for telemQueue */
+osMessageQueueId_t telemQueueHandle;
+const osMessageQueueAttr_t telemQueue_attributes = {
+  .name = "telemQueue"
+};
 /* USER CODE BEGIN PV */
-
+//###############################################################################################
+//Run-To-Completion Tasks
+//###############################################################################################
+/* Definitions for stm32Reset */
+osThreadId_t stm32ResetHandle;
+const osThreadAttr_t stm32Reset_attributes = {
+  .name = "stm32Reset",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for flashUnitTest */
+osThreadId_t flashUnitTestHandle;
+const osThreadAttr_t flashUnitTest_attributes = {
+  .name = "flashUnitTest",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for mramUnitTest */
+osThreadId_t mramUnitTestHandle;
+const osThreadAttr_t mramUnitTest_attributes = {
+  .name = "mramUnitTest",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for deployA */
+osThreadId_t deployAHandle;
+const osThreadAttr_t deployA_attributes = {
+  .name = "deployA",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for deployB */
+osThreadId_t deployBHandle;
+const osThreadAttr_t deployB_attributes = {
+  .name = "deployB",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for takePicture */
+osThreadId_t takePictureHandle;
+const osThreadAttr_t takePicture_attributes = {
+  .name = "takePicture",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for getTaskList */
+osThreadId_t getTaskListHandle;
+const osThreadAttr_t getTaskList_attributes = {
+  .name = "getTaskList",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for timeTagTask */
+osThreadId_t timeTagTaskHandle;
+const osThreadAttr_t timeTagTask_attributes = {
+  .name = "timeTagTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -123,9 +194,20 @@ void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
 void StartToggleWDI(void *argument);
 void StartCanCmdHandler(void *argument);
+void StartTelemHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
-
+//###############################################################################################
+//Run-To-Completion Tasks
+//###############################################################################################
+void StartStm32Reset(void *argument);
+void StartFlashUnitTest(void *argument);
+void StartMramUnitTest(void *argument);
+void StartDeployA(void *argument);
+void StartDeployB(void *argument);
+void StartTakePicture(void *argument);
+void StartGetTaskList(void *argument);
+void StartTimeTagTask(void *argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -237,6 +319,9 @@ int main(void)
   /* creation of canQueue */
   canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage_t), &canQueue_attributes);
 
+  /* creation of telemQueue */
+  telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -256,6 +341,9 @@ int main(void)
 
   /* creation of canCmdHandler */
   canCmdHandlerHandle = osThreadNew(StartCanCmdHandler, NULL, &canCmdHandler_attributes);
+
+  /* creation of telemHandler */
+  telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -665,6 +753,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+//###############################################################################################
+//Interrupt Service Routines
+//###############################################################################################
 /**
   * @brief  UART Rx message pending callback
   * @param  huart: pointer to a UART_HandleTypeDef structure that contains
@@ -690,6 +781,122 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
     {
         //TODO: Implement error handling for CAN message receives
     }
+}
+
+//###############################################################################################
+//Run-To-Completion Tasks
+//###############################################################################################
+/**
+* @brief Function implementing the stm32Reset thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartStm32Reset(void *argument)
+{
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+
+  CAN_Send_Default_ACK(can_message);
+  MAX6822_Manual_Reset();
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the flashUnitTest thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartFlashUnitTest(void *argument)
+{
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+  W25N_StatusTypeDef test_result = Test_W25N();
+  uint8_t response_data[6] = {test_result,0,0,0,0,0};
+
+  CAN_Send_Default_ACK_With_Data(can_message, response_data);
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the mramUnitTest thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartMramUnitTest(void *argument)
+{
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+  W25N_StatusTypeDef test_result = AS3001204_Test_MRAM_Driver();
+  uint8_t response_data[6] = {test_result,0,0,0,0,0};
+
+  CAN_Send_Default_ACK_With_Data(can_message, response_data);
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the deployA thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartDeployA(void *argument)
+{
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+
+  CAN_Send_Default_ACK(can_message);
+  LTC1154_Enable();
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the deployB thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartDeployB(void *argument)
+{
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+
+  CAN_Send_Default_ACK(can_message);
+  LTC1154_On();
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the takePicture thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartTakePicture(void *argument)
+{
+  piCAM_Test_Procedure();
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the getTaskList thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartGetTaskList(void *argument)
+{
+  //TODO: Implement StartGetTaskList
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the timeTagTask thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartTimeTagTask(void *argument)
+{
+  //TODO: Implement StartTimeTagTask
+
+  osThreadExit();
 }
 /* USER CODE END 4 */
 
@@ -779,13 +986,65 @@ void StartToggleWDI(void *argument)
 void StartCanCmdHandler(void *argument)
 {
   /* USER CODE BEGIN StartCanCmdHandler */
+  CANMessage_t can_message;
   /* Infinite loop */
   for(;;)
   {
-    //TODO: Implement CAN Command Handler
-    osDelay(100);
+    osMessageQueueGet(canQueueHandle, &can_message, NULL, osWaitForever);
+    switch (can_message.command)
+    {
+      case 0x40:
+        stm32ResetHandle = osThreadNew(StartStm32Reset, &can_message, &stm32Reset_attributes);
+        break;
+      case 0x41:
+        flashUnitTestHandle = osThreadNew(StartFlashUnitTest, &can_message, &flashUnitTest_attributes);
+        break;
+      case 0x42:
+        mramUnitTestHandle = osThreadNew(StartMramUnitTest, &can_message, &mramUnitTest_attributes);
+        break;
+      case 0x43:
+        deployAHandle = osThreadNew(StartDeployA, &can_message, &deployA_attributes);
+        break;
+      case 0x44:
+        deployBHandle = osThreadNew(StartDeployB, &can_message, &deployB_attributes);
+        break;
+      case 0x45:
+        takePictureHandle = osThreadNew(StartTakePicture, &can_message, &takePicture_attributes);
+        break;
+      case 0x47:
+        getTaskListHandle = osThreadNew(StartGetTaskList, &can_message, &getTaskList_attributes);
+        break;
+      case 0x48:
+        timeTagTaskHandle = osThreadNew(StartTimeTagTask, &can_message, &timeTagTask_attributes);
+        break;
+      default:
+        break;
+    }
   }
   /* USER CODE END StartCanCmdHandler */
+}
+
+/* USER CODE BEGIN Header_StartTelemHandler */
+/**
+* @brief Function implementing the telemHandler thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTelemHandler */
+void StartTelemHandler(void *argument)
+{
+  /* USER CODE BEGIN StartTelemHandler */
+  TelemetryMessage_t telemetry_message;
+  /* Infinite loop */
+  for(;;)
+  {
+    osMessageQueueGet(telemQueueHandle, &telemetry_message, NULL, osWaitForever);
+    switch(telemetry_message.id)
+    {
+      //TODO: Implement telemetry handling
+    }
+  }
+  /* USER CODE END StartTelemHandler */
 }
 
 /**

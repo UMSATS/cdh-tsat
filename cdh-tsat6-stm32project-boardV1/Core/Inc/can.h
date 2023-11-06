@@ -17,6 +17,7 @@
 // Include Directives
 //###############################################################################################
 #include "stm32l4xx_hal.h"
+#include "cmsis_os.h"
 
 //###############################################################################################
 // Define Directives & Extern Variables
@@ -27,6 +28,7 @@
 #define SOURCE_ID  0x1 // The ID number of the device MAX VALUE: 0x3
 
 extern CAN_HandleTypeDef hcan1; // Set this to the CAN type found in generated main.c file
+extern osMessageQId canQueueHandle; // RTOS CAN queue
 
 //###############################################################################################
 // Structs
