@@ -177,6 +177,20 @@ const osThreadAttr_t timeTagTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for setRTC */
+osThreadId_t setRTCHandle;
+const osThreadAttr_t setRTC_attributes = {
+  .name = "setRTC",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for getRTC */
+osThreadId_t getRTCHandle;
+const osThreadAttr_t getRTC_attributes = {
+  .name = "getRTC",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -208,6 +222,8 @@ void StartDeployB(void *argument);
 void StartTakePicture(void *argument);
 void StartGetTasksNum(void *argument);
 void StartTimeTagTask(void *argument);
+void StartSetRTC(void *argument);
+void StartGetRTC(void *argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -902,6 +918,30 @@ void StartTimeTagTask(void *argument)
 
   osThreadExit();
 }
+
+/**
+* @brief Function implementing the setRTC thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartSetRTC(void *argument)
+{
+  //TODO: Implement StartSetRTC
+
+  osThreadExit();
+}
+
+/**
+* @brief Function implementing the getRTC thread.
+* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @retval None
+*/
+void StartGetRTC(void *argument)
+{
+  //TODO: Implement StartGetRTC
+
+  osThreadExit();
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartBlinkLED1 */
@@ -1020,6 +1060,12 @@ void StartCanCmdHandler(void *argument)
         break;
       case 0x48:
         timeTagTaskHandle = osThreadNew(StartTimeTagTask, &can_message, &timeTagTask_attributes);
+        break;
+      case 0x49:
+        setRTCHandle = osThreadNew(StartSetRTC, &can_message, &setRTC_attributes);
+        break;
+      case 0x4A:
+        getRTCHandle = osThreadNew(StartGetRTC, &can_message, &getRTC_attributes);
         break;
       default:
         break;
