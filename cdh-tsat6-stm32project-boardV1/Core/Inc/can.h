@@ -61,4 +61,13 @@ HAL_StatusTypeDef CAN_Send_Default_ACK_With_Data(
         uint8_t *p_data // The 6 bytes of data that should be sent
 );
 
+HAL_StatusTypeDef CAN_Send_Default_NACK(
+        CANMessage_t myMessage // The message that the default NACK should be sent for
+);
+
+HAL_StatusTypeDef CAN_Send_Default_NACK_With_Data(
+        CANMessage_t myMessage, // The message that the default NACK should be sent for
+        uint8_t *p_data // The 6 bytes of data that should be sent
+);
+
 #endif /* INCLUDE_CAN_H_ */

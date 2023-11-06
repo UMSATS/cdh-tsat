@@ -144,3 +144,40 @@ HAL_StatusTypeDef CAN_Send_Default_ACK_With_Data(CANMessage_t myMessage, uint8_t
   };
   return CAN_Transmit_Message(ack_message);
 }
+
+/**
+ * @brief Send a CAN default NACK message for the given CAN message
+ *
+ * @param myMessage: The received CAN message to send the NACK for
+ *
+ * @return HAL_StatusTypeDef
+ */
+HAL_StatusTypeDef CAN_Send_Default_NACK(CANMessage_t myMessage){
+  CANMessage_t nack_message = {
+    .priority = myMessage.priority,
+    .SenderID = SOURCE_ID,
+    .DestinationID = myMessage.SenderID,
+    .command = 0x02,
+    .data = {myMessage.command, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+  };
+  return CAN_Transmit_Message(nack_message);
+}
+
+/**
+ * @brief Send a CAN default NACK message for the given CAN message, with data
+ *
+ * @param myMessage: The received CAN message to send the NACK for
+ * @param p_data: The 6 bytes of data to send
+ *
+ * @return HAL_StatusTypeDef
+ */
+HAL_StatusTypeDef CAN_Send_Default_NACK_With_Data(CANMessage_t myMessage, uint8_t *p_data){
+  CANMessage_t nack_message = {
+    .priority = myMessage.priority,
+    .SenderID = SOURCE_ID,
+    .DestinationID = myMessage.SenderID,
+    .command = 0x02,
+    .data = {myMessage.command, p_data[0], p_data[1], p_data[2], p_data[3], p_data[4], p_data[5]}
+  };
+  return CAN_Transmit_Message(nack_message);
+}
