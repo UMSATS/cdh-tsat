@@ -14,6 +14,11 @@
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
+  * AUTHORS:
+  *  Daigh Burgess (daigh.burgess@umsats.ca)
+  *   -Application Code
+  *  Kyle James (kyle.james@umsats.ca)
+  *   -RTC Interfacing
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -927,7 +932,25 @@ void StartTimeTagTask(void *argument)
 */
 void StartSetRTC(void *argument)
 {
-  //TODO: Implement StartSetRTC
+  HAL_StatusTypeDef operation_status;
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+  uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
+  RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
+  RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
+
+  operation_status = HAL_RTC_SetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
+  if (operation_status != HAL_OK) goto error;
+  operation_status = HAL_RTC_SetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
+
+error:
+  if (operation_status == HAL_OK)
+  {
+    CAN_Send_Default_ACK(can_message);
+  }
+  else
+  {
+    CAN_Send_Default_NACK(can_message);
+  }
 
   osThreadExit();
 }
@@ -939,7 +962,30 @@ void StartSetRTC(void *argument)
 */
 void StartGetRTC(void *argument)
 {
-  //TODO: Implement StartGetRTC
+  HAL_StatusTypeDef operation_status;
+  RTC_TimeTypeDef rtc_time;
+  RTC_DateTypeDef rtc_date;
+  uint32_t unix_timestamp;
+  uint8_t response_data[6] = {0,0,0,0,0,0};
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+
+  operation_status = HAL_RTC_GetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
+  if (operation_status != HAL_OK) goto error;
+  operation_status = HAL_RTC_GetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
+  if (operation_status != HAL_OK) goto error;
+
+  unix_timestamp = rtc_to_unix_timestamp(rtc_time, rtc_date);
+  uint32_to_four_byte_array(unix_timestamp, response_data);
+
+error:
+  if (operation_status == HAL_OK)
+  {
+    CAN_Send_Default_ACK_With_Data(can_message, response_data);
+  }
+  else
+  {
+    CAN_Send_Default_NACK(can_message);
+  }
 
   osThreadExit();
 }

@@ -32,6 +32,18 @@
 uint32_t four_byte_array_to_uint32(uint8_t *p_buffer);
 
 /*
+ * FUNCTION: uint32_to_four_byte_array
+ *
+ * DESCRIPTION: Fills the given 4-byte array with the given 32-bit value. The 4-byte array is
+ *              interpreted as element 3 being the MSB & element 0 being the LSB.
+ *
+ * PARAMETERS:
+ *  value32: The 32-bit value.
+ *  p_buffer: Pointer to element 0 of the 4-byte array.
+ */
+void uint32_to_four_byte_array(uint32_t value32, uint8_t *p_buffer);
+
+/*
  * FUNCTION: rtc_to_unix_timestamp
  *
  * DESCRIPTION: Returns the Unix timestamp representation of the given RTC value.
