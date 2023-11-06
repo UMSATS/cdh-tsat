@@ -21,6 +21,17 @@
 // Public Function Prototypes
 //###############################################################################################
 /*
+ * FUNCTION: four_byte_array_to_uint32
+ *
+ * DESCRIPTION: Returns the uint32 representation of the given 4-byte array. The 4-byte array is
+ *              interpreted as element 3 being the MSB & element 0 being the LSB.
+ *
+ * PARAMETERS:
+ *  p_buffer: Pointer to element 0 of the 4-byte array.
+ */
+uint32_t four_byte_array_to_uint32(uint8_t *p_buffer);
+
+/*
  * FUNCTION: rtc_to_unix_timestamp
  *
  * DESCRIPTION: Returns the Unix timestamp representation of the given RTC struct.
