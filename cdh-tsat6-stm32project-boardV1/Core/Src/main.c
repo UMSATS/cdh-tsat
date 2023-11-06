@@ -36,6 +36,7 @@
 #include "LTC1154_driver.h"
 #include "can.h"
 #include "telemetry.h"
+#include "utils.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
