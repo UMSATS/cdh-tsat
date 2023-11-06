@@ -34,21 +34,32 @@ uint32_t four_byte_array_to_uint32(uint8_t *p_buffer);
 /*
  * FUNCTION: rtc_to_unix_timestamp
  *
- * DESCRIPTION: Returns the Unix timestamp representation of the given RTC struct.
+ * DESCRIPTION: Returns the Unix timestamp representation of the given RTC value.
  *
  * PARAMETERS:
- *  rtc_value: The current RTC value.
+ *  rtc_time: The current RTC time value.
+ *  rtc_date: The current RTC date value.
  */
-uint32_t rtc_to_unix_timestamp(RTC_TimeTypeDef rtc_value);
+uint32_t rtc_to_unix_timestamp(RTC_TimeTypeDef rtc_time, RTC_DateTypeDef rtc_date);
 
 /*
- * FUNCTION: unix_timestamp_to_rtc
+ * FUNCTION: unix_timestamp_to_rtc_time
  *
- * DESCRIPTION: Returns the RTC struct representation of the given Unix timestamp.
+ * DESCRIPTION: Returns the RTC time value representation of the given Unix timestamp.
  *
  * PARAMETERS:
  *  unix_timestamp: The current Unix timestamp.
  */
-RTC_TimeTypeDef unix_timestamp_to_rtc(uint32_t unix_timestamp);
+RTC_TimeTypeDef unix_timestamp_to_rtc_time(uint32_t unix_timestamp);
+
+/*
+ * FUNCTION: unix_timestamp_to_rtc_date
+ *
+ * DESCRIPTION: Returns the RTC date value representation of the given Unix timestamp.
+ *
+ * PARAMETERS:
+ *  unix_timestamp: The current Unix timestamp.
+ */
+RTC_DateTypeDef unix_timestamp_to_rtc_date(uint32_t unix_timestamp);
 
 #endif /* INC_UTILS_H_ */
