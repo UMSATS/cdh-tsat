@@ -113,6 +113,13 @@ const osThreadAttr_t telemHandler_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for timeTagTask */
+osThreadId_t timeTagTaskHandle;
+const osThreadAttr_t timeTagTask_attributes = {
+  .name = "timeTagTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -176,10 +183,10 @@ const osThreadAttr_t getTasksNum_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for timeTagTask */
-osThreadId_t timeTagTaskHandle;
-const osThreadAttr_t timeTagTask_attributes = {
-  .name = "timeTagTask",
+/* Definitions for timeTagTaskInit */
+osThreadId_t timeTagTaskInitHandle;
+const osThreadAttr_t timeTagTaskInit_attributes = {
+  .name = "timeTagTaskInit",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -215,6 +222,7 @@ void StartBlinkLED3(void *argument);
 void StartToggleWDI(void *argument);
 void StartCanCmdHandler(void *argument);
 void StartTelemHandler(void *argument);
+void StartTimeTagTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 //###############################################################################################
@@ -227,7 +235,7 @@ void StartDeployA(void *argument);
 void StartDeployB(void *argument);
 void StartTakePicture(void *argument);
 void StartGetTasksNum(void *argument);
-void StartTimeTagTask(void *argument);
+void StartTimeTagTaskInit(void *argument);
 void StartSetRTC(void *argument);
 void StartGetRTC(void *argument);
 /* USER CODE END PFP */
@@ -371,6 +379,9 @@ int main(void)
 
   /* creation of telemHandler */
   telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
+
+  /* creation of timeTagTask */
+  timeTagTaskHandle = osThreadNew(StartTimeTagTask, NULL, &timeTagTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -838,25 +849,7 @@ static void MX_GPIO_Init(void)
   */
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
-  HAL_StatusTypeDef operation_status;
-  CANMessage_t ack_message =
-  {
-    .priority = 0b0000111,
-    .SenderID = 0x1,
-    .DestinationID = 0x1,
-    .command = 0x01,
-    .data = {0x48, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
-  };
-
-  operation_status = CAN_Transmit_Message(ack_message);
-  if (operation_status != HAL_OK) goto error;
-  operation_status = HAL_RTC_DeactivateAlarm(hrtc, RTC_ALARM_A);
-
-error:
-  if (operation_status != HAL_OK)
-  {
-    //TODO: Implement error handling for RTC alarm interrupts
-  }
+  osThreadResume(timeTagTaskHandle);
 }
 
 /**
@@ -867,7 +860,7 @@ error:
   */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    piCAM_Receive_Check();
+  piCAM_Receive_Check();
 }
 
 /**
@@ -878,12 +871,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
 {
-    HAL_StatusTypeDef operation_status;
-    operation_status = CAN_Message_Received();
-    if (operation_status != HAL_OK)
-    {
-        //TODO: Implement error handling for CAN message receives
-    }
+  HAL_StatusTypeDef operation_status;
+  operation_status = CAN_Message_Received();
+  if (operation_status != HAL_OK)
+  {
+    //TODO: Implement error handling for CAN message receives
+  }
 }
 
 //###############################################################################################
@@ -995,11 +988,11 @@ void StartGetTasksNum(void *argument)
 }
 
 /**
-* @brief Function implementing the timeTagTask thread.
+* @brief Function implementing the timeTagTaskInit thread.
 * @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
 * @retval None
 */
-void StartTimeTagTask(void *argument)
+void StartTimeTagTaskInit(void *argument)
 {
   HAL_StatusTypeDef operation_status;
   RTC_AlarmTypeDef rtc_alarm;
@@ -1211,7 +1204,7 @@ void StartCanCmdHandler(void *argument)
         getTasksNumHandle = osThreadNew(StartGetTasksNum, &can_message, &getTasksNum_attributes);
         break;
       case 0x48:
-        timeTagTaskHandle = osThreadNew(StartTimeTagTask, &can_message, &timeTagTask_attributes);
+        timeTagTaskInitHandle = osThreadNew(StartTimeTagTaskInit, &can_message, &timeTagTaskInit_attributes);
         break;
       case 0x49:
         setRTCHandle = osThreadNew(StartSetRTC, &can_message, &setRTC_attributes);
@@ -1247,6 +1240,44 @@ void StartTelemHandler(void *argument)
     }
   }
   /* USER CODE END StartTelemHandler */
+}
+
+/* USER CODE BEGIN Header_StartTimeTagTask */
+/**
+* @brief Function implementing the timeTagTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTimeTagTask */
+void StartTimeTagTask(void *argument)
+{
+  /* USER CODE BEGIN StartTimeTagTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osThreadSuspend(timeTagTaskHandle); //block until thread resumed from RTC alarm ISR
+
+    HAL_StatusTypeDef operation_status;
+    CANMessage_t ack_message =
+    {
+      .priority = 0b0000111,
+      .SenderID = 0x1,
+      .DestinationID = 0x1,
+      .command = 0x01,
+      .data = {0x48, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
+    };
+
+    operation_status = CAN_Transmit_Message(ack_message);
+    if (operation_status != HAL_OK) goto error;
+    operation_status = HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
+
+error:
+    if (operation_status != HAL_OK)
+    {
+      //TODO: Implement error handling for StartTimeTagTask
+    }
+  }
+  /* USER CODE END StartTimeTagTask */
 }
 
 /**
