@@ -845,7 +845,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
     .SenderID = 0x1,
     .DestinationID = 0x1,
     .command = 0x01,
-    .data = {0x48, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+    .data = {0x48, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
   };
 
   operation_status = CAN_Transmit_Message(ack_message);
@@ -1001,7 +1001,31 @@ void StartGetTasksNum(void *argument)
 */
 void StartTimeTagTask(void *argument)
 {
-  //TODO: Implement StartTimeTagTask
+  HAL_StatusTypeDef operation_status;
+  RTC_AlarmTypeDef rtc_alarm;
+  CANMessage_t can_message = *((CANMessage_t*)argument);
+  uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
+  RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
+  RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
+
+  rtc_alarm.AlarmTime = rtc_time;
+  rtc_alarm.AlarmMask = RTC_ALARMMASK_NONE;
+  rtc_alarm.SubSeconds = 0;
+  rtc_alarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+  rtc_alarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  rtc_alarm.AlarmDateWeekDay = rtc_date.Date;
+  rtc_alarm.Alarm = RTC_ALARM_A;
+
+  operation_status = HAL_RTC_SetAlarm_IT(&hrtc, &rtc_alarm, RTC_FORMAT_BIN);
+
+  if (operation_status == HAL_OK)
+  {
+    CAN_Send_Default_ACK(can_message);
+  }
+  else
+  {
+    CAN_Send_Default_NACK(can_message);
+  }
 
   osThreadExit();
 }
