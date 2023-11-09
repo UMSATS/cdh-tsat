@@ -14,9 +14,10 @@
 //Include Directives
 //###############################################################################################
 #include <stdint.h>
+#include <time.h>
 #include "stm32l4xx_hal.h"
 #include "utils.h"
-#include <time.h>
+
 //###############################################################################################
 //Public Functions
 //###############################################################################################
@@ -47,7 +48,7 @@ uint32_t rtc_to_unix_timestamp(RTC_TimeTypeDef rtc_time, RTC_DateTypeDef rtc_dat
 		,.tm_isdst = 0
 	};
 
-	// Resolve RTC_MONTH hex inconsistencies
+	// Resolve RTC_MONTH BCD inconsistencies
 	if (date_and_time.tm_mon >= 10) { date_and_time.tm_mon -= 6; }
 
 	return (uint32_t) mktime(&date_and_time);
@@ -62,7 +63,7 @@ RTC_TimeTypeDef unix_timestamp_to_rtc_time(uint32_t unix_timestamp)
 	RTC_TimeTypeDef rtc_time = {
 		.Hours = date_and_time.tm_hour
 		,.Minutes = date_and_time.tm_min
-	   ,.Seconds = date_and_time.tm_sec
+	  ,.Seconds = date_and_time.tm_sec
 	};
 
 	return rtc_time;
@@ -80,6 +81,9 @@ RTC_DateTypeDef unix_timestamp_to_rtc_date(uint32_t unix_timestamp)
 		,.Year = date_and_time.tm_year - 70
 		,.WeekDay = date_and_time.tm_wday
 	};
+
+	// Resolve RTC_MONTH BCD inconsistencies
+	if (rtc_date.Month >= 10) { rtc_date.Month += 6; }
 
 	// Resolve RTC_WEEKDAY inconsistency
 	if (rtc_date.WeekDay == 0) { rtc_date.WeekDay = 7; }
