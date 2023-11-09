@@ -19,6 +19,8 @@
   *   -Application Code
   *  Kyle James (kyle.james@umsats.ca)
   *   -RTC Interfacing
+  *  Christina Duong (christina.duong@umsats.ca)
+  *   -FreeRTOS Code
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
