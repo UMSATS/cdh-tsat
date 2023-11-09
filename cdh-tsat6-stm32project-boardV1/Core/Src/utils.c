@@ -63,7 +63,7 @@ RTC_TimeTypeDef unix_timestamp_to_rtc_time(uint32_t unix_timestamp)
 	RTC_TimeTypeDef rtc_time = {
 		.Hours = date_and_time.tm_hour
 		,.Minutes = date_and_time.tm_min
-	  ,.Seconds = date_and_time.tm_sec
+		,.Seconds = date_and_time.tm_sec
 	};
 
 	return rtc_time;
