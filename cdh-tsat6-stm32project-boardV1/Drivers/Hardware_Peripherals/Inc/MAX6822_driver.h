@@ -20,11 +20,11 @@
 //###############################################################################################
 //Public Define Directives
 //###############################################################################################
-#define WDI_GPIO          GPIOC
-#define WDI_PIN           GPIO_PIN_0
+#define WDI_GPIO          GPIOB
+#define WDI_PIN           GPIO_PIN_6
 
-#define M_nReset_GPIO     GPIOC
-#define M_nReset_PIN      GPIO_PIN_1
+#define M_nReset_GPIO     GPIOB
+#define M_nReset_PIN      GPIO_PIN_7
 
 //###############################################################################################
 //Public Driver Function Prototypes

@@ -57,10 +57,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define WDI_Pin GPIO_PIN_0
-#define WDI_GPIO_Port GPIOC
-#define M_nRESET_Pin GPIO_PIN_1
-#define M_nRESET_GPIO_Port GPIOC
+#define RELEASE_nEN_Pin GPIO_PIN_1
+#define RELEASE_nEN_GPIO_Port GPIOA
+#define RELEASE_Pin GPIO_PIN_2
+#define RELEASE_GPIO_Port GPIOA
 #define UHF_nCS_Pin GPIO_PIN_4
 #define UHF_nCS_GPIO_Port GPIOC
 #define UHF_nIRQ_Pin GPIO_PIN_5
@@ -91,10 +91,10 @@ void Error_Handler(void);
 #define MRAM_nWP_GPIO_Port GPIOA
 #define MRAM_nCS_Pin GPIO_PIN_2
 #define MRAM_nCS_GPIO_Port GPIOD
-#define RELEASE_nEN_Pin GPIO_PIN_6
-#define RELEASE_nEN_GPIO_Port GPIOB
-#define RELEASE_Pin GPIO_PIN_7
-#define RELEASE_GPIO_Port GPIOB
+#define WDI_Pin GPIO_PIN_6
+#define WDI_GPIO_Port GPIOB
+#define M_nRESET_Pin GPIO_PIN_7
+#define M_nRESET_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
