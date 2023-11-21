@@ -65,6 +65,8 @@ void Error_Handler(void);
 #define UHF_nCS_GPIO_Port GPIOC
 #define UHF_nIRQ_Pin GPIO_PIN_5
 #define UHF_nIRQ_GPIO_Port GPIOC
+#define UHF_SDN_Pin GPIO_PIN_0
+#define UHF_SDN_GPIO_Port GPIOB
 #define LED1_Pin GPIO_PIN_2
 #define LED1_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_10
@@ -77,8 +79,6 @@ void Error_Handler(void);
 #define FLASH_nCS_GPIO_Port GPIOC
 #define FLASH_nHOLD_Pin GPIO_PIN_7
 #define FLASH_nHOLD_GPIO_Port GPIOC
-#define UHF_SDN_Pin GPIO_PIN_8
-#define UHF_SDN_GPIO_Port GPIOC
 #define CAM_ON_Pin GPIO_PIN_9
 #define CAM_ON_GPIO_Port GPIOC
 #define CAM_FSH_Pin GPIO_PIN_8
