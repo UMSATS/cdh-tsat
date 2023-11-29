@@ -61,6 +61,8 @@ void Error_Handler(void);
 #define RELEASE_nEN_GPIO_Port GPIOA
 #define RELEASE_Pin GPIO_PIN_2
 #define RELEASE_GPIO_Port GPIOA
+#define CDH_TEMP_Pin GPIO_PIN_3
+#define CDH_TEMP_GPIO_Port GPIOA
 #define SPI1_SDI_Pin GPIO_PIN_6
 #define SPI1_SDI_GPIO_Port GPIOA
 #define SPI1_SDO_Pin GPIO_PIN_7
@@ -71,6 +73,8 @@ void Error_Handler(void);
 #define UHF_nIRQ_GPIO_Port GPIOC
 #define UHF_SDN_Pin GPIO_PIN_0
 #define UHF_SDN_GPIO_Port GPIOB
+#define COMM_TEMP_Pin GPIO_PIN_1
+#define COMM_TEMP_GPIO_Port GPIOB
 #define LED1_Pin GPIO_PIN_2
 #define LED1_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_10
