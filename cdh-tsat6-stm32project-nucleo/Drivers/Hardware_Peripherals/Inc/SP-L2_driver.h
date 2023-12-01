@@ -91,7 +91,7 @@ SPL2_StatusTypeDef S2LP_Spi_Read_RX_Fifo(uint8_t address, uint8_t n_regs, uint8_
  *
  *
  */
-SPL2_StatusTypeDef S2LP_Spi_Send_Command(uint8_t address, uint8_t n_regs, uint8_t* buffer);
+SPL2_StatusTypeDef S2LP_Spi_Send_Command(uint8_t commandByte);
 
 /**
  * @brief Shuts down SP-L2.
