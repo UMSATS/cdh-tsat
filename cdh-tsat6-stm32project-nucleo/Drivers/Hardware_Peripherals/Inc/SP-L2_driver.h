@@ -16,6 +16,11 @@
 //###############################################################################################
 #include "stm32l4xx_hal.h"
 #include "main.h"
+#include <stdio.h>
+#include <string.h>
+
+#define S2LP_CS_SELECT 0
+#define S2LP_CS_RELEASE 1
 
 typedef enum
 {
@@ -91,7 +96,7 @@ SPL2_StatusTypeDef S2LP_Spi_Read_RX_Fifo(uint8_t address, uint8_t n_regs, uint8_
  *
  *
  */
-SPL2_StatusTypeDef S2LP_Spi_Send_Command(uint8_t commandByte);
+SPL2_StatusTypeDef S2LP_Spi_Send_Command(uint8_t address, uint8_t n_regs, uint8_t* buffer);
 
 /**
  * @brief Shuts down SP-L2.
@@ -100,6 +105,11 @@ SPL2_StatusTypeDef S2LP_Spi_Send_Command(uint8_t commandByte);
  */
 SPL2_StatusTypeDef S2LP_Reset();
 
-
+/**
+ * @brief Sets the chip select state using S2LP_nCS_SELECT and S2LP_nCS_RELEASE.
+ * 
+ * @return SPL2_StatusTypeDef 
+ */
+SPL2_StatusTypeDef S2LP_nCS(uint8_t sel);
 
 #endif /* HARDWARE_PERIPHERALS_INC_SP_L2_DRIVER_H_ */
