@@ -35,7 +35,7 @@ typedef enum
  *
  * *Note* The Radio will use SPI 2 on the mcu.
  */
-SPL2_StatusTypeDef SPL2_Spi_Send_Message(uint8_t * pData, size_t numToSend);
+SPL2_StatusTypeDef SPL2_SPI_Send_Message(uint8_t * pData, size_t numToSend);
 
 
 /**
@@ -43,7 +43,7 @@ SPL2_StatusTypeDef SPL2_Spi_Send_Message(uint8_t * pData, size_t numToSend);
  *
  *
  */
-SPL2_StatusTypeDef SPL2_Spi_Receive_Message(uint8_t * pData, size_t numToReceive);
+SPL2_StatusTypeDef SPL2_SPI_Receive_Message(uint8_t * pData, size_t numToReceive);
 
 
 /**
@@ -79,12 +79,21 @@ SPL2_StatusTypeDef S2LP_Spi_Write_TX_Fifo(uint8_t address, uint8_t n_regs, uint8
 
 
 /**
- * @brief Reads the S2-LP RX FIFO.
- *
- *
+ * @brief Reads given amount of bytes from RX FIFO.
+ * 
+ * @param n_bytes number of bytes to read
+ * @param buffer buffer for received bytes
+ * @return SPL2_StatusTypeDef 
  */
-SPL2_StatusTypeDef S2LP_Spi_Read_RX_Fifo(uint8_t address, uint8_t n_regs, uint8_t* buffer);
+SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer);
 
+/**
+ * @brief Fetches a count of RX values waiting in the FIFO
+ * 
+ * @param lengthBuffer return buffer for length
+ * @return SPL2_StatusTypeDef 
+ */
+SPL2_StatusTypeDef SPL2_Check_RX_FIFO_Status(uint8_t * lengthBuffer);
 
 /**
  * @brief Reads the S2-LP RX FIFO.
