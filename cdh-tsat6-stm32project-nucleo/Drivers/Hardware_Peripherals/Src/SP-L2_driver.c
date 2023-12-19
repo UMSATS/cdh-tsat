@@ -58,15 +58,19 @@ SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
 		numToFetch = avaliableBytes;
 	}
 
-	// pull down cs
+	// Pull down to select
+	status = S2LP_nCS(S2LP_CS_SELECT);
+	if(status != SPL2_HAL_OK) goto error;
 
-	SPL2_SPI_Send_Message(0xFF80, 2);
+	status = SPL2_SPI_Send_Message(0xFF80, 2);
 	if(status != SPL2_HAL_OK) goto error;
 
 	status = SPL2_SPI_Receive_Message(buffer, numToFetch);
 	if(status != SPL2_HAL_OK) goto error;
 
-	// pull up cs
+	// Pull up to release
+	status = S2LP_nCS(S2LP_CS_RELEASE);
+	if(status != SPL2_HAL_OK) goto error;
 
 	error:
 		return status;
