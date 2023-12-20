@@ -11,14 +11,13 @@
 
 #include "SP-L2_driver.h"
 
-
-SPL2_StatusTypeDef SPL2_Spi_Send_Message(uint8_t * pData, size_t numToSend){
+SPL2_StatusTypeDef SPL2_SPI_Send_Message(uint8_t * pData, size_t numToSend){
 
 	return HAL_SPI_Transmit(&hspi2, pData, numToSend, HAL_MAX_DELAY);
 }
 
 
-SPL2_StatusTypeDef SPL2_Spi_Receive_Message(uint8_t * pData, size_t numToReceive){
+SPL2_StatusTypeDef SPL2_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
 
 	return HAL_SPI_Receive_DMA(&hspi2, pData, numToReceive);
 }
@@ -29,12 +28,27 @@ SPL2_StatusTypeDef SPL2_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *
 	return HAL_SPI_TransmitReceive(&hspi2, pTxData, pRxData, numTransmitReceive);
 }
 
+
 SPL2_StatusTypeDef SPL2_Check_TX_FIFO_Status(uint8_t * lengthBuffer){
 	SPL2_StatusTypeDef status = SPL2_HAL_OK;
 
 	// Should we pull down here??? Probably not?
 	// We should probably create a typedef of all/most used registers
 	status = S2LP_Spi_Read_Registers(0x8D, 1, &lengthBuffer);
+  if(status != SPL2_HAL_OK) goto error;
+
+
+	error:
+		return status;
+}
+
+
+SPL2_StatusTypeDef SPL2_Check_RX_FIFO_Status(uint8_t * lengthBuffer){
+
+	SPL2_StatusTypeDef status = SPL2_HAL_OK;
+
+	// Should we pull down here??? Probably not?
+	status = S2LP_Spi_Read_Registers(0x90, 2, &lengthBuffer);
 	if(status != SPL2_HAL_OK) goto error;
 
 
@@ -80,6 +94,43 @@ SPL2_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
 }
 
 
+SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
+
+	SPL2_StatusTypeDef status = SPL2_HAL_OK;
+	uint8_t avaliableBytes = 0;
+	uint8_t numToFetch = 0;
+
+	// First we need to check how many messages are in the FIFO
+	status = SPL2_CHECK_RX_FIFO_STATUS(&avaliableBytes); // Change naming standard away from SPI if not directly an SPI command?
+	if(status != SPL2_HAL_OK) goto error;
+
+	// If there are enough bytes ready for requested amount count
+	// Else get as many as avaliable
+	if(avaliableBytes > n_bytes){
+		numToFetch = n_bytes;
+	}
+	else{
+		numToFetch = avaliableBytes;
+	}
+
+	// Pull down to select
+	status = S2LP_nCS(S2LP_CS_SELECT);
+	if(status != SPL2_HAL_OK) goto error;
+
+	status = SPL2_SPI_Send_Message(0xFF80, 2);
+	if(status != SPL2_HAL_OK) goto error;
+
+	status = SPL2_SPI_Receive_Message(buffer, numToFetch);
+	if(status != SPL2_HAL_OK) goto error;
+
+	// Pull up to release
+	status = S2LP_nCS(S2LP_CS_RELEASE);
+	if(status != SPL2_HAL_OK) goto error;
+
+	error:
+		return status;
+}
+
 SPL2_StatusTypeDef S2LP_nCS(uint8_t sel){
 
 	if(sel){
@@ -88,5 +139,4 @@ SPL2_StatusTypeDef S2LP_nCS(uint8_t sel){
 	else{
 		HAL_GPIO_WritePin(UHF_nCS_GPIO_Port, UHF_nCS_Pin, GPIO_PIN_RESET);
 	}
-
 }
