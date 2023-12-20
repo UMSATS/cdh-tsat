@@ -7,6 +7,12 @@
  *  - Graham Driver (graham.driver@umsats.ca)
  *
  * CREATED ON: November 13th 2023
+ * 
+ * Functions left to write (Add or Remove as necessary):
+ * S2LP_Spi_Write_Registers
+ * S2LP_Spi_Read_Registers
+ * S2LP_Send_Command
+ * S2LP_Reset
  */
 
 #ifndef HARDWARE_PERIPHERALS_INC_SP_L2_DRIVER_H_
