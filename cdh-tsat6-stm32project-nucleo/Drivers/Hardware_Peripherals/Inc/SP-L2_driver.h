@@ -24,10 +24,11 @@
 
 typedef enum
 {
-	SPL2_HAL_OK                     = HAL_OK,      //0x00
-	SPL2_HAL_ERROR                  = HAL_ERROR,   //0x01
-	SPL2_HAL_BUSY                   = HAL_BUSY,    //0x02
-	SPL2_HAL_TIMEOUT                = HAL_TIMEOUT, //0x03
+	SPL2_HAL_OK                     = HAL_OK,      	//0x00
+	SPL2_HAL_ERROR                  = HAL_ERROR,   	//0x01
+	SPL2_HAL_BUSY                   = HAL_BUSY,    	//0x02
+	SPL2_HAL_TIMEOUT                = HAL_TIMEOUT, 	//0x03
+	SPL2_TX_FIFO_FULL,
 } SPL2_StatusTypeDef;
 
 //###############################################################################################
@@ -74,13 +75,23 @@ SPL2_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uin
  */
 SPL2_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer);
 
+/**
+ * @brief This function will read the register that contains a counter for the amount of bytes in TX FIFO.
+ * 
+ * @param lengthBuffer The amount of bytes in the FIFO
+ * @return SPL2_StatusTypeDef 
+ */
+SPL2_StatusTypeDef SPL2_Check_TX_FIFO_Status(uint8_t * lengthBuffer);
 
 /**
- * @brief Writes to the S2-LP TX FIFO.
- *
- *
+ * @brief This function will send data to the S2LP driver if there is space.
+ * If there is no space available in the FIFO it will return SPL2_TX_FIFO_FULL.
+ * 
+ * @param size The size of the packet that is being sent
+ * @param buffer A buffer containing data to be sent
+ * @return SPL2_StatusTypeDef 
  */
-SPL2_StatusTypeDef S2LP_Spi_Write_TX_Fifo(uint8_t address, uint8_t n_regs, uint8_t* buffer);
+SPL2_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer);
 
 
 /**
@@ -106,8 +117,10 @@ SPL2_StatusTypeDef S2LP_Spi_Send_Command(uint8_t address, uint8_t n_regs, uint8_
 SPL2_StatusTypeDef S2LP_Reset();
 
 /**
- * @brief Sets the chip select state using S2LP_nCS_SELECT and S2LP_nCS_RELEASE.
+ * @brief Will either pull down chip select when passed S2LP_CS_SELECT,
+ * or released high with S2LP_CS_RELEASE.
  * 
+ * @param sel Use S2LP_CS_SELECT and S2LP_CS_RELEASE to select the device or release it
  * @return SPL2_StatusTypeDef 
  */
 SPL2_StatusTypeDef S2LP_nCS(uint8_t sel);
