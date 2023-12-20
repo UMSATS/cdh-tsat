@@ -75,11 +75,11 @@ SPL2_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
 		S2LP_nCS(S2LP_CS_SELECT);
 
 		// Send one byte of zeros to indicate we are writing an address 
-		status = SPL2_Spi_Send_Message(0xFF00, 1);
+		status = SPL2_SPI_Transmit_Message(0xFF00, 1);
 		if(status != SPL2_HAL_OK) goto error;
 
 		// Send our data to FIFO
-		status = SPL2_Spi_Send_Message(data, size);
+		status = SPL2_SPI_Transmit_Message(data, size);
 		if(status != SPL2_HAL_OK) goto error;
 
 		// Pull up CS to stop communication
@@ -117,7 +117,7 @@ SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
 	status = S2LP_nCS(S2LP_CS_SELECT);
 	if(status != SPL2_HAL_OK) goto error;
 
-	status = SPL2_SPI_Send_Message(0xFF80, 2);
+	status = SPL2_SPI_Transmit_Message(0xFF80, 2);
 	if(status != SPL2_HAL_OK) goto error;
 
 	status = SPL2_SPI_Receive_Message(buffer, numToFetch);
