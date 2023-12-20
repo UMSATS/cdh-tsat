@@ -90,6 +90,8 @@ SPL2_StatusTypeDef SPL2_Check_TX_FIFO_Status(uint8_t * lengthBuffer);
  * @param size The size of the packet that is being sent
  * @param buffer A buffer containing data to be sent
  * @return SPL2_StatusTypeDef 
+ * 
+ * @note The TX FIFO can only store 128 bytes 
  */
 SPL2_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer);
 
