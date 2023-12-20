@@ -11,25 +11,25 @@
 
 #include "SP-L2_driver.h"
 
-SPL2_StatusTypeDef SPL2_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
+SPL2_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
 
 	return HAL_SPI_Transmit(&hspi2, pData, numToSend, HAL_MAX_DELAY);
 }
 
 
-SPL2_StatusTypeDef SPL2_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
+SPL2_StatusTypeDef S2LP_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
 
 	return HAL_SPI_Receive_DMA(&hspi2, pData, numToReceive);
 }
 
 
-SPL2_StatusTypeDef SPL2_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *pRxData, size_t numTransmitReceive){
+SPL2_StatusTypeDef S2LP_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *pRxData, size_t numTransmitReceive){
 
 	return HAL_SPI_TransmitReceive(&hspi2, pTxData, pRxData, numTransmitReceive);
 }
 
 
-SPL2_StatusTypeDef SPL2_Check_TX_FIFO_Status(uint8_t * lengthBuffer){
+SPL2_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t * lengthBuffer){
 	SPL2_StatusTypeDef status = SPL2_HAL_OK;
 
 	// Should we pull down here??? Probably not?
@@ -43,7 +43,7 @@ SPL2_StatusTypeDef SPL2_Check_TX_FIFO_Status(uint8_t * lengthBuffer){
 }
 
 
-SPL2_StatusTypeDef SPL2_Check_RX_FIFO_Status(uint8_t * lengthBuffer){
+SPL2_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t * lengthBuffer){
 
 	SPL2_StatusTypeDef status = SPL2_HAL_OK;
 
@@ -64,7 +64,7 @@ SPL2_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
 	uint8_t storedBytes = 0;
 
 	// First we need to check how many messages are in the FIFO
-	status = SPL2_Check_TX_FIFO_Status(&storedBytes); // Change naming standard away from SPI if not directly an SPI command?
+	status = S2LP_Check_TX_FIFO_Status(&storedBytes); // Change naming standard away from SPI if not directly an SPI command?
 	if(status != SPL2_HAL_OK) goto error;
 
 	// If there is room in FIFO send bytes (FIFO can store 128 bytes)
@@ -75,11 +75,11 @@ SPL2_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
 		S2LP_nCS(S2LP_CS_SELECT);
 
 		// Send one byte of zeros to indicate we are writing an address 
-		status = SPL2_SPI_Transmit_Message(0xFF00, 1);
+		status = S2LP_SPI_Transmit_Message(0xFF00, 1);
 		if(status != SPL2_HAL_OK) goto error;
 
 		// Send our data to FIFO
-		status = SPL2_SPI_Transmit_Message(data, size);
+		status = S2LP_SPI_Transmit_Message(data, size);
 		if(status != SPL2_HAL_OK) goto error;
 
 		// Pull up CS to stop communication
@@ -101,7 +101,7 @@ SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
 	uint8_t numToFetch = 0;
 
 	// First we need to check how many messages are in the FIFO
-	status = SPL2_CHECK_RX_FIFO_STATUS(&avaliableBytes); // Change naming standard away from SPI if not directly an SPI command?
+	status = S2LP_CHECK_RX_FIFO_STATUS(&avaliableBytes); // Change naming standard away from SPI if not directly an SPI command?
 	if(status != SPL2_HAL_OK) goto error;
 
 	// If there are enough bytes ready for requested amount count
@@ -117,10 +117,10 @@ SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
 	status = S2LP_nCS(S2LP_CS_SELECT);
 	if(status != SPL2_HAL_OK) goto error;
 
-	status = SPL2_SPI_Transmit_Message(0xFF80, 2);
+	status = S2LP_SPI_Transmit_Message(0xFF80, 2);
 	if(status != SPL2_HAL_OK) goto error;
 
-	status = SPL2_SPI_Receive_Message(buffer, numToFetch);
+	status = S2LP_SPI_Receive_Message(buffer, numToFetch);
 	if(status != SPL2_HAL_OK) goto error;
 
 	// Pull up to release

@@ -47,7 +47,7 @@ typedef enum
  *
  * *Note* The Radio will use SPI 2 on the mcu.
  */
-SPL2_StatusTypeDef SPL2_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
+SPL2_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
 
 
 /**
@@ -55,7 +55,7 @@ SPL2_StatusTypeDef SPL2_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
  *
  *
  */
-SPL2_StatusTypeDef SPL2_SPI_Receive_Message(uint8_t * pData, size_t numToReceive);
+SPL2_StatusTypeDef S2LP_SPI_Receive_Message(uint8_t * pData, size_t numToReceive);
 
 
 /**
@@ -63,7 +63,7 @@ SPL2_StatusTypeDef SPL2_SPI_Receive_Message(uint8_t * pData, size_t numToReceive
  *
  *
  */
-SPL2_StatusTypeDef SPL2_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *pRxData, size_t numTransmitReceive);
+SPL2_StatusTypeDef S2LP_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *pRxData, size_t numTransmitReceive);
 
 
 /**
@@ -87,7 +87,7 @@ SPL2_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t address, uint8_t n_regs, uint
  * @param lengthBuffer The amount of bytes in the FIFO
  * @return SPL2_StatusTypeDef 
  */
-SPL2_StatusTypeDef SPL2_Check_TX_FIFO_Status(uint8_t * lengthBuffer);
+SPL2_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t * lengthBuffer);
 
 /**
  * @brief This function will send data to the S2LP driver if there is space.
@@ -117,7 +117,7 @@ SPL2_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer);
  * @param lengthBuffer return buffer for length
  * @return SPL2_StatusTypeDef 
  */
-SPL2_StatusTypeDef SPL2_Check_RX_FIFO_Status(uint8_t * lengthBuffer);
+SPL2_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t * lengthBuffer);
 
 /**
  * @brief Reads the S2-LP RX FIFO.
