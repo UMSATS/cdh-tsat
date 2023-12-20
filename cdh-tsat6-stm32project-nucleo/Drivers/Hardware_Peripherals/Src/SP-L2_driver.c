@@ -11,7 +11,7 @@
 
 #include "SP-L2_driver.h"
 
-SPL2_StatusTypeDef SPL2_SPI_Send_Message(uint8_t * pData, size_t numToSend){
+SPL2_StatusTypeDef SPL2_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
 
 	return HAL_SPI_Transmit(&hspi2, pData, numToSend, HAL_MAX_DELAY);
 }

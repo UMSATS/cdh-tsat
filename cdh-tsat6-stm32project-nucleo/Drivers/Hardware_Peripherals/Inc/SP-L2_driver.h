@@ -47,7 +47,7 @@ typedef enum
  *
  * *Note* The Radio will use SPI 2 on the mcu.
  */
-SPL2_StatusTypeDef SPL2_SPI_Send_Message(uint8_t * pData, size_t numToSend);
+SPL2_StatusTypeDef SPL2_SPI_Transmit_Message(uint8_t * pData, size_t numToSend);
 
 
 /**
