@@ -11,7 +11,6 @@
  * Functions left to write (Add or Remove as necessary):
  * S2LP_Spi_Write_Registers
  * S2LP_Spi_Read_Registers
- * S2LP_Send_Command
  * S2LP_Reset
  */
 
