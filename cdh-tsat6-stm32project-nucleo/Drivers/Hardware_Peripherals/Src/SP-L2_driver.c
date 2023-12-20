@@ -131,6 +131,7 @@ S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
 		return status;
 }
 
+
 S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode){
 
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
