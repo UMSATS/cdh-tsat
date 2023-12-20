@@ -140,11 +140,11 @@ S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode){
 	S2LP_nCS(S2LP_CS_SELECT);
 
 	// Indicate we are sending a command
-	status = SPL2_SPI_Transmit_Message(0x80, 1);
+	status = S2LP_SPI_Transmit_Message(0x80, 1);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// Send command byte
-	status = SPL2_SPI_Transmit_Message(commandCode, 1);
+	status = S2LP_SPI_Transmit_Message(commandCode, 1);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// Release Radio
