@@ -19,11 +19,11 @@
 //###############################################################################################
 //Public Define Directives
 //###############################################################################################
-#define LTC1154_IN_GPIO      GPIOB
-#define LTC1154_IN_PIN       GPIO_PIN_7
+#define LTC1154_IN_GPIO      GPIOA
+#define LTC1154_IN_PIN       GPIO_PIN_2
 
-#define LTC1154_nEN_GPIO     GPIOB
-#define LTC1154_nEN_PIN      GPIO_PIN_6
+#define LTC1154_nEN_GPIO     GPIOA
+#define LTC1154_nEN_PIN      GPIO_PIN_1
 
 //###############################################################################################
 //Public Driver Function Prototypes

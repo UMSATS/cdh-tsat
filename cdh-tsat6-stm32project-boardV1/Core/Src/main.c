@@ -62,6 +62,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 CAN_HandleTypeDef hcan1;
 
 CRC_HandleTypeDef hcrc;
@@ -72,8 +74,8 @@ SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
-UART_HandleTypeDef huart4;
-DMA_HandleTypeDef hdma_uart4_rx;
+UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_rx;
 
 /* Definitions for blinkLED1 */
 osThreadId_t blinkLED1Handle;
@@ -218,9 +220,10 @@ static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
-static void MX_UART4_Init(void);
 static void MX_RTC_Init(void);
 static void MX_CRC_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_ADC1_Init(void);
 void StartBlinkLED1(void *argument);
 void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
@@ -283,9 +286,10 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   MX_SPI3_Init();
-  MX_UART4_Init();
   MX_RTC_Init();
   MX_CRC_Init();
+  MX_USART1_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   //disable the automatically enabled RTC alarm
   HAL_StatusTypeDef rtc_alarm_operation_status;
@@ -310,10 +314,6 @@ int main(void)
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;
 
-  piCAM_StatusTypeDef piCAM_operation_status;
-  piCAM_operation_status = piCAM_Init();
-  if (piCAM_operation_status != piCAM_HAL_OK) goto error;
-
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
   /*w25n_operation_status = Test_W25N();
@@ -329,6 +329,7 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;*/
 
   //this code performs the piCAM unit test
+  //NOTE: piCAM initialization is completed by the MX_USART1_UART_Init function
   //NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
   // It ONLY follows this specific sequence
   // - Follows Boot Up Sequence
@@ -471,6 +472,73 @@ void SystemClock_Config(void)
   /** Enables the Clock Security System
   */
   HAL_RCC_EnableCSS();
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_MultiModeTypeDef multimode = {0};
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Common config
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.LowPowerAutoWait = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc1.Init.OversamplingMode = DISABLE;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure the ADC multi-mode
+  */
+  multimode.Mode = ADC_MODE_INDEPENDENT;
+  if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -745,37 +813,37 @@ static void MX_SPI3_Init(void)
 }
 
 /**
-  * @brief UART4 Initialization Function
+  * @brief USART1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_UART4_Init(void)
+static void MX_USART1_UART_Init(void)
 {
 
-  /* USER CODE BEGIN UART4_Init 0 */
+  /* USER CODE BEGIN USART1_Init 0 */
 
-  /* USER CODE END UART4_Init 0 */
+  /* USER CODE END USART1_Init 0 */
 
-  /* USER CODE BEGIN UART4_Init 1 */
+  /* USER CODE BEGIN USART1_Init 1 */
 
-  /* USER CODE END UART4_Init 1 */
-  huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
-  huart4.Init.WordLength = UART_WORDLENGTH_8B;
-  huart4.Init.StopBits = UART_STOPBITS_1;
-  huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
-  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart4) != HAL_OK)
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN UART4_Init 2 */
+  /* USER CODE BEGIN USART1_Init 2 */
 
-  /* USER CODE END UART4_Init 2 */
+  /* USER CODE END USART1_Init 2 */
 
 }
 
@@ -786,12 +854,12 @@ static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA2_Channel5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 
@@ -814,39 +882,40 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, WDI_Pin|UHF_SDN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RELEASE_nEN_GPIO_Port, RELEASE_nEN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, M_nRESET_Pin|UHF_nCS_Pin|FLASH_nCS_Pin|FLASH_nHOLD_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, RELEASE_Pin|CAM_FSH_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, CAM_FSH_Pin|CAM_ON_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, UHF_nCS_Pin|FLASH_nCS_Pin|FLASH_nHOLD_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED1_Pin|LED2_Pin|LED3_Pin|FLASH_nWP_Pin
-                          |RELEASE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED1_Pin|LED2_Pin|LED3_Pin
+                          |FLASH_nWP_Pin|WDI_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CAM_ON_GPIO_Port, CAM_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MRAM_nCS_GPIO_Port, MRAM_nCS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(RELEASE_nEN_GPIO_Port, RELEASE_nEN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(M_nRESET_GPIO_Port, M_nRESET_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pins : WDI_Pin M_nRESET_Pin UHF_nCS_Pin FLASH_nCS_Pin
-                           FLASH_nHOLD_Pin UHF_SDN_Pin */
-  GPIO_InitStruct.Pin = WDI_Pin|M_nRESET_Pin|UHF_nCS_Pin|FLASH_nCS_Pin
-                          |FLASH_nHOLD_Pin|UHF_SDN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : CAM_FSH_Pin CAM_ON_Pin MRAM_nWP_Pin */
-  GPIO_InitStruct.Pin = CAM_FSH_Pin|CAM_ON_Pin|MRAM_nWP_Pin;
+  /*Configure GPIO pins : RELEASE_nEN_Pin RELEASE_Pin CAM_FSH_Pin MRAM_nWP_Pin */
+  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|RELEASE_Pin|CAM_FSH_Pin|MRAM_nWP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : UHF_nCS_Pin FLASH_nCS_Pin FLASH_nHOLD_Pin CAM_ON_Pin */
+  GPIO_InitStruct.Pin = UHF_nCS_Pin|FLASH_nCS_Pin|FLASH_nHOLD_Pin|CAM_ON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : UHF_nIRQ_Pin */
   GPIO_InitStruct.Pin = UHF_nIRQ_Pin;
@@ -854,10 +923,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED1_Pin LED2_Pin LED3_Pin FLASH_nWP_Pin
-                           RELEASE_nEN_Pin RELEASE_Pin */
-  GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin|LED3_Pin|FLASH_nWP_Pin
-                          |RELEASE_nEN_Pin|RELEASE_Pin;
+  /*Configure GPIO pins : UHF_SDN_Pin LED1_Pin LED2_Pin LED3_Pin
+                           FLASH_nWP_Pin WDI_Pin M_nRESET_Pin */
+  GPIO_InitStruct.Pin = UHF_SDN_Pin|LED1_Pin|LED2_Pin|LED3_Pin
+                          |FLASH_nWP_Pin|WDI_Pin|M_nRESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
