@@ -184,3 +184,13 @@ S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus){
 		return status;
 }
 
+S2LP_StatusTypeDef S2LP_Software_Reset(){
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+
+	// Sends the command to reset the board
+	status = S2LP_Send_Command(COMMAND_SRES);
+	if(status != S2LP_HAL_OK) goto error;
+
+	error:
+		return status;
+}
