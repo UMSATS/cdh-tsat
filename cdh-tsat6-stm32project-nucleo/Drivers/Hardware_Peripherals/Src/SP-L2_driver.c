@@ -11,25 +11,25 @@
 
 #include "SP-L2_driver.h"
 
-S2LP_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t * pData, size_t numToSend){
+S2LP_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t *pData, size_t numToSend){
 
 	return HAL_SPI_Transmit(&hspi2, pData, numToSend, HAL_MAX_DELAY);
 }
 
 
-S2LP_StatusTypeDef S2LP_SPI_Receive_Message(uint8_t * pData, size_t numToReceive){
+S2LP_StatusTypeDef S2LP_SPI_Receive_Message(uint8_t *pData, size_t numToReceive){
 
-	return HAL_SPI_Receive_DMA(&hspi2, pData, numToReceive);
+	return HAL_SPI_Receive(&hspi2, pData, numToReceive, HAL_MAX_DELAY);
 }
 
 
 S2LP_StatusTypeDef S2LP_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *pRxData, size_t numTransmitReceive){
 
-	return HAL_SPI_TransmitReceive(&hspi2, pTxData, pRxData, numTransmitReceive);
+	return HAL_SPI_TransmitReceive(&hspi2, pTxData, pRxData, numTransmitReceive, HAL_MAX_DELAY);
 }
 
 
-S2LP_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t * lengthBuffer){
+S2LP_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t *lengthBuffer){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
 	// Should we pull down here??? Probably not?
@@ -43,7 +43,7 @@ S2LP_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t * lengthBuffer){
 }
 
 
-S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t * lengthBuffer){
+S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t *lengthBuffer){
 
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
@@ -57,7 +57,7 @@ S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t * lengthBuffer){
 }
 
 
-S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
+S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t *buffer){
 	// Will not check if FIFO is full yet but feature should be implemented in final release
 
 	S2LP_StatusTypeDef status;
@@ -79,7 +79,7 @@ S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Send our data to FIFO
-		status = S2LP_SPI_Transmit_Message(data, size);
+		status = S2LP_SPI_Transmit_Message(buffer, size);
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Pull up CS to stop communication
@@ -94,7 +94,7 @@ S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t* buffer){
 }
 
 
-S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t* buffer){
+S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t *buffer){
 
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 	uint8_t avaliableBytes = 0;
@@ -164,3 +164,23 @@ S2LP_StatusTypeDef S2LP_nCS(uint8_t sel){
 		HAL_GPIO_WritePin(UHF_nCS_GPIO_Port, UHF_nCS_Pin, GPIO_PIN_RESET);
 	}
 }
+
+
+S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus){
+	
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+
+	// Select radio
+	S2LP_nCS(S2LP_CS_SELECT);
+
+	// Get two bytes of the status registers
+	status = S2LP_SPI_Receive_Message(returnStatus, 2);
+	if(status != S2LP_HAL_OK) goto error;
+
+	// Release Radio
+	S2LP_nCS(S2LP_CS_RELEASE);
+
+	error:
+		return status;
+}
+
