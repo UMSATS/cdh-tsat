@@ -184,12 +184,46 @@ S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus){
 		return status;
 }
 
+
 S2LP_StatusTypeDef S2LP_Software_Reset(){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
 	// Sends the command to reset the board
 	status = S2LP_Send_Command(COMMAND_SRES);
 	if(status != S2LP_HAL_OK) goto error;
+
+	error:
+		return status;
+}
+
+
+S2LP_StatusTypeDef S2LP_Hardware_Reset(){
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+	uint8_t S2LPStatusRegisters[2];
+	uint8_t S2LPStatus = 0;
+
+	// Set the SDN pin high
+	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_SET);
+
+	// Wait 1ms
+	HAL_Delay(1);
+
+	// Pull pin low again
+	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_RESET);
+
+	// Wait another 2ms so S2LP is ready
+	HAL_Delay(2);
+
+	// Get status of the radio to check if it has turned on
+	status = S2LP_Get_Status(&S2LPstatus);
+	if(status != S2LP_HAL_OK) goto error;
+
+	// If the radio is in the ready state the reset is done otherwise there
+	// was some sort of error in the reset.
+	if((S2LPStatusRegisters[0] & 0x7F) >> 1 != S2LP_STATE_READY){
+		status = S2LP_RESET_FAIL;
+		goto error;
+	}
 
 	error:
 		return status;
