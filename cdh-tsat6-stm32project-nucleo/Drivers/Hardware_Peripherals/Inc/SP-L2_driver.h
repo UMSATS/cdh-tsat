@@ -70,6 +70,7 @@ typedef enum
 	S2LP_HAL_BUSY                   = HAL_BUSY,    	//0x02
 	S2LP_HAL_TIMEOUT                = HAL_TIMEOUT, 	//0x03
 	S2LP_TX_FIFO_FULL,
+	S2LP_RESET_FAIL,
 } S2LP_StatusTypeDef;
 
 //###############################################################################################
@@ -166,9 +167,14 @@ S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t * lengthBuffer);
 S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode);
 
 /**
- * @brief Shuts down SP-L2.
- *
- * *NOTE* Page 24 of SP-L2 documentation Describes Reset procedure
+ * @brief Resets the S2LP via the SDN pin.
+ * 
+ * @note As far as I understand the shutdown pin must be set high for 
+ * at least 1us then set low and it will take up to another 2ms to reset the device.
+ * Check page 24 of SP-L2 documentation Describes Reset procedure
+ * 
+ * @warning DO NOT USE THIS FUNCTION AS THE CURRENT HARDWARE 
+ * DESIGN DOES NOT PROPERLY IMPLEMENT IT.
  */
 S2LP_StatusTypeDef S2LP_Hardware_Reset();
 
