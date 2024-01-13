@@ -177,6 +177,8 @@ S2LP_StatusTypeDef S2LP_Hardware_Reset();
  * "Reset the S2-LP state machine and registers values"
  * 
  * @return S2LP_StatusTypeDef 
+ * 
+ * @note Shouldn't need to check status of uC as it can run at anytime.
  */
 S2LP_StatusTypeDef S2LP_Software_Reset();
 
