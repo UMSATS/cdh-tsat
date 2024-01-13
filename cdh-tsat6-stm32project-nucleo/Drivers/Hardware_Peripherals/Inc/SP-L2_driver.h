@@ -173,6 +173,9 @@ S2LP_StatusTypeDef S2LP_nCS(uint8_t sel);
  * 
  * @param returnStatus Buffer for status bits
  * @return S2LP_StatusTypeDef 
+ * 
+ * @note Note 100% sure this will actually fetch 
+ * the status registers needs to be tested.
  */
 S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus);
 
