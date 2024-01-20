@@ -34,6 +34,7 @@
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
 #include "can.h"
+#include "SP-L2_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,8 +189,25 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  S2LP_nCS(1);
+  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+  SpiritBaseConfiguration();
   while (1)
   {
+	  /*
+	  uint8_t readyCommand = 0x62;
+	  uint8_t message[5];
+	  message[0] = 0x70;
+	  message[1] = 0x65;
+	  message[2] = 0x6E;
+	  message[3] = 0x69;
+	  message[4] = 0x73;
+	  S2LP_Send_Command(readyCommand);
+	  S2LP_Write_TX_Fifo(5, message);
+	  HAL_Delay(1000);
+	  */
+	  uint8_t result[1];
+	  S2LP_Spi_Read_Registers(0x10, 1, result);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -349,7 +367,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
