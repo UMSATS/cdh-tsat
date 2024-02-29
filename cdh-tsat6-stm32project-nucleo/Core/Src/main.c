@@ -192,24 +192,22 @@ int main(void)
   S2LP_nCS(1);
   //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
   SpiritBaseConfiguration();
-  uint8_t testCommand = 0x10;
+  uint8_t readyCommand = 0x62;
+  uint8_t txCommand = 0x60;
   while (1)
   {
-	  /*
-	  uint8_t readyCommand = 0x62;
-	  uint8_t message[5];
-	  message[0] = 0x70;
+	  uint8_t message[6]; // Test Message is "Hello!"
+	  message[0] = 0x48;
 	  message[1] = 0x65;
-	  message[2] = 0x6E;
-	  message[3] = 0x69;
-	  message[4] = 0x73;
+	  message[2] = 0x6C;
+	  message[3] = 0x6C;
+	  message[4] = 0x6F;
+	  message[5] = 0X21;
 	  S2LP_Send_Command(readyCommand);
-	  S2LP_Write_TX_Fifo(5, message);
+	  S2LP_Write_TX_Fifo(6, &message);
+	  S2LP_Send_Command(txCommand);
 	  HAL_Delay(1000);
-	  */
-	  uint8_t result[1];
-	  S2LP_Spi_Read_Registers(&testCommand, 1, result);
-	  HAL_Delay(500);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
