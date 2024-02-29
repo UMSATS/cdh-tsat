@@ -21,7 +21,19 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "camera_driver.h"
+#include "camera_driver_test.h"
+#include "W25N_driver.h"
+#include "W25N_driver_test.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include "LEDs_driver.h"
+#include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
+#include "can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +58,9 @@ SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
+UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_uart4_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -55,11 +69,13 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
+static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -97,12 +113,76 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_CAN1_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
   MX_SPI3_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+
+  //###############################################################################################
+  //Peripheral Initialization
+  //###############################################################################################
+
+  //this code initializes the MAX6822
+  /*MAX6822_Init();*/
+
+  //this code initializes the LEDs
+  /*LEDs_Init();*/
+
+  //this code initializes the LTC1154
+  /*LTC1154_Init();*/
+
+  //this code initializes the CAN Bus
+  /*HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;*/
+
+  //this code initializes the W25N
+  /*W25N_StatusTypeDef w25n_operation_status;
+  w25n_operation_status = W25N_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+
+  //this code initializes the AS3001204
+  /*HAL_StatusTypeDef as3001204_operation_status;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  //this code initializes the piCAM
+  /*piCAM_StatusTypeDef piCAM_operation_status;
+  piCAM_operation_status = piCAM_Init();
+  if (piCAM_operation_status != piCAM_HAL_OK) goto error;*/
+
+  //###############################################################################################
+  //Peripheral Unit Tests
+  //###############################################################################################
+
+  //this code performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = W25N_Reset_And_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+
+  //this code performs the AS3001204 unit tests
+  //this code should be completed after power cycling the AS3001204
+  /*as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  //this code performs the piCAM unit test
+  //NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
+  // It ONLY follows this specific sequence
+  // - Follows Boot Up Sequence
+  // - HAL Delay of 3000ms
+  // - Sends "t\0" over UART4 for test string
+  // - HAL Delay of 3000ms
+  // - Sends "d\0" over UART4 for image capture request, then immediately after
+  //   we start DMA for specific image data.
+  /*piCAM_Test_Procedure();*/
 
   /* USER CODE END 2 */
 
@@ -114,6 +194,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   }
+
+error:
+  exit(1);
   /* USER CODE END 3 */
 }
 
@@ -324,6 +407,41 @@ static void MX_SPI3_Init(void)
 }
 
 /**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -359,6 +477,22 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -376,7 +510,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD4_Pin|WDI_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
@@ -399,8 +533,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD4_Pin WDI_Pin M_nRESET_Pin */
-  GPIO_InitStruct.Pin = LD4_Pin|WDI_Pin|M_nRESET_Pin;
+  /*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
+                           M_nRESET_Pin */
+  GPIO_InitStruct.Pin = LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
+                          |M_nRESET_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -435,7 +571,32 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief  UART Rx message pending callback
+  * @param  huart: pointer to a UART_HandleTypeDef structure that contains
+  *         the configuration information for the specified UART.
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    piCAM_Receive_Check();
+}
 
+/**
+  * @brief  CAN Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+    HAL_StatusTypeDef operation_status;
+    operation_status = CAN_Message_Received();
+    if (operation_status != HAL_OK)
+    {
+        //TODO: Implement error handling for CAN message receives
+    }
+}
 /* USER CODE END 4 */
 
 /**

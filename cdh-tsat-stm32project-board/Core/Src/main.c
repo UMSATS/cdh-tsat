@@ -14,6 +14,13 @@
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
+  * AUTHORS:
+  *  Daigh Burgess (daigh.burgess@umsats.ca)
+  *   -Application Code
+  *  Kyle James (kyle.james@umsats.ca)
+  *   -RTC Interfacing
+  *  Christina Duong (christina.duong@umsats.ca)
+  *   -FreeRTOS Code
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -22,7 +29,19 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "W25N_driver.h"
+#include "W25N_driver_test.h"
+#include "AS3001204_driver.h"
+#include "AS3001204_driver_test.h"
+#include "LEDs_driver.h"
+#include "MAX6822_driver.h"
+#include "LTC1154_driver.h"
+#include "can.h"
+#include "telemetry.h"
+#include "utils.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -261,7 +280,42 @@ int main(void)
   MX_CRC_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
+  //disable the automatically enabled RTC alarm
+  HAL_StatusTypeDef rtc_alarm_operation_status;
+  rtc_alarm_operation_status = HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
+  if (rtc_alarm_operation_status != HAL_OK) goto error;
 
+  MAX6822_Init();
+
+  LEDs_Init();
+
+  LTC1154_Init();
+
+  HAL_StatusTypeDef can_operation_status;
+  can_operation_status = CAN_Init();
+  if (can_operation_status != HAL_OK) goto error;
+
+  W25N_StatusTypeDef w25n_operation_status;
+  w25n_operation_status = W25N_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+
+  HAL_StatusTypeDef as3001204_operation_status;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;
+
+  //this code performs the W25N unit tests
+  //this code should be completed after power cycling the W25N
+  /*w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = W25N_Reset_And_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+
+  //this code performs the AS3001204 unit tests
+  //this code should be completed after power cycling the AS3001204
+  /*as3001204_operation_status = AS3001204_Test_MRAM_Driver();
+  if (as3001204_operation_status != HAL_OK) goto error;
+  as3001204_operation_status = AS3001204_Init();
+  if (as3001204_operation_status != HAL_OK) goto error;*/
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -365,6 +419,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   }
+
+error:
+  exit(1);
   /* USER CODE END 3 */
 }
 
@@ -842,7 +899,35 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+//###############################################################################################
+//Interrupt Service Routines
+//###############################################################################################
+/**
+  * @brief  RTC alarm A callback
+  * @param  hrtc: pointer to a RTC_HandleTypeDef structure that contains
+  *         the configuration information for the specified RTC.
+  * @retval None
+  */
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+{
+  osThreadFlagsSet(timeTagTaskHandle, 0x0001);
+}
 
+/**
+  * @brief  CAN Rx Fifo 0 message pending callback
+  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  * @retval None
+  */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
+{
+  HAL_StatusTypeDef operation_status;
+  operation_status = CAN_Message_Received();
+  if (operation_status != HAL_OK)
+  {
+    //TODO: Implement error handling for CAN message receives
+  }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartBlinkLED1 */
@@ -858,8 +943,10 @@ void StartBlinkLED1(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED1_Toggle();
+    osDelay(1000);
   }
+  osThreadExit();
   /* USER CODE END 5 */
 }
 
@@ -876,8 +963,10 @@ void StartBlinkLED2(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED2_Toggle();
+    osDelay(500);
   }
+  osThreadExit();
   /* USER CODE END StartBlinkLED2 */
 }
 
@@ -894,8 +983,10 @@ void StartBlinkLED3(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    LED3_Toggle();
+    osDelay(250);
   }
+  osThreadExit();
   /* USER CODE END StartBlinkLED3 */
 }
 
@@ -912,8 +1003,10 @@ void StartToggleWDI(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    MAX6822_WDI_Toggle();
+    osDelay(100);
   }
+  osThreadExit();
   /* USER CODE END StartToggleWDI */
 }
 
@@ -927,11 +1020,45 @@ void StartToggleWDI(void *argument)
 void StartCanCmdHandler(void *argument)
 {
   /* USER CODE BEGIN StartCanCmdHandler */
+  CANMessage_t can_message;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osMessageQueueGet(canQueueHandle, &can_message, NULL, osWaitForever);
+    switch (can_message.command)
+    {
+      case 0x40:
+        osThreadFlagsSet(stm32ResetHandle, 0x0001);
+        break;
+      case 0x41:
+        osThreadFlagsSet(flashUnitTestHandle, 0x0001);
+        break;
+      case 0x42:
+        osThreadFlagsSet(mramUnitTestHandle, 0x0001);
+        break;
+      case 0x43:
+        osThreadFlagsSet(deployAHandle, 0x0001);
+        break;
+      case 0x44:
+        osThreadFlagsSet(deployBHandle, 0x0001);
+        break;
+      case 0x47:
+        osThreadFlagsSet(getTasksNumHandle, 0x0001);
+        break;
+      case 0x48:
+        osMessageQueuePut(timeTagTaskInitQueueHandle, &can_message, 0, 0);
+        break;
+      case 0x49:
+        osMessageQueuePut(setRTCQueueHandle, &can_message, 0, 0);
+        break;
+      case 0x4A:
+        osThreadFlagsSet(getRTCHandle, 0x0001);
+        break;
+      default:
+        break;
+    }
   }
+  osThreadExit();
   /* USER CODE END StartCanCmdHandler */
 }
 
@@ -945,11 +1072,17 @@ void StartCanCmdHandler(void *argument)
 void StartTelemHandler(void *argument)
 {
   /* USER CODE BEGIN StartTelemHandler */
+  TelemetryMessage_t telemetry_message;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osMessageQueueGet(telemQueueHandle, &telemetry_message, NULL, osWaitForever);
+    switch(telemetry_message.id)
+    {
+      //TODO: Implement telemetry handling
+    }
   }
+  osThreadExit();
   /* USER CODE END StartTelemHandler */
 }
 
@@ -966,8 +1099,30 @@ void StartTimeTagTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from RTC alarm ISR
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    HAL_StatusTypeDef operation_status;
+    CANMessage_t ack_message =
+    {
+      .priority = 0b0000111,
+      .SenderID = 0x1,
+      .DestinationID = 0x1,
+      .command = 0x01,
+      .data = {0x48, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
+    };
+
+    operation_status = CAN_Transmit_Message(ack_message);
+    if (operation_status != HAL_OK) goto error;
+    operation_status = HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
+
+error:
+    if (operation_status != HAL_OK)
+    {
+      //TODO: Implement error handling for StartTimeTagTask
+    }
   }
+  osThreadExit();
   /* USER CODE END StartTimeTagTask */
 }
 
@@ -984,8 +1139,12 @@ void StartStm32Reset(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    MAX6822_Manual_Reset();
   }
+  osThreadExit();
   /* USER CODE END StartStm32Reset */
 }
 
@@ -1002,8 +1161,14 @@ void StartFlashUnitTest(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    W25N_StatusTypeDef test_result = Test_W25N();
+
+    //TODO: Add CAN message transmit
   }
+  osThreadExit();
   /* USER CODE END StartFlashUnitTest */
 }
 
@@ -1020,8 +1185,14 @@ void StartMramUnitTest(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    HAL_StatusTypeDef test_result = AS3001204_Test_MRAM_Driver();
+
+    //TODO: Add CAN message transmit
   }
+  osThreadExit();
   /* USER CODE END StartMramUnitTest */
 }
 
@@ -1038,8 +1209,12 @@ void StartDeployA(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    LTC1154_Enable();
   }
+  osThreadExit();
   /* USER CODE END StartDeployA */
 }
 
@@ -1056,8 +1231,12 @@ void StartDeployB(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    LTC1154_On();
   }
+  osThreadExit();
   /* USER CODE END StartDeployB */
 }
 
@@ -1074,8 +1253,14 @@ void StartGetTasksNum(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    uint8_t tasks_num = (uint8_t) osThreadGetCount();
+
+    //TODO: Add CAN message transmit
   }
+  osThreadExit();
   /* USER CODE END StartGetTasksNum */
 }
 
@@ -1089,11 +1274,32 @@ void StartGetTasksNum(void *argument)
 void StartTimeTagTaskInit(void *argument)
 {
   /* USER CODE BEGIN StartTimeTagTaskInit */
+  CANMessage_t can_message;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osMessageQueueGet(timeTagTaskInitQueueHandle, &can_message, NULL, osWaitForever);
+
+    HAL_StatusTypeDef operation_status;
+    RTC_AlarmTypeDef rtc_alarm;
+    uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
+    RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
+    RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
+
+    rtc_alarm.AlarmTime = rtc_time;
+    rtc_alarm.AlarmMask = RTC_ALARMMASK_NONE;
+    rtc_alarm.SubSeconds = 0;
+    rtc_alarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    rtc_alarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    rtc_alarm.AlarmDateWeekDay = rtc_date.Date;
+    rtc_alarm.Alarm = RTC_ALARM_A;
+
+    operation_status = HAL_RTC_SetAlarm_IT(&hrtc, &rtc_alarm, RTC_FORMAT_BIN);
+
+    //TODO: Implement error handling for StartTimeTagTaskInit
   }
+  osThreadExit();
   /* USER CODE END StartTimeTagTaskInit */
 }
 
@@ -1107,11 +1313,29 @@ void StartTimeTagTaskInit(void *argument)
 void StartSetRTC(void *argument)
 {
   /* USER CODE BEGIN StartSetRTC */
+  CANMessage_t can_message;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osMessageQueueGet(setRTCQueueHandle, &can_message, NULL, osWaitForever);
+
+    HAL_StatusTypeDef operation_status;
+    uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
+    RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
+    RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
+
+    operation_status = HAL_RTC_SetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
+    if (operation_status != HAL_OK) goto error;
+    operation_status = HAL_RTC_SetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
+
+error:
+    if (operation_status != HAL_OK)
+    {
+      //TODO: Implement error handling for StartSetRTC
+    }
   }
+  osThreadExit();
   /* USER CODE END StartSetRTC */
 }
 
@@ -1128,8 +1352,32 @@ void StartGetRTC(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    HAL_StatusTypeDef operation_status;
+    RTC_TimeTypeDef rtc_time;
+    RTC_DateTypeDef rtc_date;
+    uint32_t unix_timestamp;
+    uint8_t response_data[6] = {0,0,0,0,0,0};
+
+    operation_status = HAL_RTC_GetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
+    if (operation_status != HAL_OK) goto error;
+    operation_status = HAL_RTC_GetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
+    if (operation_status != HAL_OK) goto error;
+
+    unix_timestamp = rtc_to_unix_timestamp(rtc_time, rtc_date);
+    uint32_to_four_byte_array(unix_timestamp, response_data);
+
+    //TODO: Add CAN message transmit
+
+error:
+    if (operation_status != HAL_OK)
+    {
+      //TODO: Implement error handling for StartGetRTC
+    }
   }
+  osThreadExit();
   /* USER CODE END StartGetRTC */
 }
 
