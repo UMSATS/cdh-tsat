@@ -100,7 +100,7 @@ S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uin
  *
  *
  */
-S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer);
+S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t* address, uint8_t n_regs, uint8_t* buffer);
 
 /**
  * @brief This function will read the register that contains a counter for the amount of bytes in TX FIFO.

@@ -21,15 +21,15 @@ extern SPI_HandleTypeDef S2LP_SPI;
 #define S2LP_SEND_COMMAND_CODE			0x80
 
 
-S2LP_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t *pData, size_t numToSend){
+S2LP_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t* pData, size_t numToSend){
 
-	return HAL_SPI_Transmit(&S2LP_SPI, pData, numToSend, HAL_MAX_DELAY);
+	return HAL_SPI_Transmit(&S2LP_SPI, pData, numToSend, 100);
 }
 
 
 S2LP_StatusTypeDef S2LP_SPI_Receive_Message(uint8_t *pData, size_t numToReceive){
 
-	return HAL_SPI_Receive(&S2LP_SPI, pData, numToReceive, HAL_MAX_DELAY);
+	return HAL_SPI_Receive(&S2LP_SPI, pData, numToReceive, 100);
 }
 
 
@@ -58,13 +58,17 @@ S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uin
 			return status;
 }
 
-S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer){
+S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t* address, uint8_t n_regs, uint8_t* buffer){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+	uint8_t header = 0x1;
 
 		S2LP_nCS(S2LP_CS_SELECT);
 
+			status = S2LP_SPI_Transmit_Message(&header, 1);
+			if(status != S2LP_HAL_OK) goto error;
+
 			// Indicate we are sending a command
-			status = S2LP_SPI_Transmit_Message(&address, 1);
+			status = S2LP_SPI_Transmit_Message(address, 1);
 			if(status != S2LP_HAL_OK) goto error;
 
 			// Indicate we are sending a command
