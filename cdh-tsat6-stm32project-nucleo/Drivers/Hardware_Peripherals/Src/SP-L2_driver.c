@@ -16,9 +16,6 @@ extern SPI_HandleTypeDef S2LP_SPI;
 
 // Directives
 
-#define S2LP_WRITE_TX_FIFO_HEADER_CODE	0xFF00
-#define S2LP_READ_RX_FIFO_HEADER_CODE 	0xFF80
-#define S2LP_SEND_COMMAND_CODE			0x80
 
 
 S2LP_StatusTypeDef S2LP_SPI_Transmit_Message(uint8_t* pData, size_t numToSend){
@@ -38,17 +35,23 @@ S2LP_StatusTypeDef S2LP_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *
 	return HAL_SPI_TransmitReceive(&S2LP_SPI, pTxData, pRxData, numTransmitReceive, HAL_MAX_DELAY);
 }
 
-S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer){
+
+S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uint8_t buffer){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+	uint8_t header = 0x0;
 
 	S2LP_nCS(S2LP_CS_SELECT);
+
+		// Sender Header Byte for a write
+		status = S2LP_SPI_Transmit_Message(&header, 1);
+		if(status != S2LP_HAL_OK) goto error;
 
 		// Indicate we are sending a command
 		status = S2LP_SPI_Transmit_Message(&address, 1);
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Indicate we are sending a command
-		status = S2LP_SPI_Transmit_Message(buffer, n_regs);
+		status = S2LP_SPI_Transmit_Message(&buffer, n_regs);
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Release Radio
@@ -58,7 +61,8 @@ S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uin
 			return status;
 }
 
-S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t* address, uint8_t n_regs, uint8_t* buffer){
+
+S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 	uint8_t header = 0x1;
 
@@ -68,7 +72,7 @@ S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t* address, uint8_t n_regs, uin
 			if(status != S2LP_HAL_OK) goto error;
 
 			// Indicate we are sending a command
-			status = S2LP_SPI_Transmit_Message(address, 1);
+			status = S2LP_SPI_Transmit_Message(&address, 1);
 			if(status != S2LP_HAL_OK) goto error;
 
 			// Indicate we are sending a command
@@ -83,12 +87,37 @@ S2LP_StatusTypeDef S2LP_Spi_Read_Registers(uint8_t* address, uint8_t n_regs, uin
 
 }
 
+
+S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode){
+
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+	
+	uint8_t data[2];
+	data[0] = 0x80;
+	data[1] = commandCode;
+	// Select radio
+	S2LP_nCS(S2LP_CS_SELECT);
+
+	// Indicate we are sending a command
+	status = S2LP_SPI_Transmit_Message(data, 2);
+	if(status != S2LP_HAL_OK) goto error;
+
+	// Release Radio
+	S2LP_nCS(S2LP_CS_RELEASE);
+
+	error:
+		return status;
+}
+
+
 S2LP_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t *lengthBuffer){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
+	// We should probably create a typedef or define all/most used registers
+	uint8_t txFIFOStatusRegister = 0x8F;
+
 	// Should we pull down here??? Probably not?
-	// We should probably create a typedef of all/most used registers
-	status = S2LP_Spi_Read_Registers(0x8D, 1, lengthBuffer);
+	status = S2LP_Spi_Read_Registers(&txFIFOStatusRegister, 1, lengthBuffer);
 	if(status != S2LP_HAL_OK) goto error;
 
 
@@ -98,11 +127,13 @@ S2LP_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t *lengthBuffer){
 
 
 S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t *lengthBuffer){
-
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
+	// We should probably create a typedef or define all/most used registers
+	uint8_t rxFIFOStatusRegister = 0x90;
+
 	// Should we pull down here??? Probably not?
-	status = S2LP_Spi_Read_Registers(0x90, 2, lengthBuffer);
+	status = S2LP_Spi_Read_Registers(&rxFIFOStatusRegister, 2, lengthBuffer);
 	if(status != S2LP_HAL_OK) goto error;
 
 
@@ -113,25 +144,25 @@ S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t *lengthBuffer){
 
 S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t *buffer){
 	// Will not check if FIFO is full yet but feature should be implemented in final release
-
 	S2LP_StatusTypeDef status;
 
-	uint8_t opcode = S2LP_WRITE_TX_FIFO_HEADER_CODE;
+	uint8_t opcode[2] = {0x00, 0xFF}; // First byte indicates write, second indicates to FIFO
+
 	uint8_t storedBytes = 0;
 
 	// First we need to check how many messages are in the FIFO
-	status = S2LP_Check_TX_FIFO_Status(&storedBytes); // Change naming standard away from SPI if not directly an SPI command?
+	status = S2LP_Check_TX_FIFO_Status(&storedBytes);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// If there is room in FIFO send bytes (FIFO can store 128 bytes)
 	// Else return FIFO full status
-	if(storedBytes + size >= 128){
+	if(storedBytes + size <= 128){
 
 		// Pull down CS
 		S2LP_nCS(S2LP_CS_SELECT);
 
 		// Send one byte of zeros to indicate we are writing an address 
-		status = S2LP_SPI_Transmit_Message(&opcode, 1);
+		status = S2LP_SPI_Transmit_Message(&opcode, 2);
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Send our data to FIFO
@@ -154,12 +185,12 @@ S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t *buffer){
 
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
-	uint8_t opcode = S2LP_READ_RX_FIFO_HEADER_CODE;
+	uint8_t opcode[2] = {0x01, 0xFF};	// First byte indicates read, second indicates FIFO
 	uint8_t avaliableBytes = 0;
 	uint8_t numToFetch = 0;
 
 	// First we need to check how many messages are in the FIFO
-	status = S2LP_CHECK_RX_FIFO_STATUS(&avaliableBytes); // Change naming standard away from SPI if not directly an SPI command?
+	status = S2LP_CHECK_RX_FIFO_STATUS(&avaliableBytes);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// If there are enough bytes ready for requested amount count
@@ -190,28 +221,6 @@ S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t *buffer){
 }
 
 
-S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode){
-
-	S2LP_StatusTypeDef status = S2LP_HAL_OK;
-	
-	uint8_t data[2];
-	data[0] = S2LP_SEND_COMMAND_CODE;
-	data[1] = commandCode;
-	// Select radio
-	S2LP_nCS(S2LP_CS_SELECT);
-
-	// Indicate we are sending a command
-	status = S2LP_SPI_Transmit_Message(data, 2);
-	if(status != S2LP_HAL_OK) goto error;
-
-	// Release Radio
-	S2LP_nCS(S2LP_CS_RELEASE);
-
-	error:
-		return status;
-}
-
-
 S2LP_StatusTypeDef S2LP_nCS(uint8_t sel){
 
 	if(sel){
@@ -225,7 +234,7 @@ S2LP_StatusTypeDef S2LP_nCS(uint8_t sel){
 }
 
 
-S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus){
+S2LP_StatusTypeDef S2LP_Get_Status(uint8_t* returnStatus){
 	
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
@@ -242,6 +251,7 @@ S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus){
 	error:
 		return status;
 }
+
 
 void SpiritBaseConfiguration(void)
 {
