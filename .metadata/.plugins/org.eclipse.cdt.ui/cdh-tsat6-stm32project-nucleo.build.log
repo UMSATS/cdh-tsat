@@ -1,4 +1,4 @@
-20:03:56 **** Incremental Build of configuration Debug for project cdh-tsat6-stm32project-nucleo ****
+10:55:03 **** Incremental Build of configuration Debug for project cdh-tsat6-stm32project-nucleo ****
 make -j8 all 
 arm-none-eabi-size  cdh-tsat6-stm32project-nucleo.elf 
    text	   data	    bss	    dec	    hex	filename
@@ -6,5 +6,5 @@ arm-none-eabi-size  cdh-tsat6-stm32project-nucleo.elf
 Finished building: default.size.stdout
  
 
-20:03:57 Build Finished. 0 errors, 0 warnings. (took 844ms)
+10:55:04 Build Finished. 0 errors, 0 warnings. (took 485ms)
 
