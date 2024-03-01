@@ -1,10 +1,48 @@
-10:55:03 **** Incremental Build of configuration Debug for project cdh-tsat6-stm32project-nucleo ****
-make -j8 all 
+18:58:01 **** Incremental Build of configuration Debug for project cdh-tsat6-stm32project-nucleo ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32L452xx -c -I../Core/Inc -I../Drivers/Hardware_Peripherals/Inc -I../Drivers/Hardware_Peripherals/Test/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:203:19: warning: unused variable 'message' [-Wunused-variable]
+  203 |           uint8_t message[6] = {0}; // Test Message is "Hello!"
+      |                   ^~~~~~~
+../Core/Src/main.c:202:19: warning: unused variable 'txFIFOSize' [-Wunused-variable]
+  202 |           uint8_t txFIFOSize = 0;
+      |                   ^~~~~~~~~~
+../Core/Src/main.c:201:19: warning: unused variable 'receivedFIFOSize' [-Wunused-variable]
+  201 |           uint8_t receivedFIFOSize = 0;
+      |                   ^~~~~~~~~~~~~~~~
+../Core/Src/main.c:243:1: warning: label 'error' defined but not used [-Wunused-label]
+  243 | error:
+      | ^~~~~
+../Core/Src/main.c:198:11: warning: unused variable 'receivedFIFOSize' [-Wunused-variable]
+  198 |   uint8_t receivedFIFOSize = 0;
+      |           ^~~~~~~~~~~~~~~~
+../Core/Src/main.c:197:11: warning: unused variable 'rxFlush' [-Wunused-variable]
+  197 |   uint8_t rxFlush = 0x71;
+      |           ^~~~~~~
+../Core/Src/main.c:196:11: warning: unused variable 'rxCommand' [-Wunused-variable]
+  196 |   uint8_t rxCommand = 0x61;
+      |           ^~~~~~~~~
+../Core/Src/main.c:195:11: warning: unused variable 'txFIFOFlush' [-Wunused-variable]
+  195 |   uint8_t txFIFOFlush = 0x72;
+      |           ^~~~~~~~~~~
+../Core/Src/main.c:194:11: warning: unused variable 'txCommand' [-Wunused-variable]
+  194 |   uint8_t txCommand = 0x60;
+      |           ^~~~~~~~~
+../Core/Src/main.c:193:11: warning: unused variable 'readyCommand' [-Wunused-variable]
+  193 |   uint8_t readyCommand = 0x62;
+      |           ^~~~~~~~~~~~
+arm-none-eabi-gcc -o "cdh-tsat6-stm32project-nucleo.elf" @"objects.list"   -mcpu=cortex-m4 -T"E:\Documents\GitHub\cdh-tsat6\cdh-tsat6-stm32project-nucleo\STM32L452RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="cdh-tsat6-stm32project-nucleo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: cdh-tsat6-stm32project-nucleo.elf
+ 
 arm-none-eabi-size  cdh-tsat6-stm32project-nucleo.elf 
+arm-none-eabi-objdump -h -S cdh-tsat6-stm32project-nucleo.elf  > "cdh-tsat6-stm32project-nucleo.list"
    text	   data	    bss	    dec	    hex	filename
-  22692	     20	   2252	  24964	   6184	cdh-tsat6-stm32project-nucleo.elf
+  20632	     20	   2252	  22904	   5978	cdh-tsat6-stm32project-nucleo.elf
 Finished building: default.size.stdout
  
+Finished building: cdh-tsat6-stm32project-nucleo.list
+ 
 
-10:55:04 Build Finished. 0 errors, 0 warnings. (took 485ms)
+18:58:02 Build Finished. 0 errors, 10 warnings. (took 1s.183ms)
 
