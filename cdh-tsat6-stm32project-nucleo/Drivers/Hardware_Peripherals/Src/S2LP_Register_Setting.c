@@ -29,36 +29,4 @@ It is advisable to implement also the read registers, the command strobe and the
 
 /* This is the function that initializes the S2-LP with the configuration 
 that the user has exported using the GUI */
-void SpiritBaseConfiguration(void)
-{
-  uint8_t tmp[6];
 
-  tmp[0] = 0x52; /* reg. SYNT3 (0x05) */
-  tmp[1] = 0x29; /* reg. SYNT2 (0x06) */
-  tmp[2] = 0xD8; /* reg. SYNT1 (0x07) */
-  tmp[3] = 0x9E; /* reg. SYNT0 (0x08) */
-  tmp[4] = 0x29; /* reg. IF_OFFSET_ANA (0x09) */
-  tmp[5] = 0xB7; /* reg. IF_OFFSET_DIG (0x0A) */
-  S2LPSpiWriteRegisters(0x05, 6, tmp);
-  tmp[0] = 0x05; /* reg. MOD2 (0x10) */
-  S2LPSpiWriteRegisters(0x10, 1, tmp);
-  tmp[0] = 0x55; /* reg. ANT_SELECT_CONF (0x1F) */
-  tmp[1] = 0x00; /* reg. CLOCKREC2 (0x20) */
-  S2LPSpiWriteRegisters(0x1F, 2, tmp);
-  tmp[0] = 0x00; /* reg. PCKTCTRL3 (0x2E) */
-  tmp[1] = 0x01; /* reg. PCKTCTRL2 (0x2F) */
-  tmp[2] = 0x30; /* reg. PCKTCTRL1 (0x30) */
-  S2LPSpiWriteRegisters(0x2E, 3, tmp);
-  tmp[0] = 0x01; /* reg. PROTOCOL1 (0x3A) */
-  S2LPSpiWriteRegisters(0x3A, 1, tmp);
-  tmp[0] = 0x41; /* reg. PCKT_FLT_OPTIONS (0x40) */
-  S2LPSpiWriteRegisters(0x40, 1, tmp);
-  tmp[0] = 0x4C; /* reg. CSMA_CONFIG3 (0x4C) */
-  S2LPSpiWriteRegisters(0x4C, 1, tmp);
-  tmp[0] = 0x14; /* reg. PA_POWER8 (0x5A) */
-  S2LPSpiWriteRegisters(0x5A, 1, tmp);
-  tmp[0] = 0x07; /* reg. PA_POWER0 (0x62) */
-  tmp[1] = 0x01; /* reg. PA_CONFIG1 (0x63) */
-  tmp[2] = 0x88; /* reg. PA_CONFIG0 (0x64) */
-  S2LPSpiWriteRegisters(0x62, 3, tmp);
-}
