@@ -36,7 +36,7 @@ S2LP_StatusTypeDef S2LP_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *
 }
 
 
-S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uint8_t buffer){
+S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 	uint8_t header = 0x0;
 
@@ -51,7 +51,7 @@ S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uin
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Indicate we are sending a command
-		status = S2LP_SPI_Transmit_Message(&buffer, n_regs);
+		status = S2LP_SPI_Transmit_Message(buffer, n_regs);
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Release Radio
@@ -99,7 +99,7 @@ S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode){
 	S2LP_nCS(S2LP_CS_SELECT);
 
 	// Indicate we are sending a command
-	status = S2LP_SPI_Transmit_Message(data, 2);
+	status = S2LP_SPI_Transmit_Message(&data, 2);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// Release Radio
@@ -117,7 +117,7 @@ S2LP_StatusTypeDef S2LP_Check_TX_FIFO_Status(uint8_t *lengthBuffer){
 	uint8_t txFIFOStatusRegister = 0x8F;
 
 	// Should we pull down here??? Probably not?
-	status = S2LP_Spi_Read_Registers(&txFIFOStatusRegister, 1, lengthBuffer);
+	status = S2LP_Spi_Read_Registers(txFIFOStatusRegister, 1, lengthBuffer);
 	if(status != S2LP_HAL_OK) goto error;
 
 
@@ -133,7 +133,7 @@ S2LP_StatusTypeDef S2LP_Check_RX_FIFO_Status(uint8_t *lengthBuffer){
 	uint8_t rxFIFOStatusRegister = 0x90;
 
 	// Should we pull down here??? Probably not?
-	status = S2LP_Spi_Read_Registers(&rxFIFOStatusRegister, 2, lengthBuffer);
+	status = S2LP_Spi_Read_Registers(rxFIFOStatusRegister, 1, lengthBuffer);
 	if(status != S2LP_HAL_OK) goto error;
 
 
@@ -170,7 +170,7 @@ S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t *buffer){
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Pull up CS to stop communication
-		S2LP_nCS(S2LP_CS_SELECT);
+		S2LP_nCS(S2LP_CS_RELEASE);
 	}
 	else{
 		return S2LP_TX_FIFO_FULL; // FIFO is full cannot send data
@@ -190,7 +190,7 @@ S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t *buffer){
 	uint8_t numToFetch = 0;
 
 	// First we need to check how many messages are in the FIFO
-	status = S2LP_CHECK_RX_FIFO_STATUS(&avaliableBytes);
+	status = S2LP_Check_RX_FIFO_Status(&avaliableBytes);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// If there are enough bytes ready for requested amount count
@@ -257,33 +257,38 @@ void SpiritBaseConfiguration(void)
 {
   uint8_t tmp[6];
 
-  tmp[0] = 0x52; /* reg. SYNT3 (0x05) */
-  tmp[1] = 0x29; /* reg. SYNT2 (0x06) */
-  tmp[2] = 0xD8; /* reg. SYNT1 (0x07) */
-  tmp[3] = 0x9E; /* reg. SYNT0 (0x08) */
-  tmp[4] = 0x29; /* reg. IF_OFFSET_ANA (0x09) */
-  tmp[5] = 0xB7; /* reg. IF_OFFSET_DIG (0x0A) */
-  S2LP_Spi_Write_Registers(0x05, 6, tmp);
-  tmp[0] = 0x05; /* reg. MOD2 (0x10) */
-  S2LP_Spi_Write_Registers(0x10, 1, tmp);
+  tmp[0] = 0x72; /* reg. SYNT3 (0x05) */
+  tmp[1] = 0x2A; /* reg. SYNT2 (0x06) */
+  tmp[2] = 0x3D; /* reg. SYNT1 (0x07) */
+  tmp[3] = 0x71; /* reg. SYNT0 (0x08) */
+  tmp[4] = 0x2F; /* reg. IF_OFFSET_ANA (0x09) */
+  tmp[5] = 0xC2; /* reg. IF_OFFSET_DIG (0x0A) */
+  S2LP_Spi_Write_Registers(0x05, 6, &tmp);
+  tmp[0] = 0x92; /* reg. MOD4 (0x0E) */
+  tmp[1] = 0xA7; /* reg. MOD3 (0x0F) */
+  tmp[2] = 0x27; /* reg. MOD2 (0x10) */
+  S2LP_Spi_Write_Registers(0x0E, 3, &tmp);
+  tmp[0] = 0xA3; /* reg. MOD0 (0x12) */
+  tmp[1] = 0x13; /* reg. CHFLT (0x13) */
+  S2LP_Spi_Write_Registers(0x12, 2, &tmp);
   tmp[0] = 0x55; /* reg. ANT_SELECT_CONF (0x1F) */
-  tmp[1] = 0x00; /* reg. CLOCKREC2 (0x20) */
-  S2LP_Spi_Write_Registers(0x1F, 2, tmp);
+  S2LP_Spi_Write_Registers(0x1F, 1, &tmp);
   tmp[0] = 0x00; /* reg. PCKTCTRL3 (0x2E) */
   tmp[1] = 0x01; /* reg. PCKTCTRL2 (0x2F) */
   tmp[2] = 0x30; /* reg. PCKTCTRL1 (0x30) */
-  S2LP_Spi_Write_Registers(0x2E, 3, tmp);
+  S2LP_Spi_Write_Registers(0x2E, 3, &tmp);
   tmp[0] = 0x01; /* reg. PROTOCOL1 (0x3A) */
-  S2LP_Spi_Write_Registers(0x3A, 1, tmp);
-  tmp[0] = 0x41; /* reg. PCKT_FLT_OPTIONS (0x40) */
-  S2LP_Spi_Write_Registers(0x40, 1, tmp);
-  tmp[0] = 0x4C; /* reg. CSMA_CONFIG3 (0x4C) */
-  S2LP_Spi_Write_Registers(0x4C, 1, tmp);
-  tmp[0] = 0x14; /* reg. PA_POWER8 (0x5A) */
-  S2LP_Spi_Write_Registers(0x5A, 1, tmp);
+  S2LP_Spi_Write_Registers(0x3A, 1, &tmp);
+  tmp[0] = 0x40; /* reg. FIFO_CONFIG3 (0x3C) */
+  tmp[1] = 0x40; /* reg. FIFO_CONFIG2 (0x3D) */
+  tmp[2] = 0x40; /* reg. FIFO_CONFIG1 (0x3E) */
+  tmp[3] = 0x40; /* reg. FIFO_CONFIG0 (0x3F) */
+  tmp[4] = 0x41; /* reg. PCKT_FLT_OPTIONS (0x40) */
+  S2LP_Spi_Write_Registers(0x3C, 5, &tmp);
+  tmp[0] = 0x16; /* reg. PA_POWER8 (0x5A) */
+  S2LP_Spi_Write_Registers(0x5A, 1, &tmp);
   tmp[0] = 0x07; /* reg. PA_POWER0 (0x62) */
   tmp[1] = 0x01; /* reg. PA_CONFIG1 (0x63) */
-  tmp[2] = 0x88; /* reg. PA_CONFIG0 (0x64) */
-  S2LP_Spi_Write_Registers(0x62, 3, tmp);
+  S2LP_Spi_Write_Registers(0x62, 2, &tmp);
 }
 
