@@ -101,12 +101,12 @@ S2LP_StatusTypeDef S2LP_SPI_Transmit_Receive_Message(uint8_t *pTxData, uint8_t *
  * 
  * @param address	The register address
  * @param n_regs 	Number of bytes to write
- * @param buffer 	Buffer containing the data
+ * @param buffer 	Pointer to a buffer containing the data
  * @return S2LP_StatusTypeDef 
  * @note Buffer is not a pointer right now as the auto generated config function from STM does not use a pointer
  * we could change it in the future.
  */
-S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uint8_t buffer);
+S2LP_StatusTypeDef S2LP_Spi_Write_Registers(uint8_t address, uint8_t n_regs, uint8_t* buffer);
 
 
 /**
