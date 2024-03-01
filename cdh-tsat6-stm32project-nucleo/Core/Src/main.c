@@ -189,14 +189,23 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  S2LP_nCS(1);
-  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
   SpiritBaseConfiguration();
   uint8_t readyCommand = 0x62;
   uint8_t txCommand = 0x60;
+  uint8_t txFIFOFlush = 0x72;
+  uint8_t rxCommand = 0x61;
+  uint8_t rxFlush = 0x71;
+  uint8_t receivedFIFOSize = 0;
   while (1)
   {
-	  uint8_t message[6]; // Test Message is "Hello!"
+	  uint8_t receivedFIFOSize = 0;
+	  uint8_t txFIFOSize = 0;
+	  uint8_t message[6] = {0}; // Test Message is "Hello!"
+
+
+	  // Only Test RX or TX with this code, they use same message var.
+	  /*
+	   * TEST CODE FOR TX
 	  message[0] = 0x48;
 	  message[1] = 0x65;
 	  message[2] = 0x6C;
@@ -204,10 +213,28 @@ int main(void)
 	  message[4] = 0x6F;
 	  message[5] = 0X21;
 	  S2LP_Send_Command(readyCommand);
+	  S2LP_Check_TX_FIFO_Status(&txFIFOSize);
 	  S2LP_Write_TX_Fifo(6, &message);
+	  S2LP_Check_TX_FIFO_Status(&txFIFOSize);
 	  S2LP_Send_Command(txCommand);
 	  HAL_Delay(1000);
+	  S2LP_Check_TX_FIFO_Status(&txFIFOSize);
+	  S2LP_Send_Command(txCommand);
+	  HAL_Delay(1000);
+	*/
 
+	  /*
+	   * TEST CODE FOR RX
+	  S2LP_Send_Command(rxCommand);
+	  // Temporary Test without IRQ seup
+	  while(receivedFIFOSize == 0){
+		  S2LP_Check_RX_FIFO_Status(&receivedFIFOSize);
+		  HAL_Delay(3000);
+	  }
+	  S2LP_Read_RX_FIFO(6, &message);
+	  S2LP_Send_Command(readyCommand);
+	  S2LP_Send_Command(rxFlush);
+	  */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
