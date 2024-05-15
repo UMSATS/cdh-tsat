@@ -11,7 +11,7 @@
  * Functions left to write (Add or Remove as necessary):
  * S2LP_Spi_Write_Registers
  * S2LP_Spi_Read_Registers
- * S2LP_Reset
+ * S2LP_Reset (Written but untested)
  */
 
 #ifndef HARDWARE_PERIPHERALS_INC_SP_L2_DRIVER_H_
