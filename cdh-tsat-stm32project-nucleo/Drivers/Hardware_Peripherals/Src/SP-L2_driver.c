@@ -268,22 +268,21 @@ S2LP_StatusTypeDef S2LP_Software_Reset(){
 S2LP_StatusTypeDef S2LP_Hardware_Reset(){
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 	uint8_t S2LPStatusRegisters[2];
-	uint8_t S2LPStatus = 0;
 
 	// Set the SDN pin high
 	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_SET);
 
 	// Wait 1ms
-	HAL_Delay(1);
+	HAL_Delay(1); // This may need to be changed to comply with RTOS
 
 	// Pull pin low again
 	HAL_GPIO_WritePin(UHF_SDN_GPIO_Port, UHF_SDN_Pin, GPIO_PIN_RESET);
 
 	// Wait another 2ms so S2LP is ready
-	HAL_Delay(2);
+	HAL_Delay(2); // This may need to be changed to comply with RTOS
 
 	// Get status of the radio to check if it has turned on
-	status = S2LP_Get_Status(&S2LPstatus);
+	status = S2LP_Get_Status(&S2LPStatusRegisters);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// If the radio is in the ready state the reset is done otherwise there
@@ -296,6 +295,8 @@ S2LP_StatusTypeDef S2LP_Hardware_Reset(){
 	error:
 		return status;
 }
+
+
 void SpiritBaseConfiguration(void)
 {
   uint8_t tmp[6];
