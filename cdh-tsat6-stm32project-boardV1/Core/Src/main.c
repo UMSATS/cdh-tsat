@@ -149,14 +149,14 @@ const osThreadAttr_t stm32Reset_attributes = {
 osThreadId_t flashUnitTestHandle;
 const osThreadAttr_t flashUnitTest_attributes = {
   .name = "flashUnitTest",
-  .stack_size = 128 * 4,
+  .stack_size = 2048 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for mramUnitTest */
 osThreadId_t mramUnitTestHandle;
 const osThreadAttr_t mramUnitTest_attributes = {
   .name = "mramUnitTest",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for deployA */
@@ -995,7 +995,7 @@ void StartDeployB(void *argument)
 
 /**
 * @brief Function implementing the takePicture thread.
-* @param argument: pointer to CANMessage_t struct (the CAN message that invoked this command)
+* @param argument: not used
 * @retval None
 */
 void StartTakePicture(void *argument)
@@ -1139,6 +1139,7 @@ void StartBlinkLED1(void *argument)
     LED1_Toggle();
     osDelay(1000);
   }
+  osThreadExit();
   /* USER CODE END 5 */
 }
 
@@ -1158,6 +1159,7 @@ void StartBlinkLED2(void *argument)
     LED2_Toggle();
     osDelay(500);
   }
+  osThreadExit();
   /* USER CODE END StartBlinkLED2 */
 }
 
@@ -1177,6 +1179,7 @@ void StartBlinkLED3(void *argument)
     LED3_Toggle();
     osDelay(250);
   }
+  osThreadExit();
   /* USER CODE END StartBlinkLED3 */
 }
 
@@ -1196,6 +1199,7 @@ void StartToggleWDI(void *argument)
     MAX6822_WDI_Toggle();
     osDelay(100);
   }
+  osThreadExit();
   /* USER CODE END StartToggleWDI */
 }
 
@@ -1232,7 +1236,7 @@ void StartCanCmdHandler(void *argument)
         deployBHandle = osThreadNew(StartDeployB, &can_message, &deployB_attributes);
         break;
       case 0x45:
-        takePictureHandle = osThreadNew(StartTakePicture, &can_message, &takePicture_attributes);
+        takePictureHandle = osThreadNew(StartTakePicture, NULL, &takePicture_attributes);
         break;
       case 0x47:
         getTasksNumHandle = osThreadNew(StartGetTasksNum, &can_message, &getTasksNum_attributes);
@@ -1250,6 +1254,7 @@ void StartCanCmdHandler(void *argument)
         break;
     }
   }
+  osThreadExit();
   /* USER CODE END StartCanCmdHandler */
 }
 
@@ -1273,6 +1278,7 @@ void StartTelemHandler(void *argument)
       //TODO: Implement telemetry handling
     }
   }
+  osThreadExit();
   /* USER CODE END StartTelemHandler */
 }
 
@@ -1311,6 +1317,7 @@ error:
       //TODO: Implement error handling for StartTimeTagTask
     }
   }
+  osThreadExit();
   /* USER CODE END StartTimeTagTask */
 }
 
