@@ -310,10 +310,6 @@ int main(void)
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;
 
-  piCAM_StatusTypeDef piCAM_operation_status;
-  piCAM_operation_status = piCAM_Init();
-  if (piCAM_operation_status != piCAM_HAL_OK) goto error;
-
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
   /*w25n_operation_status = Test_W25N();
@@ -329,6 +325,7 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;*/
 
   //this code performs the piCAM unit test
+  //NOTE: piCAM initialization is completed by the MX_USART1_UART_Init function
   //NOTE: piCAM_Test_Procedure(); will NOT return a HAL_StatusTypeDef as it is a void type
   // It ONLY follows this specific sequence
   // - Follows Boot Up Sequence
