@@ -69,6 +69,10 @@ void Error_Handler(void);
 #define CAM_FSH_GPIO_Port GPIOA
 #define CAM_ON_Pin GPIO_PIN_3
 #define CAM_ON_GPIO_Port GPIOA
+#define SPI1_SDI_Pin GPIO_PIN_6
+#define SPI1_SDI_GPIO_Port GPIOA
+#define SPI1_SDO_Pin GPIO_PIN_7
+#define SPI1_SDO_GPIO_Port GPIOA
 #define UHF_nCS_Pin GPIO_PIN_4
 #define UHF_nCS_GPIO_Port GPIOC
 #define UHF_nIRQ_Pin GPIO_PIN_5
@@ -81,6 +85,10 @@ void Error_Handler(void);
 #define LED3_GPIO_Port GPIOB
 #define FLASH_nWP_Pin GPIO_PIN_12
 #define FLASH_nWP_GPIO_Port GPIOB
+#define SPI2_SDI_Pin GPIO_PIN_14
+#define SPI2_SDI_GPIO_Port GPIOB
+#define SPI2_SDO_Pin GPIO_PIN_15
+#define SPI2_SDO_GPIO_Port GPIOB
 #define FLASH_nCS_Pin GPIO_PIN_6
 #define FLASH_nCS_GPIO_Port GPIOC
 #define FLASH_nHOLD_Pin GPIO_PIN_7
@@ -89,6 +97,10 @@ void Error_Handler(void);
 #define UHF_SDN_GPIO_Port GPIOC
 #define MRAM_nWP_Pin GPIO_PIN_15
 #define MRAM_nWP_GPIO_Port GPIOA
+#define SPI3_SDI_Pin GPIO_PIN_11
+#define SPI3_SDI_GPIO_Port GPIOC
+#define SPI3_SDO_Pin GPIO_PIN_12
+#define SPI3_SDO_GPIO_Port GPIOC
 #define MRAM_nCS_Pin GPIO_PIN_2
 #define MRAM_nCS_GPIO_Port GPIOD
 #define RELEASE_nEN_Pin GPIO_PIN_6
