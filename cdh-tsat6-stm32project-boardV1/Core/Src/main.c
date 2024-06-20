@@ -883,7 +883,7 @@ static void MX_GPIO_Init(void)
   */
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
-  osThreadResume(timeTagTaskHandle);
+  osThreadFlagsSet(timeTagTaskHandle, 0x0001);
 }
 
 /**
@@ -1295,7 +1295,8 @@ void StartTimeTagTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osThreadSuspend(timeTagTaskHandle); //block until thread resumed from RTC alarm ISR
+    //block until thread resumed from RTC alarm ISR
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
 
     HAL_StatusTypeDef operation_status;
     CANMessage_t ack_message =
