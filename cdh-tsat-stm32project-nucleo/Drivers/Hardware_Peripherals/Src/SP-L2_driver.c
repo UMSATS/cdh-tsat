@@ -194,8 +194,11 @@ S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t *buffer){
 	if(status != S2LP_HAL_OK) goto error;
 
 	// If there are enough bytes ready for requested amount count
-	// Else get as many as avaliable
-	if(avaliableBytes > n_bytes){
+	// Else get as many as available
+	if(availableBytes == 0){
+		return S2LP_TX_FIFO_EMPTY;
+	}
+	else if(avaliableBytes > n_bytes){
 		numToFetch = n_bytes;
 	}
 	else{

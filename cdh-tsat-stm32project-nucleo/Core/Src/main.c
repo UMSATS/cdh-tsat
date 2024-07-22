@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -63,6 +64,44 @@ UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_uart4_rx;
 
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for radioTxTask */
+osThreadId_t radioTxTaskHandle;
+const osThreadAttr_t radioTxTask_attributes = {
+  .name = "radioTxTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for radioRxTask */
+osThreadId_t radioRxTaskHandle;
+const osThreadAttr_t radioRxTask_attributes = {
+  .name = "radioRxTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for radioHandler */
+osThreadId_t radioHandlerHandle;
+const osThreadAttr_t radioHandler_attributes = {
+  .name = "radioHandler",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for radioTxQueue */
+osMessageQueueId_t radioTxQueueHandle;
+const osMessageQueueAttr_t radioTxQueue_attributes = {
+  .name = "radioTxQueue"
+};
+/* Definitions for radioRxQueue */
+osMessageQueueId_t radioRxQueueHandle;
+const osMessageQueueAttr_t radioRxQueue_attributes = {
+  .name = "radioRxQueue"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -77,6 +116,11 @@ static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
+void StartDefaultTask(void *argument);
+void StartRadioTxTask(void *argument);
+void StartRadioRxTask(void *argument);
+void StartRadioHandler(void *argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -187,6 +231,57 @@ int main(void)
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of radioTxQueue */
+  radioTxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &radioTxQueue_attributes);
+
+  /* creation of radioRxQueue */
+  radioRxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &radioRxQueue_attributes);
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of radioTxTask */
+  radioTxTaskHandle = osThreadNew(StartRadioTxTask, NULL, &radioTxTask_attributes);
+
+  /* creation of radioRxTask */
+  radioRxTaskHandle = osThreadNew(StartRadioRxTask, NULL, &radioRxTask_attributes);
+
+  /* creation of radioHandler */
+  radioHandlerHandle = osThreadNew(StartRadioHandler, NULL, &radioHandler_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   SpiritBaseConfiguration();
@@ -266,7 +361,7 @@ void SystemClock_Config(void)
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.HSICalibrationValue = 64;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
@@ -532,7 +627,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Channel5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Channel5_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Channel5_IRQn);
 
 }
@@ -643,6 +738,120 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
     }
 }
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartRadioTxTask */
+/**
+* @brief Function implementing the radioTxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartRadioTxTask */
+void StartRadioTxTask(void *argument)
+{
+  /* USER CODE BEGIN StartRadioTxTask */
+  // Buffer that will hold the next message to send
+  // (must be at least same size as queue item size)
+  uint16_t messageToSend = 0;
+  S2LP_StatusTypeDef status;
+  /* Infinite loop */
+  for(;;)
+  {
+    // Check if there is data in the queue
+    if (messageToSend == 0 && uxQueueMessagesWaiting(radioTxQueueHandle) > 0) {
+    	// Get message to send without removing it from the queue
+    	xQueuePeek(radioTxQueueHandle, &messageToSend, 0);
+    }
+    else if (messageToSend != 0) {
+    	// Write to TX FIFO
+			status = S2LP_Write_TX_Fifo(sizeof(messageToSend), &messageToSend);
+			// if successful, delete the message in the queue
+			if (status == S2LP_HAL_OK) {
+				xQueueReceive(radioTxQueueHandle, &messageToSend, 0);
+				messageToSend = 0;
+			}
+    }
+  }
+  /* USER CODE END StartRadioTxTask */
+}
+
+/* USER CODE BEGIN Header_StartRadioRxTask */
+/**
+* @brief Function implementing the radioRxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartRadioRxTask */
+void StartRadioRxTask(void *argument)
+{
+  /* USER CODE BEGIN StartRadioRxTask */
+  uint16_t buffer = 0;
+  /* Infinite loop */
+  for(;;)
+  {
+  	// Check if the FIFO is empty
+  	// Insert the message to the queue
+  	xQueueSend(radioRxQueueHandle, &buffer, 0);
+  }
+  /* USER CODE END StartRadioRxTask */
+}
+
+/* USER CODE BEGIN Header_StartRadioHandler */
+/**
+* @brief Function implementing the radioHandler thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartRadioHandler */
+void StartRadioHandler(void *argument)
+{
+  /* USER CODE BEGIN StartRadioHandler */
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+  S2LP_STATE state;
+  /* Infinite loop */
+  for(;;)
+  {
+		if (state == S2LP_STATE_READY)
+		{
+			// If RX_AE, send RX command
+			status = S2LP_Send_Command(COMMAND_RX);
+			if (status == S2LP_HAL_OK)
+			{
+				state = S2LP_STATE_RX;
+			}
+		}
+
+		if (state == S2LP_STATE_RX)
+		{
+			// Wait for RX_AF_THR interrupt
+			// Send ready command
+		}
+
+		if (state == S2LP_STATE_TX)
+		{
+			// Wait for TX_AE_THR interrupt
+			// Send ready command
+		}
+  }
+  /* USER CODE END StartRadioHandler */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

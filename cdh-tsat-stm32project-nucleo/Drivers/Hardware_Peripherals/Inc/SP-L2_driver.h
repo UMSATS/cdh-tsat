@@ -70,6 +70,7 @@ typedef enum
 	S2LP_HAL_BUSY                   = HAL_BUSY,    	//0x02
 	S2LP_HAL_TIMEOUT                = HAL_TIMEOUT, 	//0x03
 	S2LP_TX_FIFO_FULL,
+	S2LP_TX_FIFO_EMPTY,
 	S2LP_RESET_FAIL,
 } S2LP_StatusTypeDef;
 
