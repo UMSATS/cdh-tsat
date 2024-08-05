@@ -234,7 +234,7 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();
 
-  /* USER CODE BEGIN RTOS_MUTEX */
+  /* USER CODE BEGIN RTOS_s */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
@@ -767,27 +767,17 @@ void StartDefaultTask(void *argument)
 void StartRadioTxTask(void *argument)
 {
   /* USER CODE BEGIN StartRadioTxTask */
-  // Buffer that will hold the next message to send
-  // (must be at least same size as queue item size)
-  uint16_t messageToSend = 0;
-  S2LP_StatusTypeDef status;
+	uint32_t freeBytes = 0;
   /* Infinite loop */
   for(;;)
   {
-    // Check if there is data in the queue
-    if (messageToSend == 0 && uxQueueMessagesWaiting(radioTxQueueHandle) > 0) {
-    	// Get message to send without removing it from the queue
-    	xQueuePeek(radioTxQueueHandle, &messageToSend, 0);
-    }
-    else if (messageToSend != 0) {
-    	// Write to TX FIFO
-			status = S2LP_Write_TX_Fifo(sizeof(messageToSend), &messageToSend);
-			// if successful, delete the message in the queue
-			if (status == S2LP_HAL_OK) {
-				xQueueReceive(radioTxQueueHandle, &messageToSend, 0);
-				messageToSend = 0;
-			}
-    }
+  	// Wait for handler to unblock
+  	xTaskNotifyWait(0x00, 0xffffffff, &freeBytes, portMAX_DELAY);
+
+  	// TODO: Write bytes equal to freeBytes to the FIFO
+
+  	// Notify the handler of completion
+  	xTaskNotifyGive(radioHandlerHandle);
   }
   /* USER CODE END StartRadioTxTask */
 }
@@ -802,13 +792,17 @@ void StartRadioTxTask(void *argument)
 void StartRadioRxTask(void *argument)
 {
   /* USER CODE BEGIN StartRadioRxTask */
-  uint16_t buffer = 0;
+  uint32_t rxFifoLength = 0;
   /* Infinite loop */
   for(;;)
   {
-  	// Check if the FIFO is empty
-  	// Insert the message to the queue
-  	xQueueSend(radioRxQueueHandle, &buffer, 0);
+  	// Wait for handler to unblock
+  	xTaskNotifyWait(0x00, 0xffffffff, &rxFifoLength, portMAX_DELAY);
+
+  	// TODO: Read bytes equal to rxFifoLength
+
+  	// Notify the handler of completion
+  	xTaskNotifyGive(radioHandlerHandle);
   }
   /* USER CODE END StartRadioRxTask */
 }
@@ -823,32 +817,64 @@ void StartRadioRxTask(void *argument)
 void StartRadioHandler(void *argument)
 {
   /* USER CODE BEGIN StartRadioHandler */
+	const uint8_t TX_FIFO_MAX_LENGTH = 32; // Need to check this value, and declare it in the driver instead
+	const TickType_t xMaxWaitTime = pdMS_TO_TICKS(10000);
+	TickType_t xStartTime;
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
   S2LP_STATE state;
+  uint8_t txFifoLength, rxFifoLength;
+  uint32_t txTaskResult, rxTaskResult;
   /* Infinite loop */
   for(;;)
   {
 		if (state == S2LP_STATE_READY)
 		{
-			// If RX_AE, send RX command
-			status = S2LP_Send_Command(COMMAND_RX);
-			if (status == S2LP_HAL_OK)
+			// Unblock the TX task
+			status = S2LP_Check_TX_FIFO_Status(&txFifoLength);
+			int8_t txFreeBytes = TX_FIFO_MAX_LENGTH - txFifoLength;
+			xTaskNotify(radioTxTaskHandle, txFreeBytes, eSetValueWithOverwrite);
+
+			if (status != S2LP_HAL_OK) { /*TODO*/ }
+
+			// Unblock the RX task
+			status = S2LP_Check_RX_FIFO_Status(&rxFifoLength);
+			xTaskNotify(radioRxTaskHandle, rxFifoLength, eSetValueWithOverwrite);
+
+			if (status != S2LP_HAL_OK) { /*TODO*/ }
+
+			// Record the start time
+			xStartTime = xTaskGetTickCount();
+
+			// Wait for the tasks to complete or timeout
+			txTaskResult = ulTaskNotifyTake(pdTRUE, xMaxWaitTime);
+			rxTaskResult = ulTaskNotifyTake(pdTRUE, xMaxWaitTime - (xTaskGetTickCount() - xStartTime));
+
+			// TODO: Handle timeouts
+			if (txTaskResult == 0)
 			{
-				state = S2LP_STATE_RX;
+
+			}
+			if (rxTaskResult == 0)
+			{
+
 			}
 		}
 
-		if (state == S2LP_STATE_RX)
+		else if (state == S2LP_STATE_RX)
 		{
-			// Wait for RX_AF_THR interrupt
+			// TODO
+			// Wait for RX_AF_THR (FIFO almost full) interrupt
 			// Send ready command
 		}
 
-		if (state == S2LP_STATE_TX)
+		else if (state == S2LP_STATE_TX)
 		{
-			// Wait for TX_AE_THR interrupt
+			// TODO
+			// Wait for TX_AE_THR (FIFO almost empty) interrupt
 			// Send ready command
 		}
+
+		// TODO: Handle other states
   }
   /* USER CODE END StartRadioHandler */
 }
