@@ -234,7 +234,7 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();
 
-  /* USER CODE BEGIN RTOS_s */
+  /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
@@ -673,6 +673,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PC0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
                            M_nRESET_Pin */
   GPIO_InitStruct.Pin = LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
@@ -706,6 +712,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -736,6 +746,34 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
     {
         //TODO: Implement error handling for CAN message receives
     }
+}
+
+/**
+ * Temporary GPIO external interrupt callback for development
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	// S2-LP interrupts are set on PC0
+  if(GPIO_Pin == GPIO_PIN_0)
+  {
+  	/* TODO:
+  	 * Unless the interrupt bit can be easily determined
+  	 * from this callback, another task should be notified
+  	 * of the interrupt and mask the status registers to
+  	 * determine and handle it.
+  	 */
+  	// This is what that would look like:
+  	uint32_t interrupt;
+  	if (interrupt == IRQ_RX_DATA_READY
+  	 || interrupt == IRQ_TX_DATA_SENT)
+  	{
+  		xTaskNotifyGive(radioHandlerHandle);
+  	}
+  	else
+  	{
+  		// Other interrupts may need handling
+  	}
+  }
 }
 /* USER CODE END 4 */
 
@@ -817,7 +855,8 @@ void StartRadioRxTask(void *argument)
 void StartRadioHandler(void *argument)
 {
   /* USER CODE BEGIN StartRadioHandler */
-	const uint8_t TX_FIFO_MAX_LENGTH = 32; // Need to check this value, and declare it in the driver instead
+	// Need to check this value, and declare it in the driver instead
+	const uint8_t TX_FIFO_MAX_LENGTH = 32;
 	const TickType_t xMaxWaitTime = pdMS_TO_TICKS(10000);
 	TickType_t xStartTime;
 	S2LP_StatusTypeDef status = S2LP_HAL_OK;
@@ -827,54 +866,64 @@ void StartRadioHandler(void *argument)
   /* Infinite loop */
   for(;;)
   {
-		if (state == S2LP_STATE_READY)
+  	/*
+  	 * The radio should be in READY state here.
+  	 * The TX and RX tasks are unblocked and move data
+  	 * in/out of the radio FIFOs while the handler
+  	 * waits for both to complete or timeout.
+  	 */
+
+		// Unblock the TX task
+		status = S2LP_Check_TX_FIFO_Status(&txFifoLength);
+		int8_t txFreeBytes = TX_FIFO_MAX_LENGTH - txFifoLength;
+		xTaskNotify(radioTxTaskHandle, txFreeBytes, eSetValueWithOverwrite);
+
+		if (status != S2LP_HAL_OK) { /*TODO*/ }
+
+		// Unblock the RX task
+		status = S2LP_Check_RX_FIFO_Status(&rxFifoLength);
+		xTaskNotify(radioRxTaskHandle, rxFifoLength, eSetValueWithOverwrite);
+
+		if (status != S2LP_HAL_OK) { /*TODO*/ }
+
+		// Record the start time
+		xStartTime = xTaskGetTickCount();
+
+		// Wait for the tasks to complete or timeout
+		/* TODO: We can't assume the TX task will complete first,
+		 * using notification indexes will solve that */
+		txTaskResult = ulTaskNotifyTake(pdTRUE, xMaxWaitTime);
+		rxTaskResult = ulTaskNotifyTake(pdTRUE, xMaxWaitTime - (xTaskGetTickCount() - xStartTime));
+
+		// TODO: Handle timeouts
+		if (txTaskResult == 0) {}
+		if (rxTaskResult == 0) {}
+
+		/*
+		 * At this point, the handler can wait for appropriate conditions**.
+		 * It will then send either the TX or RX command, and wait to be
+		 * notified by the ISR on completion.
+		 *
+		 * **TODO: Determine what these conditions are
+		*/
+
+		// If we want to transmit
+		status = S2LP_Send_Command(COMMAND_TX);
+		if (status == S2LP_HAL_OK)
 		{
-			// Unblock the TX task
-			status = S2LP_Check_TX_FIFO_Status(&txFifoLength);
-			int8_t txFreeBytes = TX_FIFO_MAX_LENGTH - txFifoLength;
-			xTaskNotify(radioTxTaskHandle, txFreeBytes, eSetValueWithOverwrite);
-
-			if (status != S2LP_HAL_OK) { /*TODO*/ }
-
-			// Unblock the RX task
-			status = S2LP_Check_RX_FIFO_Status(&rxFifoLength);
-			xTaskNotify(radioRxTaskHandle, rxFifoLength, eSetValueWithOverwrite);
-
-			if (status != S2LP_HAL_OK) { /*TODO*/ }
-
-			// Record the start time
-			xStartTime = xTaskGetTickCount();
-
-			// Wait for the tasks to complete or timeout
-			txTaskResult = ulTaskNotifyTake(pdTRUE, xMaxWaitTime);
-			rxTaskResult = ulTaskNotifyTake(pdTRUE, xMaxWaitTime - (xTaskGetTickCount() - xStartTime));
-
-			// TODO: Handle timeouts
-			if (txTaskResult == 0)
-			{
-
-			}
-			if (rxTaskResult == 0)
-			{
-
-			}
+			state = S2LP_STATE_TX;
 		}
 
-		else if (state == S2LP_STATE_RX)
+		// Else if we want to receive
+		status = S2LP_Send_Command(COMMAND_RX);
+		if (status == S2LP_HAL_OK)
 		{
-			// TODO
-			// Wait for RX_AF_THR (FIFO almost full) interrupt
-			// Send ready command
+			state = S2LP_STATE_RX;
 		}
 
-		else if (state == S2LP_STATE_TX)
-		{
-			// TODO
-			// Wait for TX_AE_THR (FIFO almost empty) interrupt
-			// Send ready command
-		}
-
-		// TODO: Handle other states
+		// Block until radio is ready again
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		state = S2LP_STATE_READY;
   }
   /* USER CODE END StartRadioHandler */
 }
