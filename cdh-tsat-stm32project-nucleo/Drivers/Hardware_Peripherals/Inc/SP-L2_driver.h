@@ -40,6 +40,9 @@
 #define	COMMAND_FLUSHRXFIFO                                 ((uint8_t)(0x71)) /*!< Clean the RX FIFO; valid from all states */
 #define	COMMAND_FLUSHTXFIFO                                 ((uint8_t)(0x72)) /*!< Clean the TX FIFO; valid from all states */
 
+/* interrupt bit masks */
+#define IRQ_RX_DATA_READY (1 << 0) /* RX data ready, radio in ready state */
+#define IRQ_TX_DATA_SENT  (1 << 2) /* TX data sent, radio in ready state */
 
 //###############################################################################################
 // Radio State Codes
@@ -72,15 +75,6 @@ typedef enum
 	S2LP_TX_FIFO_FULL,
 	S2LP_RESET_FAIL,
 } S2LP_StatusTypeDef;
-
-//###############################################################################################
-// Radio Interrupt Codes
-//###############################################################################################
-typedef enum
-{
-	IRQ_RX_DATA_READY = 0x00,
-	IRQ_TX_DATA_SENT  = 0x02
-} S2LP_IRQTypeDef;
 
 //###############################################################################################
 // Function Prototypes

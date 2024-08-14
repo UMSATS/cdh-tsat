@@ -92,6 +92,13 @@ const osThreadAttr_t radioHandler_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for radioISR */
+osThreadId_t radioISRHandle;
+const osThreadAttr_t radioISR_attributes = {
+  .name = "radioISR",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
+};
 /* Definitions for radioTxQueue */
 osMessageQueueId_t radioTxQueueHandle;
 const osMessageQueueAttr_t radioTxQueue_attributes = {
@@ -120,6 +127,7 @@ void StartDefaultTask(void *argument);
 void StartRadioTxTask(void *argument);
 void StartRadioRxTask(void *argument);
 void StartRadioHandler(void *argument);
+void StartRadioISR(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -269,6 +277,9 @@ int main(void)
 
   /* creation of radioHandler */
   radioHandlerHandle = osThreadNew(StartRadioHandler, NULL, &radioHandler_attributes);
+
+  /* creation of radioISR */
+  radioISRHandle = osThreadNew(StartRadioISR, NULL, &radioISR_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -756,23 +767,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	// S2-LP interrupts are set on PC0
   if(GPIO_Pin == GPIO_PIN_0)
   {
-  	/* TODO:
-  	 * Unless the interrupt bit can be easily determined
-  	 * from this callback, another task should be notified
-  	 * of the interrupt and mask the status registers to
-  	 * determine and handle it.
-  	 */
-  	// This is what that would look like:
-  	uint32_t interrupt;
-  	if (interrupt == IRQ_RX_DATA_READY
-  	 || interrupt == IRQ_TX_DATA_SENT)
-  	{
-  		xTaskNotifyGive(radioHandlerHandle);
-  	}
-  	else
-  	{
-  		// Other interrupts may need handling
-  	}
+  	xTaskNotifyGive(radioISRHandle);
   }
 }
 /* USER CODE END 4 */
@@ -926,6 +921,49 @@ void StartRadioHandler(void *argument)
 		state = S2LP_STATE_READY;
   }
   /* USER CODE END StartRadioHandler */
+}
+
+/* USER CODE BEGIN Header_StartRadioISR */
+/**
+* @brief Function implementing the radioISR thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartRadioISR */
+void StartRadioISR(void *argument)
+{
+  /* USER CODE BEGIN StartRadioISR */
+  /* Infinite loop */
+  for(;;)
+  {
+  	// Wait for notification from HAL_GPIO_EXTI_CALLBACK
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+    // Determine interrupt from status registers
+    uint8_t irq_status0, irq_status1, irq_status2, irq_status3;
+    S2LP_Spi_Read_Registers(0xFD, 1, &irq_status0);
+    S2LP_Spi_Read_Registers(0xFC, 1, &irq_status1);
+    S2LP_Spi_Read_Registers(0xFB, 1, &irq_status2);
+    S2LP_Spi_Read_Registers(0xFA, 1, &irq_status3);
+
+    /* Would this do the same thing?
+     * S2LP_Spi_Read_Registers(0xFA, 4, &irq_val) */
+
+    uint32_t irq_val =
+    		irq_status0
+			+ irq_status1
+			+ irq_status2
+			+ irq_status3;
+
+    // Handle interrupts
+    if (irq_val & IRQ_RX_DATA_READY
+     || irq_val & IRQ_TX_DATA_SENT)
+    {
+    	xTaskNotifyGive(radioHandlerHandle);
+    }
+
+  }
+  /* USER CODE END StartRadioISR */
 }
 
 /**
