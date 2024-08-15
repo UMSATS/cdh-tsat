@@ -955,6 +955,9 @@ void StartRadioISR(void *argument)
 			+ irq_status2
 			+ irq_status3;
 
+    // Clear the interrupt registers
+		S2LP_Spi_Write_Registers(0xFA, 4, &(uint8_t){0});
+
     // Handle interrupts
     if (irq_val & IRQ_RX_DATA_READY
      || irq_val & IRQ_TX_DATA_SENT)
