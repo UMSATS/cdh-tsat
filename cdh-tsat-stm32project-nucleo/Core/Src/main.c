@@ -684,12 +684,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PC0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
   /*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
                            M_nRESET_Pin */
   GPIO_InitStruct.Pin = LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
@@ -722,10 +716,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -764,8 +754,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	// S2-LP interrupts are set on PC0
-  if(GPIO_Pin == GPIO_PIN_0)
+	// S2-LP interrupts are set on PB1 for the Nucleo board
+  if(GPIO_Pin == GPIO_PIN_1)
   {
   	osThreadFlagsSet(radioISRHandle, 0x0001);
   }
@@ -816,7 +806,7 @@ void StartRadioTxTask(void *argument)
   	// TODO: Write bytes equal to freeBytes to the FIFO
 
   	// Notify the handler of completion
-  	osThreadFlagsSet(radioHandlerHandle, 0x0001);
+  	osThreadFlagsSet(radioHandlerHandle, 0x0002);
   }
   /* USER CODE END StartRadioTxTask */
 }
@@ -844,7 +834,7 @@ void StartRadioRxTask(void *argument)
   	// TODO: Read bytes equal to rxFifoLength
 
   	// Notify the handler of completion
-  	osThreadFlagsSet(radioHandlerHandle, 0x0002);
+  	osThreadFlagsSet(radioHandlerHandle, 0x0001);
   }
   /* USER CODE END StartRadioRxTask */
 }
@@ -874,24 +864,24 @@ void StartRadioHandler(void *argument)
   	 * waits for both to complete or timeout.
   	 */
 
-		// Unblock the TX and RX tasks
+		// Unblock the RX and TX tasks
+  	osThreadFlagsSet(radioRxTaskHandle, 0x0001);
 		osThreadFlagsSet(radioTxTaskHandle, 0x0001);
-		osThreadFlagsSet(radioRxTaskHandle, 0x0001);
 
 		// Record the start time
 		xStartTime = xTaskGetTickCount();
 
 		// Wait for the tasks to complete or timeout
-		txTaskResult = osThreadFlagsWait(0x0001, osFlagsWaitAny,
+		rxTaskResult = osThreadFlagsWait(0x0001, osFlagsWaitAny,
 				xMaxWaitTime
 		);
-		rxTaskResult = osThreadFlagsWait(0x0002, osFlagsWaitAny,
+		txTaskResult = osThreadFlagsWait(0x0002, osFlagsWaitAny,
 				xMaxWaitTime - (xTaskGetTickCount() - xStartTime)
 		);
 
 		// TODO: Handle timeouts
-		if (txTaskResult == 0) {}
 		if (rxTaskResult == 0) {}
+		if (txTaskResult == 0) {}
 
 		/*
 		 * At this point, the handler can wait for appropriate conditions**.
@@ -901,11 +891,11 @@ void StartRadioHandler(void *argument)
 		 * **TODO: Determine what these conditions are
 		*/
 
-		// If we want to transmit
-		status = S2LP_Send_Command(COMMAND_TX);
+		// If we want to receive
+		status = S2LP_Send_Command(COMMAND_RX);
 		if (status == S2LP_HAL_OK) {state = S2LP_STATE_TX;}
 
-		// Else if we want to receive
+		// Else if we want to transmit
 		status = S2LP_Send_Command(COMMAND_RX);
 		if (status == S2LP_HAL_OK) {state = S2LP_STATE_RX;}
 
@@ -933,14 +923,12 @@ void StartRadioISR(void *argument)
   	osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
 
     // Determine interrupt from status registers
+  	// TODO: Do this with less instructions
     uint8_t irq_status0, irq_status1, irq_status2, irq_status3;
     S2LP_Spi_Read_Registers(0xFD, 1, &irq_status0);
     S2LP_Spi_Read_Registers(0xFC, 1, &irq_status1);
     S2LP_Spi_Read_Registers(0xFB, 1, &irq_status2);
     S2LP_Spi_Read_Registers(0xFA, 1, &irq_status3);
-
-    /* Would this do the same thing?
-     * S2LP_Spi_Read_Registers(0xFA, 4, &irq_val) */
 
     uint32_t irq_val =
     		irq_status0
