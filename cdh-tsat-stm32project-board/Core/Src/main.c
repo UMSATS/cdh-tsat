@@ -184,6 +184,13 @@ const osThreadAttr_t getRTC_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for calculateBDot */
+osThreadId_t calculateBDotHandle;
+const osThreadAttr_t calculateBDot_attributes = {
+  .name = "calculateBDot",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -234,6 +241,7 @@ void StartGetTasksNum(void *argument);
 void StartTimeTagTaskInit(void *argument);
 void StartSetRTC(void *argument);
 void StartGetRTC(void *argument);
+extern void StartBDot(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -398,6 +406,9 @@ int main(void)
 
   /* creation of getRTC */
   getRTCHandle = osThreadNew(StartGetRTC, NULL, &getRTC_attributes);
+
+  /* creation of calculateBDot */
+  calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
