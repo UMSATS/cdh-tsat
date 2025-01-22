@@ -118,11 +118,11 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
-static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
+static void MX_CAN1_Init(void);
+static void MX_SPI2_Init(void);
 void StartDefaultTask(void *argument);
 void StartRadioTxTask(void *argument);
 void StartRadioRxTask(void *argument);
@@ -168,13 +168,14 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
-  MX_CAN1_Init();
   MX_SPI1_Init();
-  MX_SPI2_Init();
   MX_SPI3_Init();
   MX_UART4_Init();
+  MX_CAN1_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-
+  S2LP_Hardware_Reset();
+  SpiritBaseConfiguration();
   //###############################################################################################
   //Peripheral Initialization
   //###############################################################################################
@@ -256,13 +257,24 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of radioTxQueue */
-  radioTxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &radioTxQueue_attributes);
+  radioTxQueueHandle = osMessageQueueNew (16, sizeof(uint8_t), &radioTxQueue_attributes);
 
   /* creation of radioRxQueue */
-  radioRxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &radioRxQueue_attributes);
+  radioRxQueueHandle = osMessageQueueNew (16, sizeof(uint8_t), &radioRxQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  uint8_t message[6] = {0};
+  // "Hello!"
+	message[0] = 0x48;
+	message[1] = 0x65;
+	message[2] = 0x6C;
+	message[3] = 0x6C;
+	message[4] = 0x6F;
+	message[5] = 0X21;
+	for (int i = 0; i < 6; i++) {
+		osMessageQueuePut(radioTxQueueHandle, &message[i], 0, osWaitForever);
+	}
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -304,10 +316,11 @@ int main(void)
   uint8_t receivedFIFOSize = 0;
   while (1)
   {
+  	/*
 	  uint8_t receivedFIFOSize = 0;
 	  uint8_t txFIFOSize = 0;
 	  uint8_t message[6] = {0}; // Test Message is "Hello!"
-
+		*/
 
 	  // Only Test RX or TX with this code, they use same message var.
 	  /*
@@ -419,8 +432,8 @@ static void MX_CAN1_Init(void)
   hcan1.Init.Prescaler = 16;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_5TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_4TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_1TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_1TQ;
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
@@ -460,7 +473,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -496,11 +509,11 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -661,19 +674,19 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, RELEASE_Pin|FLASH_nWP_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin|FLASH_nCS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, RELEASE_nEN_Pin|UHF_nCS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED3_Pin|LED2_Pin|LED1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED3_Pin|GPIO_PIN_6|LED1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, FLASH_nHOLD_Pin|MRAM_nCS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(M_nRESET_GPIO_Port, M_nRESET_Pin, GPIO_PIN_SET);
@@ -684,15 +697,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD4_Pin CAM_FSH_Pin CAM_ON_Pin WDI_Pin
-                           M_nRESET_Pin */
-  GPIO_InitStruct.Pin = LD4_Pin|CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin
-                          |M_nRESET_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pins : RELEASE_Pin FLASH_nWP_Pin FLASH_nHOLD_Pin MRAM_nCS_Pin
                            MRAM_nWP_Pin */
   GPIO_InitStruct.Pin = RELEASE_Pin|FLASH_nWP_Pin|FLASH_nHOLD_Pin|MRAM_nCS_Pin
@@ -702,10 +706,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin FLASH_nCS_Pin
-                           LED3_Pin LED2_Pin LED1_Pin */
-  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|FLASH_nCS_Pin
-                          |LED3_Pin|LED2_Pin|LED1_Pin;
+  /*Configure GPIO pins : RELEASE_nEN_Pin UHF_nCS_Pin UHF_SDN_Pin LED3_Pin
+                           PB6 LED1_Pin */
+  GPIO_InitStruct.Pin = RELEASE_nEN_Pin|UHF_nCS_Pin|UHF_SDN_Pin|LED3_Pin
+                          |GPIO_PIN_6|LED1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -716,6 +720,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : CAM_FSH_Pin CAM_ON_Pin WDI_Pin M_nRESET_Pin */
+  GPIO_InitStruct.Pin = CAM_FSH_Pin|CAM_ON_Pin|WDI_Pin|M_nRESET_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -791,7 +802,7 @@ void StartRadioTxTask(void *argument)
 {
   /* USER CODE BEGIN StartRadioTxTask */
 	// Need to check this value, and declare it in the driver instead
-	const uint8_t TX_FIFO_MAX_LENGTH = 32;
+	const uint8_t TX_FIFO_MAX_LENGTH = 128;
 	uint8_t txFifoLength = 0;
   /* Infinite loop */
   for(;;)
@@ -800,10 +811,22 @@ void StartRadioTxTask(void *argument)
   	osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
 
   	// Determine free bytes in the radio FIFO
-  	S2LP_Check_TX_FIFO_Status(&txFifoLength);
-  	uint8_t freeBytes = TX_FIFO_MAX_LENGTH - txFifoLength;
+  	uint8_t freeBytes;
 
   	// TODO: Write bytes equal to freeBytes to the FIFO
+  	while (freeBytes > 0 && osMessageQueueGetCount(radioTxQueueHandle) > 0) {
+  		uint8_t status;
+  		S2LP_Get_Status(&status);
+  		S2LP_Check_TX_FIFO_Status(&txFifoLength);
+  		freeBytes = TX_FIFO_MAX_LENGTH - txFifoLength;
+			uint8_t msg;
+			uint8_t msg_prio;
+			osMessageQueueGet(radioTxQueueHandle, &msg, &msg_prio, osWaitForever);
+
+			S2LP_SPI_Transmit_Message(&msg, 1);
+  	}
+
+
 
   	// Notify the handler of completion
   	osThreadFlagsSet(radioHandlerHandle, 0x0002);
@@ -892,12 +915,14 @@ void StartRadioHandler(void *argument)
 		*/
 
 		// If we want to receive
-		status = S2LP_Send_Command(COMMAND_RX);
-		if (status == S2LP_HAL_OK) {state = S2LP_STATE_TX;}
-
-		// Else if we want to transmit
+		/*
 		status = S2LP_Send_Command(COMMAND_RX);
 		if (status == S2LP_HAL_OK) {state = S2LP_STATE_RX;}
+		*/
+
+		// Else if we want to transmit
+		status = S2LP_Send_Command(COMMAND_TX);
+		if (status == S2LP_HAL_OK) {state = S2LP_STATE_TX;}
 
 		// Block until radio is ready again
 		osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
@@ -922,6 +947,7 @@ void StartRadioISR(void *argument)
   	// Wait for notification from HAL_GPIO_EXTI_CALLBACK
   	osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
 
+  	/*
     // Determine interrupt from status registers
   	// TODO: Do this with less instructions
     uint8_t irq_status0, irq_status1, irq_status2, irq_status3;
@@ -935,6 +961,17 @@ void StartRadioISR(void *argument)
 			+ irq_status1
 			+ irq_status2
 			+ irq_status3;
+		*/
+
+  	// Read the interrupt registers (backwards)
+  	uint32_t irq_val;
+    S2LP_Spi_Read_Registers(0xFA, 4, &irq_val);
+
+    // Reverse the order of bytes
+    irq_val = ((irq_val & 0x000000FF) << 24)
+						| ((irq_val & 0x0000FF00) << 8)
+						| ((irq_val & 0x00FF0000) >> 8)
+						|	((irq_val & 0xFF000000) >> 24);
 
     // Clear the interrupt registers
 		S2LP_Spi_Write_Registers(0xFA, 4, &(uint8_t){0});

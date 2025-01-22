@@ -65,8 +65,6 @@ void Error_Handler(void);
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
-#define LD4_Pin GPIO_PIN_5
-#define LD4_GPIO_Port GPIOA
 #define RELEASE_Pin GPIO_PIN_5
 #define RELEASE_GPIO_Port GPIOC
 #define RELEASE_nEN_Pin GPIO_PIN_0
@@ -77,8 +75,6 @@ void Error_Handler(void);
 #define UHF_nCS_GPIO_Port GPIOB
 #define UHF_SDN_Pin GPIO_PIN_11
 #define UHF_SDN_GPIO_Port GPIOB
-#define FLASH_nCS_Pin GPIO_PIN_15
-#define FLASH_nCS_GPIO_Port GPIOB
 #define FLASH_nWP_Pin GPIO_PIN_6
 #define FLASH_nWP_GPIO_Port GPIOC
 #define FLASH_nHOLD_Pin GPIO_PIN_7
@@ -101,12 +97,8 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define CAM_RX_Pin GPIO_PIN_11
 #define CAM_RX_GPIO_Port GPIOC
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
 #define LED3_Pin GPIO_PIN_5
 #define LED3_GPIO_Port GPIOB
-#define LED2_Pin GPIO_PIN_6
-#define LED2_GPIO_Port GPIOB
 #define LED1_Pin GPIO_PIN_7
 #define LED1_GPIO_Port GPIOB
 
