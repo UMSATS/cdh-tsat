@@ -43,6 +43,7 @@
 #include "telemetry.h"
 #include "utils.h"
 #include "rtc.h"
+#include "task_control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

@@ -5,8 +5,8 @@
  *      Author: drive
  */
 
-#ifndef INC_TIME_TAGGED_TASK_H_
-#define INC_TIME_TAGGED_TASK_H_
+#ifndef INC_TASK_CONTROL_H_
+#define INC_TASK_CONTROL_H_
 
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
@@ -18,4 +18,4 @@ extern RTC_HandleTypeDef hrtc;
 
 void StartTimeTagTaskInit(void *argument);
 
-#endif /* INC_TIME_TAGGED_TASK_H_ */
+#endif /* INC_TASK_CONTROL_H_ */
