@@ -44,6 +44,7 @@
 #include "utils.h"
 #include "rtc.h"
 #include "task_control.h"
+#include "bdot_algorithm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
