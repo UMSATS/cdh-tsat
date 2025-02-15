@@ -55,3 +55,36 @@ void StartGetTasksNum(void *argument)
   osThreadExit();
   /* USER CODE END StartGetTasksNum */
 }
+
+
+void StartTimeTagTask(void *argument)
+{
+  /* Infinite loop */
+  for(;;)
+  {
+    //block until thread resumed from RTC alarm ISR
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    HAL_StatusTypeDef operation_status;
+    CANMessage_t ack_message =
+    {
+      .priority = 0b0000111,
+      .SenderID = 0x1,
+      .DestinationID = 0x1,
+      .command = 0x01,
+      .data = {0x48, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
+    };
+
+    operation_status = CAN_Transmit_Message(ack_message);
+    if (operation_status != HAL_OK) goto error;
+    operation_status = HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
+
+error:
+    if (operation_status != HAL_OK)
+    {
+      //TODO: Implement error handling for StartTimeTagTask
+    }
+  }
+  osThreadExit();
+}
+
