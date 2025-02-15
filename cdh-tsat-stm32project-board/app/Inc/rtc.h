@@ -5,8 +5,8 @@
  *      Author: drive
  */
 
-#ifndef APP_INC_RTC_H_
-#define APP_INC_RTC_H_
+#ifndef INC_RTC_H_
+#define INC_RTC_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,5 +27,4 @@ void StartSetRTC(void *argument);
 void StartGetRTC(void *argument);
 
 
-
-#endif /* APP_INC_RTC_H_ */
+#endif /* INC_RTC_H_ */
