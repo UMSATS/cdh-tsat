@@ -37,3 +37,21 @@ void StartTimeTagTaskInit(void *argument)
   osThreadExit();
   /* USER CODE END StartTimeTagTaskInit */
 }
+
+
+void StartGetTasksNum(void *argument)
+{
+  /* USER CODE BEGIN StartGetTasksNum */
+  /* Infinite loop */
+  for(;;)
+  {
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    uint8_t tasks_num = (uint8_t) osThreadGetCount();
+
+    //TODO: Add CAN message transmit
+  }
+  osThreadExit();
+  /* USER CODE END StartGetTasksNum */
+}

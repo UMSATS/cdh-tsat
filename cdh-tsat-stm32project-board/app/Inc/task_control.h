@@ -18,4 +18,6 @@ extern RTC_HandleTypeDef hrtc;
 
 void StartTimeTagTaskInit(void *argument);
 
+void StartGetTasksNum(void *argument);
+
 #endif /* INC_TASK_CONTROL_H_ */
