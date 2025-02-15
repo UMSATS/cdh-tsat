@@ -21,9 +21,21 @@ extern osMessageQueueId_t setRTCQueueHandle;;
 extern RTC_HandleTypeDef hrtc;
 
 
+/* USER CODE BEGIN StartSetRTC */
+/**
+* @brief Function implementing the StartSetRTC thread.
+* @param argument: Not used
+* @retval None
+*/
 void StartSetRTC(void *argument);
 
 
+/* USER CODE BEGIN StartGetRTC */
+/**
+* @brief Function implementing the StartGetRTC thread.
+* @param argument: Not used
+* @retval None
+*/
 void StartGetRTC(void *argument);
 
 

@@ -18,6 +18,12 @@
 extern osThreadId_t calculateBDotHandle;
 
 
+/* USER CODE BEGIN StartBDot */
+/**
+* @brief Function implementing the StartBDot thread.
+* @param argument: Not used
+* @retval None
+*/
 void StartBDot(void *argument);
 
 
