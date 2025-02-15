@@ -46,6 +46,7 @@
 #include "task_control.h"
 #include "bdot_algorithm.h"
 #include "deployment_tasks.h"
+#include "command_handling.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -233,7 +234,7 @@ void StartBlinkLED1(void *argument);
 void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
 void StartToggleWDI(void *argument);
-void start_msg_task(void *argument);
+extern void StartCanCmdHandler(void *argument);
 extern void StartTelemHandler(void *argument);
 extern void StartTimeTagTask(void *argument);
 void StartStm32Reset(void *argument);
@@ -376,7 +377,7 @@ int main(void)
   toggleWDIHandle = osThreadNew(StartToggleWDI, NULL, &toggleWDI_attributes);
 
   /* creation of canCmdHandler */
-  canCmdHandlerHandle = osThreadNew(start_msg_task, NULL, &canCmdHandler_attributes);
+  canCmdHandlerHandle = osThreadNew(StartCanCmdHandler, NULL, &canCmdHandler_attributes);
 
   /* creation of telemHandler */
   telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
@@ -1022,24 +1023,6 @@ void StartToggleWDI(void *argument)
 	osDelay(100);
   }
   /* USER CODE END StartToggleWDI */
-}
-
-/* USER CODE BEGIN Header_start_msg_task */
-/**
-* @brief Function implementing the canCmdHandler thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_start_msg_task */
-__weak void start_msg_task(void *argument)
-{
-  /* USER CODE BEGIN start_msg_task */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END start_msg_task */
 }
 
 /* USER CODE BEGIN Header_StartStm32Reset */
