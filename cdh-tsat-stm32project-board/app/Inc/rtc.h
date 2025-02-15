@@ -1,0 +1,31 @@
+/*
+ * rtc.h
+ *
+ *  Created on: Feb 15, 2025
+ *      Author: drive
+ */
+
+#ifndef APP_INC_RTC_H_
+#define APP_INC_RTC_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "MAX6822_driver.h"
+#include "stm32l4xx_hal.h"
+#include "cmsis_os.h"
+#include "can.h"
+#include "utils.h"
+
+extern osMessageQueueId_t setRTCQueueHandle;;
+extern RTC_HandleTypeDef hrtc;
+
+
+void StartSetRTC(void *argument);
+
+
+void StartGetRTC(void *argument);
+
+
+
+#endif /* APP_INC_RTC_H_ */

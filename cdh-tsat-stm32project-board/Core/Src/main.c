@@ -42,6 +42,7 @@
 #include "can.h"
 #include "telemetry.h"
 #include "utils.h"
+#include "rtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -228,7 +229,7 @@ static void MX_RTC_Init(void);
 void StartBlinkLED1(void *argument);
 void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
-extern void StartToggleWDI(void *argument);
+void StartToggleWDI(void *argument);
 void start_msg_task(void *argument);
 extern void StartTelemHandler(void *argument);
 extern void StartTimeTagTask(void *argument);
@@ -999,6 +1000,25 @@ void StartBlinkLED3(void *argument)
   }
   osThreadExit();
   /* USER CODE END StartBlinkLED3 */
+}
+
+/* USER CODE BEGIN Header_StartToggleWDI */
+/**
+* @brief Function implementing the toggleWDI thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartToggleWDI */
+void StartToggleWDI(void *argument)
+{
+  /* USER CODE BEGIN StartToggleWDI */
+  /* Infinite loop */
+  for(;;)
+  {
+	MAX6822_WDI_Toggle();
+	osDelay(100);
+  }
+  /* USER CODE END StartToggleWDI */
 }
 
 /* USER CODE BEGIN Header_start_msg_task */
