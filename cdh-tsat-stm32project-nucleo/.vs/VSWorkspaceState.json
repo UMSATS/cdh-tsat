@@ -1,0 +1,24 @@
+{
+  "ActiveTargetSystem": "WSL: Ubuntu",
+  "OutputFoldersPerTargetSystem": {
+    "Local Machine": [
+      "build\\debug\\build",
+      "build\\debug\\install",
+      "build\\release\\build",
+      "build\\release\\install"
+    ],
+    "WSL: Ubuntu": [
+      "out\\Ubuntu\\build\\debug",
+      "out\\Ubuntu\\install\\debug",
+      "out\\Ubuntu\\build\\release",
+      "out\\Ubuntu\\install\\release"
+    ]
+  },
+  "DevContainersInfoBarHidden": true,
+  "MRUPresetsPerTargetSystem": {
+    "Local Machine": {
+      "configure": "debug-debug",
+      "build": "debug"
+    }
+  }
+}
