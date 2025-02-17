@@ -1,3 +1,0 @@
-E:/Documents/GitHub/cdh-tsat6/cdh-tsat-stm32project-nucleo/build/debug/build/CMakeFiles/cdh-tsat-stm32project-nucleo.dir
-E:/Documents/GitHub/cdh-tsat6/cdh-tsat-stm32project-nucleo/build/debug/build/CMakeFiles/edit_cache.dir
-E:/Documents/GitHub/cdh-tsat6/cdh-tsat-stm32project-nucleo/build/debug/build/CMakeFiles/rebuild_cache.dir
