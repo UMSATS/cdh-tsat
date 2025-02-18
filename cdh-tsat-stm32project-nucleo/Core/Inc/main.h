@@ -73,6 +73,7 @@ void Error_Handler(void);
 #define RELEASE_nEN_GPIO_Port GPIOB
 #define UHF_nIRQ_Pin GPIO_PIN_1
 #define UHF_nIRQ_GPIO_Port GPIOB
+#define UHF_nIRQ_EXTI_IRQn EXTI1_IRQn
 #define UHF_nCS_Pin GPIO_PIN_2
 #define UHF_nCS_GPIO_Port GPIOB
 #define UHF_SDN_Pin GPIO_PIN_11

@@ -297,42 +297,82 @@ S2LP_StatusTypeDef S2LP_Hardware_Reset(){
 }
 
 
-void SpiritBaseConfiguration(void)
-{
-  uint8_t tmp[6];
+S2LP_StatusTypeDef S2LP_IRQ_Handler(){
+	uint8_t interruptRegister = 0xFA;
+	uint8_t irqStatus[4] = {0};
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
 
-  tmp[0] = 0x72; /* reg. SYNT3 (0x05) */
-  tmp[1] = 0x2A; /* reg. SYNT2 (0x06) */
-  tmp[2] = 0x3D; /* reg. SYNT1 (0x07) */
-  tmp[3] = 0x71; /* reg. SYNT0 (0x08) */
-  tmp[4] = 0x2F; /* reg. IF_OFFSET_ANA (0x09) */
-  tmp[5] = 0xC2; /* reg. IF_OFFSET_DIG (0x0A) */
-  S2LP_Spi_Write_Registers(0x05, 6, &tmp);
-  tmp[0] = 0x92; /* reg. MOD4 (0x0E) */
-  tmp[1] = 0xA7; /* reg. MOD3 (0x0F) */
-  tmp[2] = 0x27; /* reg. MOD2 (0x10) */
-  S2LP_Spi_Write_Registers(0x0E, 3, &tmp);
-  tmp[0] = 0xA3; /* reg. MOD0 (0x12) */
-  tmp[1] = 0x13; /* reg. CHFLT (0x13) */
-  S2LP_Spi_Write_Registers(0x12, 2, &tmp);
-  tmp[0] = 0x55; /* reg. ANT_SELECT_CONF (0x1F) */
-  S2LP_Spi_Write_Registers(0x1F, 1, &tmp);
-  tmp[0] = 0x00; /* reg. PCKTCTRL3 (0x2E) */
-  tmp[1] = 0x01; /* reg. PCKTCTRL2 (0x2F) */
-  tmp[2] = 0x30; /* reg. PCKTCTRL1 (0x30) */
-  S2LP_Spi_Write_Registers(0x2E, 3, &tmp);
-  tmp[0] = 0x01; /* reg. PROTOCOL1 (0x3A) */
-  S2LP_Spi_Write_Registers(0x3A, 1, &tmp);
-  tmp[0] = 0x40; /* reg. FIFO_CONFIG3 (0x3C) */
-  tmp[1] = 0x40; /* reg. FIFO_CONFIG2 (0x3D) */
-  tmp[2] = 0x40; /* reg. FIFO_CONFIG1 (0x3E) */
-  tmp[3] = 0x40; /* reg. FIFO_CONFIG0 (0x3F) */
-  tmp[4] = 0x41; /* reg. PCKT_FLT_OPTIONS (0x40) */
-  S2LP_Spi_Write_Registers(0x3C, 5, &tmp);
-  tmp[0] = 0x16; /* reg. PA_POWER8 (0x5A) */
-  S2LP_Spi_Write_Registers(0x5A, 1, &tmp);
-  tmp[0] = 0x07; /* reg. PA_POWER0 (0x62) */
-  tmp[1] = 0x01; /* reg. PA_CONFIG1 (0x63) */
-  S2LP_Spi_Write_Registers(0x62, 2, &tmp);
+	status = S2LP_Spi_Read_Registers(interruptRegister, 0x4, irqStatus);
+	if(status != S2LP_HAL_OK) goto error;
+	if(irqStatus[3] && 0x2){
+		S2LP_Send_Command(COMMAND_FLUSHTXFIFO);
+		S2LP_Send_Command(COMMAND_READY);
+	}
+	error:
+		return status;
 }
 
+
+void S2LP_Init(void)
+{
+	uint8_t tmp[6];
+
+	S2LP_Hardware_Reset();
+	HAL_Delay(50);
+	// Custom Settings
+	tmp[0] = 0x2; /* reg. GPIO0_CONF (0x00) */
+	S2LP_Spi_Write_Registers(0x00, 1, tmp);
+	tmp[0] = 0x4; /* reg. IRQ_MASK0 (0x53) */
+	S2LP_Spi_Write_Registers(0x53, 1, tmp);
+
+
+	// Generated from S2-LP DK
+	tmp[0] = 0xA3; /* reg. GPIO3_CONF (0x03) */
+	S2LP_Spi_Write_Registers(0x03, 1, tmp);
+	tmp[0] = 0x72; /* reg. SYNT3 (0x05) */
+	tmp[1] = 0x2A; /* reg. SYNT2 (0x06) */
+	tmp[2] = 0x3E; /* reg. SYNT1 (0x07) */
+	tmp[3] = 0x82; /* reg. SYNT0 (0x08) */
+	tmp[4] = 0x2F; /* reg. IF_OFFSET_ANA (0x09) */
+	tmp[5] = 0xC2; /* reg. IF_OFFSET_DIG (0x0A) */
+	S2LP_Spi_Write_Registers(0x05, 6, tmp);
+	tmp[0] = 0x92; /* reg. MOD4 (0x0E) */
+	tmp[1] = 0xA8; /* reg. MOD3 (0x0F) */
+	tmp[2] = 0x27; /* reg. MOD2 (0x10) */
+	S2LP_Spi_Write_Registers(0x0E, 3, tmp);
+	tmp[0] = 0xA3; /* reg. MOD0 (0x12) */
+	tmp[1] = 0x13; /* reg. CHFLT (0x13) */
+	S2LP_Spi_Write_Registers(0x12, 2, tmp);
+	tmp[0] = 0x10; /* reg. RSSI_TH (0x18) */
+	S2LP_Spi_Write_Registers(0x18, 1, tmp);
+	tmp[0] = 0x55; /* reg. ANT_SELECT_CONF (0x1F) */
+	S2LP_Spi_Write_Registers(0x1F, 1, tmp);
+	tmp[0] = 0x00; /* reg. PCKTCTRL3 (0x2E) */
+	tmp[1] = 0x01; /* reg. PCKTCTRL2 (0x2F) */
+	tmp[2] = 0x30; /* reg. PCKTCTRL1 (0x30) */
+	S2LP_Spi_Write_Registers(0x2E, 3, tmp);
+	tmp[0] = 0x12; /* reg. PCKTLEN0 (0x32) */
+	S2LP_Spi_Write_Registers(0x32, 1, tmp);
+	tmp[0] = 0x44; /* reg. PROTOCOL2 (0x39) */
+	tmp[1] = 0x01; /* reg. PROTOCOL1 (0x3A) */
+	S2LP_Spi_Write_Registers(0x39, 2, tmp);
+	tmp[0] = 0x40; /* reg. FIFO_CONFIG3 (0x3C) */
+	tmp[1] = 0x40; /* reg. FIFO_CONFIG2 (0x3D) */
+	tmp[2] = 0x40; /* reg. FIFO_CONFIG1 (0x3E) */
+	tmp[3] = 0x40; /* reg. FIFO_CONFIG0 (0x3F) */
+	tmp[4] = 0x41; /* reg. PCKT_FLT_OPTIONS (0x40) */
+	S2LP_Spi_Write_Registers(0x3C, 5, tmp);
+	tmp[0] = 0x00; /* reg. TIMERS5 (0x46) */
+	tmp[1] = 0x09; /* reg. TIMERS4 (0x47) */
+	S2LP_Spi_Write_Registers(0x46, 2, tmp);
+	tmp[0] = 0x14; /* reg. PA_POWER8 (0x5A) */
+	S2LP_Spi_Write_Registers(0x5A, 1, tmp);
+	tmp[0] = 0x07; /* reg. PA_POWER0 (0x62) */
+	tmp[1] = 0x01; /* reg. PA_CONFIG1 (0x63) */
+	S2LP_Spi_Write_Registers(0x62, 2, tmp);
+	tmp[0] = 0x8F; /* reg. PM_CONF3 (0x76) */
+	tmp[1] = 0xF9; /* reg. PM_CONF2 (0x77) */
+	S2LP_Spi_Write_Registers(0x76, 2, tmp);
+	HAL_Delay(50);
+	S2LP_Send_Command(COMMAND_READY);
+}

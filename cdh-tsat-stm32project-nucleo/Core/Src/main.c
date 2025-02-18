@@ -189,44 +189,53 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SpiritBaseConfiguration();
-  uint8_t readyCommand = 0x62;
-  uint8_t txCommand = 0x60;
-  uint8_t txFIFOFlush = 0x72;
-  uint8_t rxCommand = 0x61;
-  uint8_t rxFlush = 0x71;
+  S2LP_Init();
+
+  uint8_t S2LPStatusRegisters[2] = {0};
+  S2LP_Get_Status(S2LPStatusRegisters);
+
+  uint8_t S2LPIRQRegisters[4] = {0};
+  S2LP_Spi_Read_Registers(0x50, 0x4, S2LPIRQRegisters);
+
+  uint8_t S2LPGPIO0Registers[1] = {0};
+  S2LP_Spi_Read_Registers(0x00, 0x1, S2LPGPIO0Registers);
+
   uint8_t receivedFIFOSize = 0;
+  uint8_t txFIFOSize = 0;
   while (1)
   {
-	  uint8_t receivedFIFOSize = 0;
-	  uint8_t txFIFOSize = 0;
-	  uint8_t message[6] = {0}; // Test Message is "Hello!"
+	  uint8_t message[7] = {0}; // Test Message is "Hello!"
 
 
 	  // Only Test RX or TX with this code, they use same message var.
-	  /*
-	   * TEST CODE FOR TX
 	  message[0] = 0x48;
 	  message[1] = 0x65;
 	  message[2] = 0x6C;
 	  message[3] = 0x6C;
 	  message[4] = 0x6F;
 	  message[5] = 0X21;
-	  S2LP_Send_Command(readyCommand);
-	  S2LP_Check_TX_FIFO_Status(&txFIFOSize);
-	  S2LP_Write_TX_Fifo(6, &message);
-	  S2LP_Check_TX_FIFO_Status(&txFIFOSize);
-	  S2LP_Send_Command(txCommand);
-	  HAL_Delay(1000);
-	  S2LP_Check_TX_FIFO_Status(&txFIFOSize);
-	  S2LP_Send_Command(txCommand);
-	  HAL_Delay(1000);
-	*/
+	  message[6] = 0X0;
+	  S2LP_Get_Status(S2LPStatusRegisters);
+      if((S2LPStatusRegisters[1] >> 1) == S2LP_STATE_READY){
+          S2LP_Write_TX_Fifo(7, message);
+          S2LP_Check_TX_FIFO_Status(&txFIFOSize);
+          if (txFIFOSize > 0) {
+              S2LP_Send_Command(COMMAND_TX);
+              HAL_Delay(1000);
+          } else {
+              printf("TX FIFO is empty, not sending TX command.\n");
+          }
+      }
+      else{
+          HAL_Delay(10);
+          __NOP();
+      }
+
 
 	  /*
 	   * TEST CODE FOR RX
 	  S2LP_Send_Command(rxCommand);
-	  // Temporary Test without IRQ seup
+	  // Temporary Test without IRQ setup
 	  while(receivedFIFOSize == 0){
 		  S2LP_Check_RX_FIFO_Status(&receivedFIFOSize);
 		  HAL_Delay(3000);
@@ -266,7 +275,7 @@ void SystemClock_Config(void)
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.HSICalibrationValue = 64;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
@@ -607,9 +616,13 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : UHF_nIRQ_Pin */
   GPIO_InitStruct.Pin = UHF_nIRQ_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UHF_nIRQ_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -641,6 +654,17 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
     {
         //TODO: Implement error handling for CAN message receives
     }
+}
+
+
+/* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == GPIO_PIN_1) {
+	  S2LP_IRQ_Handler();
+  } else {
+      __NOP();
+  }
 }
 /* USER CODE END 4 */
 
