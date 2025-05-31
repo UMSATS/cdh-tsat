@@ -1,6 +1,38 @@
-.vscode/
-cdh-tsat-stm32project-nucleo/.settings/
-cdh-tsat-stm32project-nucleo/Debug/
-cdh-tsat-stm32project-board/.settings/
-cdh-tsat-stm32project-board/Debug/
+##################################################
+# Eclipse
+##################################################
+# IDE Settings
 .metadata/
+.settings/
+
+# Launch Configurations
+*.launch
+
+##################################################
+# STM32CubeIDE
+##################################################
+# Build Directories
+Debug/
+Release/
+
+# Keep These Files
+#.cproject        # Contains include paths and build settings.
+#.project         # Contains project metadata.
+#.mxproject       # Contains include paths for HAL.
+
+##################################################
+# Other
+##################################################
+
+# Vim
+*.swp
+
+# VSCode
+.vscode/
+
+# Visual Studio
+.vs/
+
+# Build Directories
+build/
+bin/
