@@ -9,7 +9,7 @@
  * CREATED ON: November 13th 2023
  */
 
-#include "SP-L2_driver.h"
+#include <S2LP_driver.h>
 #include "main.h"
 
 extern SPI_HandleTypeDef S2LP_SPI;
@@ -99,7 +99,7 @@ S2LP_StatusTypeDef S2LP_Send_Command(uint8_t commandCode){
 	S2LP_nCS(S2LP_CS_SELECT);
 
 	// Indicate we are sending a command
-	status = S2LP_SPI_Transmit_Message(&data, 2);
+	status = S2LP_SPI_Transmit_Message(data, 2);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// Release Radio
@@ -162,7 +162,7 @@ S2LP_StatusTypeDef S2LP_Write_TX_Fifo(uint8_t size, uint8_t *buffer){
 		S2LP_nCS(S2LP_CS_SELECT);
 
 		// Send one byte of zeros to indicate we are writing an address 
-		status = S2LP_SPI_Transmit_Message(&opcode, 2);
+		status = S2LP_SPI_Transmit_Message(opcode, 2);
 		if(status != S2LP_HAL_OK) goto error;
 
 		// Send our data to FIFO
@@ -206,7 +206,7 @@ S2LP_StatusTypeDef S2LP_Read_RX_FIFO(uint8_t n_bytes, uint8_t *buffer){
 	status = S2LP_nCS(S2LP_CS_SELECT);
 	if(status != S2LP_HAL_OK) goto error;
 
-	status = S2LP_SPI_Transmit_Message(&opcode, 2);
+	status = S2LP_SPI_Transmit_Message(opcode, 2);
 	if(status != S2LP_HAL_OK) goto error;
 
 	status = S2LP_SPI_Receive_Message(buffer, numToFetch);
@@ -282,7 +282,7 @@ S2LP_StatusTypeDef S2LP_Hardware_Reset(){
 	HAL_Delay(2); // This may need to be changed to comply with RTOS
 
 	// Get status of the radio to check if it has turned on
-	status = S2LP_Get_Status(&S2LPStatusRegisters);
+	status = S2LP_Get_Status(S2LPStatusRegisters);
 	if(status != S2LP_HAL_OK) goto error;
 
 	// If the radio is in the ready state the reset is done otherwise there
@@ -298,18 +298,40 @@ S2LP_StatusTypeDef S2LP_Hardware_Reset(){
 
 
 S2LP_StatusTypeDef S2LP_IRQ_Handler(){
+
+	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+#ifdef USE_FreeRTOS
+	return status;
+#else
 	uint8_t interruptRegister = 0xFA;
 	uint8_t irqStatus[4] = {0};
-	S2LP_StatusTypeDef status = S2LP_HAL_OK;
+	uint8_t message[500] = {0};
 
+	__NOP();
 	status = S2LP_Spi_Read_Registers(interruptRegister, 0x4, irqStatus);
 	if(status != S2LP_HAL_OK) goto error;
-	if(irqStatus[3] && 0x2){
+
+	if(irqStatus[3] & 0x2){
 		S2LP_Send_Command(COMMAND_FLUSHTXFIFO);
-		S2LP_Send_Command(COMMAND_READY);
+		S2LP_Send_Command(COMMAND_SABORT);
+		S2LP_Send_Command(COMMAND_LOCKRX);
+		S2LP_Send_Command(COMMAND_RX);
+	}
+	else if((irqStatus[3] & 0x1) || (irqStatus[2] & 0x2)){
+		uint8_t receivedFIFOSize = 0;
+		S2LP_Check_RX_FIFO_Status(&receivedFIFOSize);
+		if(receivedFIFOSize){
+			S2LP_Read_RX_FIFO(receivedFIFOSize, message);
+		}
+		S2LP_Send_Command(COMMAND_FLUSHRXFIFO);
+		S2LP_Send_Command(COMMAND_SABORT);
+		S2LP_Send_Command(COMMAND_LOCKRX);
+		S2LP_Send_Command(COMMAND_RX);
+
 	}
 	error:
 		return status;
+#endif
 }
 
 
@@ -322,8 +344,10 @@ void S2LP_Init(void)
 	// Custom Settings
 	tmp[0] = 0x2; /* reg. GPIO0_CONF (0x00) */
 	S2LP_Spi_Write_Registers(0x00, 1, tmp);
-	tmp[0] = 0x4; /* reg. IRQ_MASK0 (0x53) */
+	tmp[0] = 0x5; /* reg. IRQ_MASK0 (0x53) */
 	S2LP_Spi_Write_Registers(0x53, 1, tmp);
+	tmp[0] = 0x2; /* reg. IRQ_MASK1 (0x52) */
+	S2LP_Spi_Write_Registers(0x52, 1, tmp);
 
 
 	// Generated from S2-LP DK
@@ -374,5 +398,7 @@ void S2LP_Init(void)
 	tmp[1] = 0xF9; /* reg. PM_CONF2 (0x77) */
 	S2LP_Spi_Write_Registers(0x76, 2, tmp);
 	HAL_Delay(50);
-	S2LP_Send_Command(COMMAND_READY);
+	S2LP_Send_Command(COMMAND_FLUSHRXFIFO);
+	S2LP_Send_Command(COMMAND_FLUSHTXFIFO);
+	S2LP_Send_Command(COMMAND_RX);
 }

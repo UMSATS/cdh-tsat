@@ -33,8 +33,9 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+#include "S2LP_driver.h"
+#include "S2LP_driver_test.h"
 #include "can.h"
-#include "SP-L2_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -192,16 +193,10 @@ int main(void)
   S2LP_Init();
 
   uint8_t S2LPStatusRegisters[2] = {0};
+  uint8_t S2LPIRQRegister = 0;
+  uint8_t receivedFIFOSize = 0;
   S2LP_Get_Status(S2LPStatusRegisters);
 
-  uint8_t S2LPIRQRegisters[4] = {0};
-  S2LP_Spi_Read_Registers(0x50, 0x4, S2LPIRQRegisters);
-
-  uint8_t S2LPGPIO0Registers[1] = {0};
-  S2LP_Spi_Read_Registers(0x00, 0x1, S2LPGPIO0Registers);
-
-  uint8_t receivedFIFOSize = 0;
-  uint8_t txFIFOSize = 0;
   while (1)
   {
 	  uint8_t message[7] = {0}; // Test Message is "Hello!"
@@ -215,35 +210,12 @@ int main(void)
 	  message[4] = 0x6F;
 	  message[5] = 0X21;
 	  message[6] = 0X0;
+	  //Test_S2LP_Transmission(message, 10, 7, 1000);
+	  //HAL_Delay(1000);
+	  S2LP_Spi_Read_Registers(0x53, 1, &S2LPIRQRegister);
 	  S2LP_Get_Status(S2LPStatusRegisters);
-      if((S2LPStatusRegisters[1] >> 1) == S2LP_STATE_READY){
-          S2LP_Write_TX_Fifo(7, message);
-          S2LP_Check_TX_FIFO_Status(&txFIFOSize);
-          if (txFIFOSize > 0) {
-              S2LP_Send_Command(COMMAND_TX);
-              HAL_Delay(1000);
-          } else {
-              printf("TX FIFO is empty, not sending TX command.\n");
-          }
-      }
-      else{
-          HAL_Delay(10);
-          __NOP();
-      }
-
-
-	  /*
-	   * TEST CODE FOR RX
-	  S2LP_Send_Command(rxCommand);
-	  // Temporary Test without IRQ setup
-	  while(receivedFIFOSize == 0){
-		  S2LP_Check_RX_FIFO_Status(&receivedFIFOSize);
-		  HAL_Delay(3000);
-	  }
-	  S2LP_Read_RX_FIFO(6, &message);
-	  S2LP_Send_Command(readyCommand);
-	  S2LP_Send_Command(rxFlush);
-	  */
+	  S2LP_Check_RX_FIFO_Status(&receivedFIFOSize);
+	  __NOP();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

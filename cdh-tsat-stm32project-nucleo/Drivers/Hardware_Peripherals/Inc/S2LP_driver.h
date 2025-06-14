@@ -14,8 +14,8 @@
  * S2LP_Reset (Written but untested)
  */
 
-#ifndef HARDWARE_PERIPHERALS_INC_SP_L2_DRIVER_H_
-#define HARDWARE_PERIPHERALS_INC_SP_L2_DRIVER_H_
+#ifndef HARDWARE_PERIPHERALS_INC_S2LP_DRIVER_H_
+#define HARDWARE_PERIPHERALS_INC_S2LP_DRIVER_H_
 //###############################################################################################
 // Include Directives
 //###############################################################################################
@@ -235,6 +235,7 @@ S2LP_StatusTypeDef S2LP_Get_Status(uint8_t *returnStatus);
 
 
 // Interrupt Handler
+// Weak so RTOS can overwrite
 S2LP_StatusTypeDef S2LP_IRQ_Handler();
 
 
@@ -246,4 +247,4 @@ S2LP_StatusTypeDef S2LP_IRQ_Handler();
 void S2LP_Init(void);
 
 
-#endif /* HARDWARE_PERIPHERALS_INC_SP_L2_DRIVER_H_ */
+#endif /* HARDWARE_PERIPHERALS_INC_S2LP_DRIVER_H_ */
