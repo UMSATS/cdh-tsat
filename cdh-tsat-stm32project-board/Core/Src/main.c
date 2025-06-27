@@ -42,6 +42,11 @@
 #include "can.h"
 #include "telemetry.h"
 #include "utils.h"
+#include "rtc.h"
+#include "task_control.h"
+#include "bdot_algorithm.h"
+#include "deployment_tasks.h"
+#include "command_handling.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -186,6 +191,13 @@ const osThreadAttr_t getRTC_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for calculateBDot */
+osThreadId_t calculateBDotHandle;
+const osThreadAttr_t calculateBDot_attributes = {
+  .name = "calculateBDot",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -225,18 +237,19 @@ void StartBlinkLED1(void *argument);
 void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
 void StartToggleWDI(void *argument);
-void StartCanCmdHandler(void *argument);
-void StartTelemHandler(void *argument);
-void StartTimeTagTask(void *argument);
+extern void StartCanCmdHandler(void *argument);
+extern void StartTelemHandler(void *argument);
+extern void StartTimeTagTask(void *argument);
 void StartStm32Reset(void *argument);
-void StartFlashUnitTest(void *argument);
-void StartMramUnitTest(void *argument);
-void StartDeployA(void *argument);
-void StartDeployB(void *argument);
-void StartGetTasksNum(void *argument);
-void StartTimeTagTaskInit(void *argument);
-void StartSetRTC(void *argument);
-void StartGetRTC(void *argument);
+extern void StartFlashUnitTest(void *argument);
+extern void StartMramUnitTest(void *argument);
+extern void StartDeployA(void *argument);
+extern void StartDeployB(void *argument);
+extern void StartGetTasksNum(void *argument);
+extern void StartTimeTagTaskInit(void *argument);
+extern void StartSetRTC(void *argument);
+extern void StartGetRTC(void *argument);
+extern void StartBDot(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -402,6 +415,9 @@ int main(void)
 
   /* creation of getRTC */
   getRTCHandle = osThreadNew(StartGetRTC, NULL, &getRTC_attributes);
+
+  /* creation of calculateBDot */
+  calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1039,127 +1055,10 @@ void StartToggleWDI(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    MAX6822_WDI_Toggle();
-    osDelay(100);
+	MAX6822_WDI_Toggle();
+	osDelay(100);
   }
-  osThreadExit();
   /* USER CODE END StartToggleWDI */
-}
-
-/* USER CODE BEGIN Header_StartCanCmdHandler */
-/**
-* @brief Function implementing the canCmdHandler thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartCanCmdHandler */
-void StartCanCmdHandler(void *argument)
-{
-  /* USER CODE BEGIN StartCanCmdHandler */
-  CANMessage_t can_message;
-  /* Infinite loop */
-  for(;;)
-  {
-    osMessageQueueGet(canQueueHandle, &can_message, NULL, osWaitForever);
-    switch (can_message.command)
-    {
-      case 0x40:
-        osThreadFlagsSet(stm32ResetHandle, 0x0001);
-        break;
-      case 0x41:
-        osThreadFlagsSet(flashUnitTestHandle, 0x0001);
-        break;
-      case 0x42:
-        osThreadFlagsSet(mramUnitTestHandle, 0x0001);
-        break;
-      case 0x43:
-        osThreadFlagsSet(deployAHandle, 0x0001);
-        break;
-      case 0x44:
-        osThreadFlagsSet(deployBHandle, 0x0001);
-        break;
-      case 0x47:
-        osThreadFlagsSet(getTasksNumHandle, 0x0001);
-        break;
-      case 0x48:
-        osMessageQueuePut(timeTagTaskInitQueueHandle, &can_message, 0, 0);
-        break;
-      case 0x49:
-        osMessageQueuePut(setRTCQueueHandle, &can_message, 0, 0);
-        break;
-      case 0x4A:
-        osThreadFlagsSet(getRTCHandle, 0x0001);
-        break;
-      default:
-        break;
-    }
-  }
-  osThreadExit();
-  /* USER CODE END StartCanCmdHandler */
-}
-
-/* USER CODE BEGIN Header_StartTelemHandler */
-/**
-* @brief Function implementing the telemHandler thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTelemHandler */
-void StartTelemHandler(void *argument)
-{
-  /* USER CODE BEGIN StartTelemHandler */
-  TelemetryMessage_t telemetry_message;
-  /* Infinite loop */
-  for(;;)
-  {
-    osMessageQueueGet(telemQueueHandle, &telemetry_message, NULL, osWaitForever);
-    switch(telemetry_message.id)
-    {
-      //TODO: Implement telemetry handling
-    }
-  }
-  osThreadExit();
-  /* USER CODE END StartTelemHandler */
-}
-
-/* USER CODE BEGIN Header_StartTimeTagTask */
-/**
-* @brief Function implementing the timeTagTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTimeTagTask */
-void StartTimeTagTask(void *argument)
-{
-  /* USER CODE BEGIN StartTimeTagTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from RTC alarm ISR
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    HAL_StatusTypeDef operation_status;
-    CANMessage_t ack_message =
-    {
-      .priority = 0b0000111,
-      .SenderID = 0x1,
-      .DestinationID = 0x1,
-      .command = 0x01,
-      .data = {0x48, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
-    };
-
-    operation_status = CAN_Transmit_Message(ack_message);
-    if (operation_status != HAL_OK) goto error;
-    operation_status = HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
-
-error:
-    if (operation_status != HAL_OK)
-    {
-      //TODO: Implement error handling for StartTimeTagTask
-    }
-  }
-  osThreadExit();
-  /* USER CODE END StartTimeTagTask */
 }
 
 /* USER CODE BEGIN Header_StartStm32Reset */
@@ -1182,239 +1081,6 @@ void StartStm32Reset(void *argument)
   }
   osThreadExit();
   /* USER CODE END StartStm32Reset */
-}
-
-/* USER CODE BEGIN Header_StartFlashUnitTest */
-/**
-* @brief Function implementing the flashUnitTest thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartFlashUnitTest */
-void StartFlashUnitTest(void *argument)
-{
-  /* USER CODE BEGIN StartFlashUnitTest */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    W25N_StatusTypeDef test_result = Test_W25N();
-
-    //TODO: Add CAN message transmit
-  }
-  osThreadExit();
-  /* USER CODE END StartFlashUnitTest */
-}
-
-/* USER CODE BEGIN Header_StartMramUnitTest */
-/**
-* @brief Function implementing the mramUnitTest thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartMramUnitTest */
-void StartMramUnitTest(void *argument)
-{
-  /* USER CODE BEGIN StartMramUnitTest */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    HAL_StatusTypeDef test_result = AS3001204_Test_MRAM_Driver();
-
-    //TODO: Add CAN message transmit
-  }
-  osThreadExit();
-  /* USER CODE END StartMramUnitTest */
-}
-
-/* USER CODE BEGIN Header_StartDeployA */
-/**
-* @brief Function implementing the deployA thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartDeployA */
-void StartDeployA(void *argument)
-{
-  /* USER CODE BEGIN StartDeployA */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    LTC1154_Enable();
-  }
-  osThreadExit();
-  /* USER CODE END StartDeployA */
-}
-
-/* USER CODE BEGIN Header_StartDeployB */
-/**
-* @brief Function implementing the deployB thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartDeployB */
-void StartDeployB(void *argument)
-{
-  /* USER CODE BEGIN StartDeployB */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    LTC1154_On();
-  }
-  osThreadExit();
-  /* USER CODE END StartDeployB */
-}
-
-/* USER CODE BEGIN Header_StartGetTasksNum */
-/**
-* @brief Function implementing the getTasksNum thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartGetTasksNum */
-void StartGetTasksNum(void *argument)
-{
-  /* USER CODE BEGIN StartGetTasksNum */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    uint8_t tasks_num = (uint8_t) osThreadGetCount();
-
-    //TODO: Add CAN message transmit
-  }
-  osThreadExit();
-  /* USER CODE END StartGetTasksNum */
-}
-
-/* USER CODE BEGIN Header_StartTimeTagTaskInit */
-/**
-* @brief Function implementing the timeTagTaskInit thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartTimeTagTaskInit */
-void StartTimeTagTaskInit(void *argument)
-{
-  /* USER CODE BEGIN StartTimeTagTaskInit */
-  CANMessage_t can_message;
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osMessageQueueGet(timeTagTaskInitQueueHandle, &can_message, NULL, osWaitForever);
-
-    HAL_StatusTypeDef operation_status;
-    RTC_AlarmTypeDef rtc_alarm;
-    uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
-    RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
-    RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
-
-    rtc_alarm.AlarmTime = rtc_time;
-    rtc_alarm.AlarmMask = RTC_ALARMMASK_NONE;
-    rtc_alarm.SubSeconds = 0;
-    rtc_alarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-    rtc_alarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    rtc_alarm.AlarmDateWeekDay = rtc_date.Date;
-    rtc_alarm.Alarm = RTC_ALARM_A;
-
-    operation_status = HAL_RTC_SetAlarm_IT(&hrtc, &rtc_alarm, RTC_FORMAT_BIN);
-
-    //TODO: Implement error handling for StartTimeTagTaskInit
-  }
-  osThreadExit();
-  /* USER CODE END StartTimeTagTaskInit */
-}
-
-/* USER CODE BEGIN Header_StartSetRTC */
-/**
-* @brief Function implementing the setRTC thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartSetRTC */
-void StartSetRTC(void *argument)
-{
-  /* USER CODE BEGIN StartSetRTC */
-  CANMessage_t can_message;
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osMessageQueueGet(setRTCQueueHandle, &can_message, NULL, osWaitForever);
-
-    HAL_StatusTypeDef operation_status;
-    uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
-    RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
-    RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
-
-    operation_status = HAL_RTC_SetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
-    if (operation_status != HAL_OK) goto error;
-    operation_status = HAL_RTC_SetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
-
-error:
-    if (operation_status != HAL_OK)
-    {
-      //TODO: Implement error handling for StartSetRTC
-    }
-  }
-  osThreadExit();
-  /* USER CODE END StartSetRTC */
-}
-
-/* USER CODE BEGIN Header_StartGetRTC */
-/**
-* @brief Function implementing the getRTC thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartGetRTC */
-void StartGetRTC(void *argument)
-{
-  /* USER CODE BEGIN StartGetRTC */
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
-
-    HAL_StatusTypeDef operation_status;
-    RTC_TimeTypeDef rtc_time;
-    RTC_DateTypeDef rtc_date;
-    uint32_t unix_timestamp;
-    uint8_t response_data[6] = {0,0,0,0,0,0};
-
-    operation_status = HAL_RTC_GetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
-    if (operation_status != HAL_OK) goto error;
-    operation_status = HAL_RTC_GetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
-    if (operation_status != HAL_OK) goto error;
-
-    unix_timestamp = rtc_to_unix_timestamp(rtc_time, rtc_date);
-    uint32_to_four_byte_array(unix_timestamp, response_data);
-
-    //TODO: Add CAN message transmit
-
-error:
-    if (operation_status != HAL_OK)
-    {
-      //TODO: Implement error handling for StartGetRTC
-    }
-  }
-  osThreadExit();
-  /* USER CODE END StartGetRTC */
 }
 
 /**
