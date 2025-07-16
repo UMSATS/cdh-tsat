@@ -8,9 +8,10 @@
 #ifndef INC_COMMAND_HANDLING_H_
 #define INC_COMMAND_HANDLING_H_
 
+#include "tuk/tuk.h"
+
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
-#include "can.h"
 
 extern osMessageQueueId_t canQueueHandle;
 extern osThreadId_t stm32ResetHandle;
@@ -23,14 +24,14 @@ extern osThreadId_t timeTagTaskInitQueueHandle;
 extern osThreadId_t setRTCQueueHandle;
 extern osThreadId_t getRTCHandle;
 
-
-
-/* USER CODE BEGIN Header_StartCanCmdHandler */
 /**
-* @brief Function implementing the canCmdHandler thread.
-* @param argument: Not used
-* @retval None
+* Handles incoming messages from the CAN bus. Called by CAN Wrapper Module.
+*
+* @param hcan Handle for the source CAN peripheral.
+* @param msg The received message.
 */
-void StartCanCmdHandler(void *argument);
+void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg);
+
+void On_CAN_Error(const CANWrapper_ErrorInfo *error);
 
 #endif /* INC_COMMAND_HANDLING_H_ */

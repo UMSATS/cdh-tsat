@@ -39,7 +39,6 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
-#include "can.h"
 #include "telemetry.h"
 #include "utils.h"
 #include "rtc.h"
@@ -47,6 +46,7 @@
 #include "bdot_algorithm.h"
 #include "deployment_tasks.h"
 #include "command_handling.h"
+#include "tuk/tuk.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,13 +104,6 @@ const osThreadAttr_t toggleWDI_attributes = {
   .name = "toggleWDI",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for canCmdHandler */
-osThreadId_t canCmdHandlerHandle;
-const osThreadAttr_t canCmdHandler_attributes = {
-  .name = "canCmdHandler",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for telemHandler */
 osThreadId_t telemHandlerHandle;
@@ -234,7 +227,6 @@ void StartBlinkLED1(void *argument);
 void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
 void StartToggleWDI(void *argument);
-extern void StartCanCmdHandler(void *argument);
 extern void StartTelemHandler(void *argument);
 extern void StartTimeTagTask(void *argument);
 void StartStm32Reset(void *argument);
@@ -304,10 +296,6 @@ int main(void)
 
   LTC1154_Init();
 
-  HAL_StatusTypeDef can_operation_status;
-  can_operation_status = CAN_Init();
-  if (can_operation_status != HAL_OK) goto error;
-
   W25N_StatusTypeDef w25n_operation_status;
   w25n_operation_status = W25N_Init();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
@@ -348,16 +336,16 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of canQueue */
-  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage_t), &canQueue_attributes);
+  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
 
   /* creation of telemQueue */
   telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
 
   /* creation of timeTagTaskInitQueue */
-  timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &timeTagTaskInitQueue_attributes);
+  timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &timeTagTaskInitQueue_attributes);
 
   /* creation of setRTCQueue */
-  setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &setRTCQueue_attributes);
+  setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &setRTCQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -375,9 +363,6 @@ int main(void)
 
   /* creation of toggleWDI */
   toggleWDIHandle = osThreadNew(StartToggleWDI, NULL, &toggleWDI_attributes);
-
-  /* creation of canCmdHandler */
-  canCmdHandlerHandle = osThreadNew(StartCanCmdHandler, NULL, &canCmdHandler_attributes);
 
   /* creation of telemHandler */
   telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
@@ -416,6 +401,13 @@ int main(void)
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
+  // Initialise CAN Wrapper Module.
+  const CANWrapper_InitTypeDef CAN_WRAPPER_CONFIG = {
+		  .node_id = NODE_CDH,
+		  .message_callback = On_CAN_Message_Ready,
+		  .error_callback = On_CAN_Error
+  };
+  CANWrapper_Init(&CAN_WRAPPER_CONFIG);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
@@ -927,22 +919,6 @@ static void MX_GPIO_Init(void)
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
   osThreadFlagsSet(timeTagTaskHandle, 0x0001);
-}
-
-/**
-  * @brief  CAN Rx Fifo 0 message pending callback
-  * @param  hcan: pointer to a CAN_HandleTypeDef structure that contains
-  *         the configuration information for the specified CAN.
-  * @retval None
-  */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan1)
-{
-  HAL_StatusTypeDef operation_status;
-  operation_status = CAN_Message_Received();
-  if (operation_status != HAL_OK)
-  {
-    //TODO: Implement error handling for CAN message receives
-  }
 }
 /* USER CODE END 4 */
 
