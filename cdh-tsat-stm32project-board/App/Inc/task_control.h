@@ -11,7 +11,6 @@
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
 #include "utils.h"
-#include "can.h"
 
 extern osMessageQueueId_t timeTagTaskInitQueueHandle;
 extern RTC_HandleTypeDef hrtc;

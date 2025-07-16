@@ -6,19 +6,21 @@
  */
 #include <task_control.h>
 
+#include "tuk/tuk.h"
+
 void StartTimeTagTaskInit(void *argument)
 {
-  /* USER CODE BEGIN StartTimeTagTaskInit */
-  CANMessage_t can_message;
+  CANMessage msg;
+
   /* Infinite loop */
   for(;;)
   {
     //block until thread resumed from command handler
-    osMessageQueueGet(timeTagTaskInitQueueHandle, &can_message, NULL, osWaitForever);
+    osMessageQueueGet(timeTagTaskInitQueueHandle, &msg, NULL, osWaitForever);
 
     HAL_StatusTypeDef operation_status;
     RTC_AlarmTypeDef rtc_alarm;
-    uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
+    uint32_t unix_timestamp = four_byte_array_to_uint32(msg.body);
     RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
     RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
 
@@ -62,6 +64,10 @@ void StartTimeTagTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  // TODO: This entire task was commented out. It must be updated to work
+	  // with the new CAN Wrapper Module. Explicit ACK-ing should not be
+	  // necessary anymore.
+/*
     //block until thread resumed from RTC alarm ISR
     osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
 
@@ -83,7 +89,7 @@ error:
     if (operation_status != HAL_OK)
     {
       //TODO: Implement error handling for StartTimeTagTask
-    }
+    }*/
   }
   osThreadExit();
 }

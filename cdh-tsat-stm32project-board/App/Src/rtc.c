@@ -1,43 +1,41 @@
 /*
  * rtc.c
- *
- *  Created on: Feb 15, 2025
- *      Author: drive
  */
 #include "rtc.h"
 
+#include "tuk/tuk.h"
+
 void StartSetRTC(void *argument)
 {
-  /* USER CODE BEGIN StartSetRTC */
-  CANMessage_t can_message;
-  /* Infinite loop */
-  for(;;)
-  {
-    //block until thread resumed from command handler
-    osMessageQueueGet(setRTCQueueHandle, &can_message, NULL, osWaitForever);
+	CANMessage msg;
 
-    HAL_StatusTypeDef operation_status;
-    uint32_t unix_timestamp = four_byte_array_to_uint32(can_message.data);
-    RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
-    RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
+	/* Infinite loop */
+	for(;;)
+	{
+		//block until thread resumed from command handler
+		osMessageQueueGet(setRTCQueueHandle, &msg, NULL, osWaitForever);
 
-    operation_status = HAL_RTC_SetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
-    if (operation_status != HAL_OK) goto error;
-    operation_status = HAL_RTC_SetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
+		HAL_StatusTypeDef operation_status;
+		uint32_t unix_timestamp = four_byte_array_to_uint32(msg.body);
+		RTC_TimeTypeDef rtc_time = unix_timestamp_to_rtc_time(unix_timestamp);
+		RTC_DateTypeDef rtc_date = unix_timestamp_to_rtc_date(unix_timestamp);
 
-error:
-    if (operation_status != HAL_OK)
-    {
-      //TODO: Implement error handling for StartSetRTC
-    }
-  }
-  osThreadExit();
+		operation_status = HAL_RTC_SetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN);
+		if (operation_status != HAL_OK) goto error;
+		operation_status = HAL_RTC_SetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN);
+
+	error:
+		if (operation_status != HAL_OK)
+		{
+			//TODO: Implement error handling for StartSetRTC
+		}
+	}
+	osThreadExit();
 }
 
 
 void StartGetRTC(void *argument)
 {
-  /* USER CODE BEGIN StartGetRTC */
   /* Infinite loop */
   for(;;)
   {
@@ -67,5 +65,4 @@ error:
     }
   }
   osThreadExit();
-  /* USER CODE END StartGetRTC */
 }
