@@ -412,7 +412,7 @@ int main(void)
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
+  AttitudeControl_Init();
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
