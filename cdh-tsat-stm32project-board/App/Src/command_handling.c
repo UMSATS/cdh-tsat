@@ -5,6 +5,7 @@
 #include "command_handling.h"
 #include "tuk/tuk.h"
 
+// Called when a new CAN message arrives
 void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 {
 	// TODO: These command ID's are OLD and must be updated. Refer to command reference.

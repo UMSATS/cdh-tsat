@@ -95,10 +95,11 @@ void AttitudeControl_Task(void)
         /* -------------------------------------------------  S1: SAMPLE  --- */
         case STATE_S1_SAMPLE:
             state_s1_sample();
+            s_state = STATE_S2_ACTUATE;
 			// TODO: needs an update for the delay of each stage
-			uint32_t tick = osKernelGetTickCount() + S1_DURATION_MS;
-            osDelayUntil(tick);
-			s_state = STATE_S2_ACTUATE;
+			//uint32_t tick = osKernelGetTickCount() + S1_DURATION_MS;
+            //osDelayUntil(tick);
+			//s_state = STATE_S2_ACTUATE;
             break;
 
         /* -------------------------------------------------  S2: ACTUATE --- */
@@ -133,13 +134,18 @@ void AttitudeControl_Task(void)
 static void state_s1_sample(void)
 {
     /* Ensure torquers are OFF so the reading is not contaminated.           */
-	send_magnetorquer_cmd(0, 0);
-	send_magnetorquer_cmd(1, 0);
-	send_magnetorquer_cmd(2, 0);
+    //send_magnetorquer_cmd(0.0, 0.0, 0.0);
+	//send_magnetorquer_cmd(0, 0);
+	//send_magnetorquer_cmd(1, 0);
+	//send_magnetorquer_cmd(2, 0);
 
     /* Raw reading */
 
-    // MAG_ReadMagneticField(s_last_sample.raw);
+    //MAG_ReadMagneticField(s_last_sample.raw);
+
+    send_request_data();
+
+    osFlagsWaitAny()
 
     /* Convert and low-pass filter (simple 1-pole IIR)                       */
     float tmp[3];
@@ -166,7 +172,7 @@ static void state_s2_actuate(void)
         return;
 
     /* --------------------------------------------------  Axis 1  -------- */
-    if (m[0] > M_THRESHOLD)
+    if (m[0] > M_THRESHOLD) // TODO: make range of strengths
     {
         send_magnetorquer_cmd(0, 1); /* Forward dir  */
     }
