@@ -4,6 +4,9 @@
 
 #include "command_handling.h"
 #include "tuk/tuk.h"
+#include "tuk/can_wrapper/telemetry_id.h"
+
+extern float g_magnetic_field[3];
 
 // Called when a new CAN message arrives
 void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
@@ -38,6 +41,19 @@ void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 	case 0x4A:
 		osThreadFlagsSet(getRTCHandle, 0x0001);
 		break;
+	case CMD_CDH_PROCESS_TELEMETRY_REPORT:
+	{
+		TelemetryID tel_id = GET_TELEMETRY_ID(msg->body[0]);
+		if (tel_id == TEL_MAGNETIC_FIELD && msg->sender == NODE_ADCS)
+		{
+			/* Expect three float values starting at byte 1 */
+			memcpy(&g_magnetic_field[0], &msg->body[1], sizeof(float) * 3);
+
+			/* Set an OS flag or notify waiting task here */
+			osThreadFlagsSet(calculateBDotHandle, 0x0001);
+		}
+		break;
+	}
 	default:
 		break;
 	}

@@ -14,13 +14,14 @@
 extern CANQueue_t can_queue;        /* Global queue defined in main.c   */
 extern CAN_HandleTypeDef hcan1;
 
-#define M_THRESHOLD 0.01f  // Or tune as needed
 
 
 // TODO: Import the telemetry function 
 #include "tuk/tuk.h"
 #include <stdio.h>
 #include "cmsis_os.h"
+#include <string.h>  // Added for memcpy
+#include "tuk/can_wrapper/telemetry_id.h"
 
 /* ------------------------------------------------------------------------- */
 /*                              configuration                                */
@@ -31,7 +32,7 @@ extern CAN_HandleTypeDef hcan1;
 
 #define ALPHA            0.20f     /* exponential filter coefficient (S1)   */
 
-float[3] g_magnetic_field;
+float g_magnetic_field[3];
 
 /* ------------------------------------------------------------------------- */
 /*                              private types                                */
@@ -62,7 +63,8 @@ static Sample_t  s_last_sample    = {0};
 static void state_s1_sample(void);
 static void state_s2_actuate(void);
 static void state_s3_decay(void);
-static inline void send_magnetorquer_cmd(uint8_t cmd);
+static inline void send_magnetorquer_cmd(float dir0, float dir1, float dir2);
+static inline void request_magnetic_field(void);
 bool ADCS_Bdot_Compute(float m[3]);
 
 /* ------------------------------------------------------------------------- */
@@ -133,19 +135,14 @@ void AttitudeControl_Task(void)
 /* ---------- S1: sample magnetic field ------------------------------------ */
 static void state_s1_sample(void)
 {
-    /* Ensure torquers are OFF so the reading is not contaminated.           */
-    //send_magnetorquer_cmd(0.0, 0.0, 0.0);
-	//send_magnetorquer_cmd(0, 0);
-	//send_magnetorquer_cmd(1, 0);
-	//send_magnetorquer_cmd(2, 0);
 
-    /* Raw reading */
 
-    //MAG_ReadMagneticField(s_last_sample.raw);
+    /* Request latest magnetic field from ADCS */
+    request_magnetic_field();
 
-    send_request_data();
-
-    osFlagsWaitAny()
+    /* Wait until the telemetry handler signals that new data arrived.         */
+    /* Timeout after S1_DURATION_MS to avoid blocking forever.                */
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, S1_DURATION_MS);
 
     /* Convert and low-pass filter (simple 1-pole IIR)                       */
     float tmp[3];
@@ -171,66 +168,41 @@ static void state_s2_actuate(void)
     if (!ADCS_Bdot_Compute(m))
         return;
 
-    /* --------------------------------------------------  Axis 1  -------- */
-    if (m[0] > M_THRESHOLD) // TODO: make range of strengths
-    {
-        send_magnetorquer_cmd(0, 1); /* Forward dir  */
-    }
-    else if (m[0] < -M_THRESHOLD)
-    {
-        send_magnetorquer_cmd(0, -1); /* Reverse dir  */
-    }
-    else
-    {
-        send_magnetorquer_cmd(0, 0); /* Off          */
-    }
-
-    /* --------------------------------------------------  Axis 2  -------- */
-    if (m[1] > M_THRESHOLD)
-    {
-        send_magnetorquer_cmd(1, 1);
-    }
-    else if (m[1] < -M_THRESHOLD)
-    {
-        send_magnetorquer_cmd(1, -1);
-    }
-    else
-    {
-        send_magnetorquer_cmd(1, 0);
-    }
-
-    /* --------------------------------------------------  Axis 3  -------- */
-    if (m[2] > M_THRESHOLD)
-    {
-        send_magnetorquer_cmd(2, 1);
-    }
-    else if (m[2] < -M_THRESHOLD)
-    {
-        send_magnetorquer_cmd(2, -1);
-    }
-    else
-    {
-        send_magnetorquer_cmd(2, 0);
-    }
+    /* TODO(PROTOTYPE): We are sending unclamped float dipole commands directly.
+       Make sure to clamp to hardware-safe range and add slew-rate limiting
+       before flight/production. */
+    send_magnetorquer_cmd(m[0], m[1], m[2]);
 }
 /* ---------- S3: decay – torquers already OFF ----------------------------- */
 static void state_s3_decay(void)
 {
     /* Nothing to do – we simply wait for the ferromagnetic cores to reset.  */
-	send_magnetorquer_cmd(0, 0);
-	send_magnetorquer_cmd(1, 0);
-	send_magnetorquer_cmd(2, 0);
+    send_magnetorquer_cmd(0.0f, 0.0f, 0.0f);
 }
 
 
 /* Simple helper to push a one-byte command into the CAN queue */
-static inline void send_magnetorquer_cmd(uint8_t magnetorquer_id, int8_t magnetorquer_direction)
+static inline void send_magnetorquer_cmd(float dir0, float dir1, float dir2)
 {
-	// Create a buffer for storing message body data.
-    uint8_t msg_data[CAN_MAX_BODY_SIZE];
-    SET_MSG_DATA(msg_data, 0, uint8_t, magnetorquer_id); // set the first byte of the message body to 0, 1 or 2
-    SET_MSG_DATA(msg_data, 1, int8_t, magnetorquer_direction); // set the second byte of the message body to -1, 0, 1
+    uint8_t msg_data[CAN_MAX_BODY_SIZE] = {0};
+
+    /* Pack the three float values consecutively into the CAN message body */
+    memcpy(&msg_data[0], &dir0, sizeof(float));
+    memcpy(&msg_data[4], &dir1, sizeof(float));
+    memcpy(&msg_data[8], &dir2, sizeof(float));
+
     CANWrapper_Transmit(&hcan1, NODE_CDH, CMD_ADCS_SET_MAGNETORQUER_DIRECTION, msg_data);
+}
+
+/* Helper to request magnetic field telemetry from ADCS */
+static inline void request_magnetic_field(void)
+{
+    uint8_t msg_data[CAN_MAX_BODY_SIZE] = {0};
+    uint8_t key = CREATE_TELEMETRY_KEY(TEL_MAGNETIC_FIELD, 0u);
+    SET_MSG_DATA(msg_data, 0, uint8_t, key);
+
+    /* Ask ADCS subsystem to send TEL_MAGNETIC_FIELD telemetry */
+    CANWrapper_Transmit(&hcan1, NODE_ADCS, CMD_COMM_GET_TELEMETRY, msg_data);
 }
 
 #define ALPHA 0.1f
@@ -244,13 +216,12 @@ extern float exponentialFilter(float curr, float prev, float alpha);
 // Now this function just computes m and returns it
 bool ADCS_Bdot_Compute(float m[3])
 {
-    int16_t raw_mag[3];
-    float B[3];
-	raw_mag = g_magnetic_field;
-	// MAG_ConvertToTeslas(raw_mag, B);
+    /* Magnetic field already received as three floats (teslas) in
+       g_magnetic_field, populated by command_handling.c                     */
+    float B[3] = { g_magnetic_field[0], g_magnetic_field[1], g_magnetic_field[2] };
 
 
-    uint32_t current_time = HAL_GetTick();
+    uint32_t current_time = osKernelGetTickCount();
     if (prev_time == 0)
     {
         prev_time = current_time;
@@ -261,7 +232,7 @@ bool ADCS_Bdot_Compute(float m[3])
         return false;
     }
 
-    float delta_t = (current_time - prev_time) / 1000.0f;
+    float delta_t = (current_time - prev_time) / 1000.0f; /* ticks to seconds */
     if (delta_t <= 0.0f) return false;
 
     float B_filtered[3], B_dot[3];
