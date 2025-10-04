@@ -37,3 +37,25 @@ void StartMramUnitTest(void *argument)
   }
   osThreadExit();
 }
+
+void StartBdotUnitTest(void *argument)
+{
+  /* Infinite loop */
+  for(;;)
+  {
+    //block until thread resumed from command handler
+    osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
+
+    // Run all B-dot algorithm tests
+    BdotTestSuiteResult_t test_results = Bdot_RunAllTests();
+    
+    // Print results
+    Bdot_PrintTestResults(&test_results);
+    
+    // Clean up
+    Bdot_FreeTestResults(&test_results);
+
+    //TODO: Add CAN message transmit with test results
+  }
+  osThreadExit();
+}

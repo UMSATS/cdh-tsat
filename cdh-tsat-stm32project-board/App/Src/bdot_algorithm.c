@@ -8,13 +8,13 @@
  *	
  * 	Created by: drive
  *  Author: Alexandr Yermakov
+ *  Co-Author: Rodrigo Alegria
  */
 #include "bdot_algorithm.h"
+#include "utils.h"  // For exponentialFilter and MAG_ConvertToTeslas
 
 extern CANQueue_t can_queue;        /* Global queue defined in main.c   */
 extern CAN_HandleTypeDef hcan1;
-
-
 
 // TODO: Import the telemetry function 
 #include "tuk/tuk.h"
@@ -30,7 +30,7 @@ extern CAN_HandleTypeDef hcan1;
 #define S2_DURATION_MS  1200u      /* 1.2 s  – chosen for ≤10 °/s tumble rate */
 #define S3_DURATION_MS   100u      /* 0.1 s  – conservative core-decay time  */
 
-#define ALPHA            0.20f     /* exponential filter coefficient (S1)   */
+#define ALPHA            0.1f      /* exponential filter coefficient (matches Simulink)   */
 
 float g_magnetic_field[3];
 
@@ -44,18 +44,13 @@ typedef enum
     STATE_S3_DECAY
 } State_t;
 
-// typedef struct
-// {
-//     int16_t raw[3];
-//     float   tesla[3];     /* filtered values */
-// } Sample_t;
+// Removed Sample_t structure - using g_magnetic_field directly
 
 /* ------------------------------------------------------------------------- */
 /*                             private variables                             */
 /* ------------------------------------------------------------------------- */
 static State_t   s_state          = STATE_S1_SAMPLE;
 static uint32_t  s_state_entry_ms = 0u;          /* HAL_GetTick() timestamp   */
-static Sample_t  s_last_sample    = {0};
 
 /* ------------------------------------------------------------------------- */
 /*                           forward declarations                            */
@@ -77,13 +72,15 @@ void AttitudeControl_Init(void)
     // Magnetorquer2_Off();
     // Magnetorquer3_Off();
 
-
-		// TODO: Add the raw magnetometer readings from ADCS
-    /* take an initial measurement so we start with a meaningful value       */
-    // MAG_ReadMagneticField(s_last_sample.raw);
-    // MAG_ConvertToTeslas(s_last_sample.raw, s_last_sample.tesla);
-
-	// osMessageQueueId_t mag_queue = osMessageQueueNew(QUEUE_SIZE, sizeof(CANQueueItem), NULL);
+    /* Initialize B-dot algorithm state */
+    is_initialized = false;
+    prev_time = 0;
+    for (int i = 0; i < 3; ++i) {
+        B_prev[i] = 0.0f;
+        B_dot_prev[i] = 0.0f;
+    }
+    
+    /* Start in sample state */
     s_state = STATE_S1_SAMPLE;
 }
 
@@ -97,27 +94,26 @@ void AttitudeControl_Task(void)
         /* -------------------------------------------------  S1: SAMPLE  --- */
         case STATE_S1_SAMPLE:
             state_s1_sample();
+            // Add proper delay for S1 state
+            uint32_t tick = osKernelGetTickCount() + S1_DURATION_MS;
+            osDelayUntil(tick);
             s_state = STATE_S2_ACTUATE;
-			// TODO: needs an update for the delay of each stage
-			//uint32_t tick = osKernelGetTickCount() + S1_DURATION_MS;
-            //osDelayUntil(tick);
-			//s_state = STATE_S2_ACTUATE;
             break;
 
         /* -------------------------------------------------  S2: ACTUATE --- */
         case STATE_S2_ACTUATE:
             state_s2_actuate();
-			uint32_t tick = osKernelGetTickCount() + S2_DURATION_MS;
+            tick = osKernelGetTickCount() + S2_DURATION_MS;
             osDelayUntil(tick);
-			s_state = STATE_S3_DECAY;
+            s_state = STATE_S3_DECAY;
             break;
 
         /* -------------------------------------------------  S3: DECAY   --- */
         case STATE_S3_DECAY:
             state_s3_decay();
-			uint32_t tick = osKernelGetTickCount() + S3_DURATION_MS;
+            tick = osKernelGetTickCount() + S3_DURATION_MS;
             osDelayUntil(tick);
-			s_state = STATE_S1_SAMPLE;
+            s_state = STATE_S1_SAMPLE;
             break;
 
         default:
@@ -135,8 +131,6 @@ void AttitudeControl_Task(void)
 /* ---------- S1: sample magnetic field ------------------------------------ */
 static void state_s1_sample(void)
 {
-
-
     /* Request latest magnetic field from ADCS */
     request_magnetic_field();
 
@@ -144,21 +138,11 @@ static void state_s1_sample(void)
     /* Timeout after S1_DURATION_MS to avoid blocking forever.                */
     osThreadFlagsWait(0x0001, osFlagsWaitAny, S1_DURATION_MS);
 
-    /* Convert and low-pass filter (simple 1-pole IIR)                       */
-    float tmp[3];
-    MAG_ConvertToTeslas(s_last_sample.raw, tmp);
-
-    for (int i = 0; i < 3; ++i)
-    {
-        s_last_sample.tesla[i] = ALPHA * tmp[i] +
-                                 (1.0f - ALPHA) * s_last_sample.tesla[i];
-    }
-
     /* Debug printouts (remove in flight builds)                             */
-    printf("[S1] B-field  X: %.6f  Y: %.6f  Z: %.6f (mT)\r\n",
-           s_last_sample.tesla[0],
-           s_last_sample.tesla[1],
-           s_last_sample.tesla[2]);
+    printf("[S1] B-field  X: %.6f  Y: %.6f  Z: %.6f (T)\r\n",
+           g_magnetic_field[0],
+           g_magnetic_field[1],
+           g_magnetic_field[2]);
 }
 
 /* ---------- S2: actuate based on last sample ----------------------------- */
@@ -205,45 +189,67 @@ static inline void request_magnetic_field(void)
     CANWrapper_Transmit(&hcan1, NODE_ADCS, CMD_COMM_GET_TELEMETRY, msg_data);
 }
 
-#define ALPHA 0.1f
-#define K 1.0f
+#define K 1.0f      /* B-dot gain (matches Simulink) */
 
-static float B_filtered_prev[3] = {0.0f, 0.0f, 0.0f};
+// Static variables for B-dot calculation (matches Simulink approach)
+static float B_prev[3] = {0.0f, 0.0f, 0.0f};
+static float B_dot_prev[3] = {0.0f, 0.0f, 0.0f};
 static uint32_t prev_time = 0;
+static bool is_initialized = false;
 
-extern float exponentialFilter(float curr, float prev, float alpha);
+// exponentialFilter is now available via utils.h include
 
-// Now this function just computes m and returns it
+/*
+ * FUNCTION: ADCS_Bdot_Compute
+ *
+ * DESCRIPTION: Computes B-dot detumbling algorithm (matches Simulink implementation)
+ *              m = -K * B_dot, where B_dot is the filtered derivative of magnetic field
+ *
+ * PARAMETERS:
+ *  m: Output array for magnetic dipole moments [3]
+ *
+ * RETURNS: true if calculation successful, false if not enough data
+ */
 bool ADCS_Bdot_Compute(float m[3])
 {
-    /* Magnetic field already received as three floats (teslas) in
-       g_magnetic_field, populated by command_handling.c                     */
-    float B[3] = { g_magnetic_field[0], g_magnetic_field[1], g_magnetic_field[2] };
-
-
     uint32_t current_time = osKernelGetTickCount();
-    if (prev_time == 0)
-    {
+    
+    // Initialize on first call
+    if (!is_initialized) {
         prev_time = current_time;
         for (int i = 0; i < 3; ++i) {
-            B_filtered_prev[i] = B[i];
+            B_prev[i] = g_magnetic_field[i];
+            B_dot_prev[i] = 0.0f;
             m[i] = 0.0f;
         }
-        return false;
+        is_initialized = true;
+        return false; // Need at least two samples
     }
-
+    
+    // Calculate time delta
     float delta_t = (current_time - prev_time) / 1000.0f; /* ticks to seconds */
     if (delta_t <= 0.0f) return false;
-
-    float B_filtered[3], B_dot[3];
-    for (int i = 0; i < 3; ++i)
-    {
-        B_filtered[i] = exponentialFilter(B[i], B_filtered_prev[i], ALPHA);
-        B_dot[i] = (B_filtered[i] - B_filtered_prev[i]) / delta_t;
-        m[i] = -K * B_dot[i];
-        B_filtered_prev[i] = B_filtered[i];
+    
+    // Current magnetic field values
+    float B_curr[3] = {g_magnetic_field[0], g_magnetic_field[1], g_magnetic_field[2]};
+    float B_dot_curr[3];
+    
+    // Calculate B-dot with filtering (same approach as Simulink)
+    for (int i = 0; i < 3; ++i) {
+        // Raw B-dot calculation
+        float B_dot_raw = (B_curr[i] - B_prev[i]) / delta_t;
+        
+        // Apply exponential filter to B-dot (matches Simulink b_dot function)
+        B_dot_curr[i] = (ALPHA * B_dot_raw) + ((1.0f - ALPHA) * B_dot_prev[i]);
+        
+        // Apply B-dot algorithm: m = -K * B_dot
+        m[i] = -K * B_dot_curr[i];
+        
+        // Update for next iteration
+        B_prev[i] = B_curr[i];
+        B_dot_prev[i] = B_dot_curr[i];
     }
-
+    
     prev_time = current_time;
     return true;
 }

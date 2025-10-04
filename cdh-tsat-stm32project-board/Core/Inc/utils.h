@@ -74,4 +74,31 @@ RTC_TimeTypeDef unix_timestamp_to_rtc_time(uint32_t unix_timestamp);
  */
 RTC_DateTypeDef unix_timestamp_to_rtc_date(uint32_t unix_timestamp);
 
+/*
+ * FUNCTION: exponentialFilter
+ *
+ * DESCRIPTION: Implements a simple exponential moving average filter.
+ *              Used for filtering magnetic field measurements in B-dot algorithm.
+ *
+ * PARAMETERS:
+ *  curr: Current measurement value
+ *  prev: Previous filtered value
+ *  alpha: Filter coefficient (0 < alpha <= 1), where alpha=1 means no filtering
+ *
+ * RETURNS: Filtered value
+ */
+float exponentialFilter(float curr, float prev, float alpha);
+
+/*
+ * FUNCTION: MAG_ConvertToTeslas
+ *
+ * DESCRIPTION: Converts raw magnetometer readings to Tesla units.
+ *              This is a placeholder implementation - adjust sensitivity based on your magnetometer.
+ *
+ * PARAMETERS:
+ *  raw: Array of 3 raw magnetometer readings
+ *  tesla: Output array for converted values in Tesla
+ */
+void MAG_ConvertToTeslas(int16_t raw[3], float tesla[3]);
+
 #endif /* INC_UTILS_H_ */

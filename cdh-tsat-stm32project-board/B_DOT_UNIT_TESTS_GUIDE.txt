@@ -1,0 +1,233 @@
+================================================================================
+                    B-DOT ALGORITHM UNIT TESTS - USER GUIDE
+================================================================================
+
+OVERVIEW:
+This guide explains how to run unit tests for the B-dot detumbling algorithm
+implementation. The tests verify that the embedded implementation matches the
+Simulink model and works correctly under various conditions.
+
+FILES CREATED:
+- App/Inc/bdot_algorithm_test.h     - Test function declarations
+- App/Src/bdot_algorithm_test.c     - Test implementations
+- App/Src/bdot_standalone_test.c    - Standalone test runner
+- App/Inc/unit_tests.h              - Updated with B-dot test integration
+- App/Src/unit_tests.c              - Updated with B-dot test thread
+
+TEST COVERAGE:
+The test suite includes 11 comprehensive tests covering:
+1. Basic functionality (exponential filter, initialization, first call)
+2. B-dot calculations (static field, linear change, sinusoidal field)
+3. Edge cases (zero time delta, large values, noise rejection)
+4. Integration (Simulink comparison, state machine)
+
+================================================================================
+                            METHOD 1: UNIT TEST SYSTEM
+================================================================================
+
+This is the recommended method for production testing.
+
+STEP 1: Add Command Handler Entry
+In App/Src/command_handling.c, add a new case for B-dot tests:
+
+    case 0x50:  // Add new command ID for B-dot tests
+        osThreadFlagsSet(bdotUnitTestHandle, 0x0001);
+        break;
+
+STEP 2: Create Test Thread
+In Core/Src/main.c, add the B-dot test thread:
+
+    // Add thread handle declaration (with other thread handles)
+    osThreadId_t bdotUnitTestHandle;
+    
+    // Add thread attributes (with other thread attributes)
+    const osThreadAttr_t bdotUnitTest_attributes = {
+      .name = "bdotUnitTest",
+      .stack_size = 128 * 4,
+      .priority = (osPriority_t) osPriorityNormal,
+    };
+    
+    // In main() function, create the thread (with other thread creations)
+    bdotUnitTestHandle = osThreadNew(StartBdotUnitTest, NULL, &bdotUnitTest_attributes);
+
+STEP 3: Run Tests
+Send CAN command 0x50 to trigger the B-dot unit tests. The results will be
+printed to the console and can be transmitted via CAN (when implemented).
+
+================================================================================
+                            METHOD 2: STANDALONE TESTING
+================================================================================
+
+This method is useful for development and debugging.
+
+STEP 1: Add Include
+In Core/Src/main.c, add:
+
+    #include "bdot_standalone_test.h"
+
+STEP 2: Add Test Call
+In your main() function, add one of these options:
+
+    // Option A: Run all tests
+    #ifdef DEBUG_BDOT_TESTS
+        Bdot_RunStandaloneTests();
+    #endif
+    
+    // Option B: Run quick tests only
+    #ifdef DEBUG_BDOT_TESTS
+        Bdot_RunQuickTest();
+    #endif
+
+STEP 3: Compile and Run
+Define DEBUG_BDOT_TESTS in your compiler settings or add to main.h:
+
+    #define DEBUG_BDOT_TESTS
+
+================================================================================
+                            METHOD 3: INDIVIDUAL TESTS
+================================================================================
+
+For testing specific functionality during development.
+
+EXAMPLE USAGE:
+    #include "bdot_algorithm_test.h"
+    
+    // Test exponential filter
+    BdotTestResult_t result = Bdot_Test_ExponentialFilter();
+    if (result.passed) {
+        printf("Exponential filter test PASSED\n");
+    } else {
+        printf("Exponential filter test FAILED: %s\n", result.error_message);
+    }
+
+AVAILABLE INDIVIDUAL TESTS:
+- Bdot_Test_ExponentialFilter()     - Tests exponential filter function
+- Bdot_Test_Initialization()        - Tests algorithm initialization
+- Bdot_Test_FirstCall()             - Tests first valid call behavior
+- Bdot_Test_StaticField()           - Tests with constant magnetic field
+- Bdot_Test_LinearChange()          - Tests with linearly changing field
+- Bdot_Test_SinusoidalField()       - Tests with sinusoidal field
+- Bdot_Test_ZeroTimeDelta()         - Tests handling of zero time delta
+- Bdot_Test_LargeFieldValues()      - Tests with large magnetic field values
+- Bdot_Test_NoiseRejection()        - Tests noise filtering capabilities
+- Bdot_Test_SimulinkComparison()    - Compares with Simulink results
+- Bdot_Test_StateMachine()          - Tests state machine behavior
+
+================================================================================
+                              EXPECTED OUTPUT
+================================================================================
+
+When tests run successfully, you should see:
+
+=== B-Dot Algorithm Test Results ===
+Total Tests: 11
+Passed: 11
+Failed: 0
+Success Rate: 100.0%
+
+=== Detailed Results ===
+[PASS] ExponentialFilter: OK
+[PASS] Initialization: OK
+[PASS] FirstCall: OK
+[PASS] StaticField: OK
+[PASS] LinearChange: OK
+[PASS] SinusoidalField: OK
+[PASS] ZeroTimeDelta: OK
+[PASS] LargeFieldValues: OK
+[PASS] NoiseRejection: OK
+[PASS] SimulinkComparison: OK
+[PASS] StateMachine: OK
+=====================================
+
+================================================================================
+                              CUSTOMIZATION
+================================================================================
+
+UPDATING SIMULINK COMPARISON TEST:
+In App/Src/bdot_algorithm_test.c, function Bdot_Test_SimulinkComparison(),
+replace the expected values with actual results from your Simulink simulation:
+
+    // Replace these with actual Simulink results:
+    float expected_m[3] = {-1.0e-5f, -2.0e-5f, -3.0e-5f};
+
+ADJUSTING TEST PARAMETERS:
+In App/Src/bdot_algorithm_test.c, modify these constants:
+
+    #define TEST_TOLERANCE 1e-6f  // Adjust for your precision needs
+    #define TEST_ALPHA 0.1f       // Should match your algorithm
+    #define TEST_K 1.0f           // Should match your algorithm
+
+ADDING CUSTOM TEST CASES:
+Create new test functions following this pattern:
+
+    BdotTestResult_t Bdot_Test_YourCustomTest(void) {
+        BdotTestResult_t result = {true, "YourCustomTest", "", 0.0f, 0.0f, TEST_TOLERANCE};
+        
+        // Your test logic here
+        // Use ASSERT_* macros for assertions
+        
+        result.passed = true;
+        return result;
+    }
+
+Then add your test to the test_functions array in Bdot_RunAllTests().
+
+================================================================================
+                              TROUBLESHOOTING
+================================================================================
+
+COMMON ISSUES:
+
+1. COMPILATION ERRORS:
+   - Ensure all files are added to your project
+   - Check that includes are correct
+   - Verify math.h is available for sin/cos functions
+
+2. TEST FAILURES:
+   - Check that algorithm parameters match test parameters
+   - Verify magnetic field units (Tesla vs microTesla)
+   - Adjust tolerance values if needed
+
+3. MEMORY ISSUES:
+   - Ensure sufficient stack size for test thread
+   - Check for memory leaks in test results
+
+4. TIMING ISSUES:
+   - Some tests may fail if called too quickly
+   - Add small delays between test calls if needed
+
+================================================================================
+                              INTEGRATION NOTES
+================================================================================
+
+CAN INTEGRATION:
+The test results can be transmitted via CAN messages. In App/Src/unit_tests.c,
+function StartBdotUnitTest(), there's a TODO for adding CAN message transmission.
+
+THREAD PRIORITIES:
+Adjust thread priorities in main.c if tests interfere with other system functions.
+
+DEBUG OUTPUT:
+Tests use printf() for output. Ensure your debug console is properly configured.
+
+================================================================================
+                              NEXT STEPS
+================================================================================
+
+1. Run the tests using one of the methods above
+2. Fix any failing tests by adjusting algorithm parameters
+3. Update Simulink comparison test with actual results
+4. Add more test cases as needed
+5. Integrate with CI/CD pipeline for automated testing
+6. Add performance benchmarks if needed
+
+================================================================================
+                              CONTACT
+================================================================================
+
+For questions or issues with the B-dot unit tests, contact:
+- Rodrigo Alegria (rodrigo.alegria@umsats.ca)
+
+Created: January 7, 2025
+Version: 1.0
+================================================================================

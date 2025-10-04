@@ -14,6 +14,7 @@
 #include "W25N_driver_test.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
+#include "bdot_algorithm_test.h"
 
 /**
 * @brief Function implementing the flashUnitTest thread.
@@ -29,5 +30,12 @@ void StartFlashUnitTest(void *argument);
 * @retval None
 */
 void StartMramUnitTest(void *argument);
+
+/**
+* @brief Function implementing the bdotUnitTest thread.
+* @param argument: Not used
+* @retval None
+*/
+void StartBdotUnitTest(void *argument);
 
 #endif /* INC_UNIT_TESTS_H_ */
