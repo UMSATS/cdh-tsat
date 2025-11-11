@@ -829,6 +829,34 @@ error:
     return operation_status;
 }
 
+W25N_StatusTypeDef W25N_BBM_LUT_Size(uint8_t *usedSpareCount)
+{
+	W25N_StatusTypeDef operation_status;
+	uint8_t lut[20 * 4];
+
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Read_BBM_LUT(lut);
+	if (operation_status != W25N_READY) goto error;
+
+	for(uint16_t i=0;i<20;i++){
+
+		uint8_t* entry=lut[i*4];
+
+		//LUT flags
+		uint8_t enable  = entry[0] & (1 << 7);
+		uint8_t invalid = entry[0] & (1 << 6);
+
+		if (enable && !invalid) {//Is bit flipped
+			usedSpareCount++;
+		}
+	}
+
+error:
+	return operation_status;
+}
+
 //###############################################################################################
 //Helper Functions
 //###############################################################################################

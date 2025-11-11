@@ -272,6 +272,19 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
  */
 W25N_StatusTypeDef W25N_Reset_And_Init();
 
+/*
+ * FUNCTION: W25N_BBM_LUT_Size
+ *
+ * DESCRIPTION:
+ *
+ * NOTES:
+ *  -
+ *
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
+ */
+W25N_StatusTypeDef W25N_BBM_LUT_Size(uint8_t *usedSpareCount);
+
 //###############################################################################################
 //Public Helper Function Prototypes
 //###############################################################################################
