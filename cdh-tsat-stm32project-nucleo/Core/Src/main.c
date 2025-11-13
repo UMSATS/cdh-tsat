@@ -32,6 +32,7 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+#include "dhara.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,6 +69,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for dharaFlashTest */
+osThreadId_t dharaFlashTestHandle;
+const osThreadAttr_t dharaFlashTest_attributes = {
+  .name = "dharaFlashTest",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -84,6 +92,7 @@ static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM16_Init(void);
 void StartDefaultTask(void *argument);
+void StartDharaTestTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -202,6 +211,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of dharaFlashTest */
+  dharaFlashTestHandle = osThreadNew(StartDharaTestTask, NULL, &dharaFlashTest_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -650,6 +662,44 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartDharaTestTask */
+/**
+* @brief Function implementing the dharaFlashTest thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDharaTestTask */
+void StartDharaTestTask(void *argument)
+{
+  /* USER CODE BEGIN StartDharaTestTask */
+  /* Infinite loop */
+	flash_init();
+
+	uint8_t buffer[(1 << my_nand.log2_page_size)];
+	uint16_t i=0;
+	const uint16_t MAX_PAGES=100;
+
+	/* Infinite loop */
+	for(;;)
+	{
+		static dhara_error_t err;
+
+		if(i < MAX_PAGES) {
+			memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
+			dhara_map_write(&my_map, i, buffer, &err);
+		}else if(i < 2*MAX_PAGES) {
+			dhara_map_trim(&my_map, i - MAX_PAGES, &err);
+		}else{
+			i=0;
+			continue;
+		}
+
+		i++;
+		osDelay(1);
+	}
+  /* USER CODE END StartDharaTestTask */
 }
 
 /**

@@ -47,6 +47,7 @@
 #include "deployment_tasks.h"
 #include "command_handling.h"
 #include "tuk/tuk.h"
+#include "dhara.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -189,6 +190,13 @@ const osThreadAttr_t calculateBDot_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
 };
+/* Definitions for dharaTestTask */
+osThreadId_t dharaTestTaskHandle;
+const osThreadAttr_t dharaTestTask_attributes = {
+  .name = "dharaTestTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -239,6 +247,7 @@ extern void StartTimeTagTaskInit(void *argument);
 extern void StartSetRTC(void *argument);
 extern void StartGetRTC(void *argument);
 extern void StartBDot(void *argument);
+void StartDharaTestTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -336,16 +345,16 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of canQueue */
-  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
+  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage_t), &canQueue_attributes);
 
   /* creation of telemQueue */
   telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
 
   /* creation of timeTagTaskInitQueue */
-  timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &timeTagTaskInitQueue_attributes);
+  timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &timeTagTaskInitQueue_attributes);
 
   /* creation of setRTCQueue */
-  setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &setRTCQueue_attributes);
+  setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &setRTCQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -399,6 +408,9 @@ int main(void)
 
   /* creation of calculateBDot */
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
+
+  /* creation of dharaTestTask */
+  dharaTestTaskHandle = osThreadNew(StartDharaTestTask, NULL, &dharaTestTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
@@ -1021,6 +1033,43 @@ void StartStm32Reset(void *argument)
   }
   osThreadExit();
   /* USER CODE END StartStm32Reset */
+}
+
+/* USER CODE BEGIN Header_StartDharaTestTask */
+/**
+* @brief Function implementing the dharaTestTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDharaTestTask */
+void StartDharaTestTask(void *argument)
+{
+  /* USER CODE BEGIN StartDharaTestTask */
+	flash_init();
+
+	uint8_t buffer[(1 << my_nand.log2_page_size)];
+	uint16_t i=0;
+	const uint16_t MAX_PAGES=100;
+
+	/* Infinite loop */
+	for(;;)
+	{
+		static dhara_error_t err;
+
+		if(i < MAX_PAGES) {
+			memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
+			dhara_map_write(&my_map, i, buffer, &err);
+		}else if(i < 2*MAX_PAGES) {
+			dhara_map_trim(&my_map, i - MAX_PAGES, &err);
+		}else{
+			i=0;
+			continue;
+		}
+
+		i++;
+		osDelay(1);
+	}
+  /* USER CODE END StartDharaTestTask */
 }
 
 /**
