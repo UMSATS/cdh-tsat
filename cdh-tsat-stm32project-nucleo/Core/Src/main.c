@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
@@ -160,9 +161,9 @@ int main(void)
   if (can_operation_status != HAL_OK) goto error;*/
 
   //this code initializes the W25N
-  /*W25N_StatusTypeDef w25n_operation_status;
+  W25N_StatusTypeDef w25n_operation_status;
   w25n_operation_status = W25N_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
 
   //this code initializes the AS3001204
   /*HAL_StatusTypeDef as3001204_operation_status;
@@ -175,10 +176,18 @@ int main(void)
 
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
-  /*w25n_operation_status = Test_W25N();
+  w25n_operation_status = Test_W25N();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
   w25n_operation_status = W25N_Reset_And_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  uint8_t usedSpareCount=0;
+  w25n_operation_status= W25N_BBM_LUT_Size(&usedSpareCount);
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+
+  //this code initializes the Dhara Library
+  dhara_error_t dhara_status;
+  dhara_status=Dhara_Init();
+  if(dhara_status!=DHARA_E_NONE) goto error;
 
   //this code performs the AS3001204 unit tests
   //this code should be completed after power cycling the AS3001204
@@ -675,9 +684,8 @@ void StartDharaTestTask(void *argument)
 {
   /* USER CODE BEGIN StartDharaTestTask */
   /* Infinite loop */
-	flash_init();
 
-	uint8_t buffer[(1 << my_nand.log2_page_size)];
+	uint8_t buffer={1,2,3,6,5,4,7,8,9,1,2,3,6,5,4,9,8,7,78,9,4,5,6,2,1,5,6,3,4,8,5};
 	uint16_t i=0;
 	const uint16_t MAX_PAGES=100;
 
@@ -687,7 +695,7 @@ void StartDharaTestTask(void *argument)
 		static dhara_error_t err;
 
 		if(i < MAX_PAGES) {
-			memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
+			//memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
 			dhara_map_write(&my_map, i, buffer, &err);
 		}else if(i < 2*MAX_PAGES) {
 			dhara_map_trim(&my_map, i - MAX_PAGES, &err);
@@ -695,6 +703,9 @@ void StartDharaTestTask(void *argument)
 			i=0;
 			continue;
 		}
+
+		uint8_t data[sizeof(buffer)];
+		dhara_map_read(&my_map, i, data, &err);
 
 		i++;
 		osDelay(1);
