@@ -14,41 +14,29 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include "dhara/bytes.h"
-#include "util.h"
+#include <stddef.h>
+#include "error.h"
 
-void seq_gen(unsigned int seed, uint8_t *buf, size_t length)
+const char *dhara_strerror(dhara_error_t err)
 {
-	size_t i;
+	static const char *const messages[DHARA_E_MAX] = {
+		[DHARA_E_NONE] = "No error",
+		[DHARA_E_BAD_BLOCK] = "Bad page/eraseblock",
+		[DHARA_E_ECC] = "ECC failure",
+		[DHARA_E_TOO_BAD] = "Too many bad blocks",
+		[DHARA_E_RECOVER] = "Journal recovery is required",
+		[DHARA_E_JOURNAL_FULL] = "Journal is full",
+		[DHARA_E_NOT_FOUND] = "No such sector",
+		[DHARA_E_MAP_FULL] = "Sector map is full",
+		[DHARA_E_CORRUPT_MAP] = "Sector map is corrupted"
+	};
+	const char *msg = NULL;
 
-	srandom(seed);
-	for (i = 0; i < length; i++)
-		buf[i] = random();
-}
+	if ((err >= 0) && (err < DHARA_E_MAX))
+		msg = messages[err];
 
-void seq_assert(unsigned int seed, const uint8_t *buf, size_t length)
-{
-	size_t i;
+	if (msg)
+		return msg;
 
-	srandom(seed);
-	for (i = 0; i < length; i++) {
-		const uint8_t expect = random();
-
-		if (buf[i] != expect) {
-			fprintf(stderr, "seq_assert: mismatch at %ld in "
-				"sequence %d: 0x%02x (expected 0x%02x)\n",
-				i, seed, buf[i], expect);
-			abort();
-		}
-	}
-}
-
-void dabort(const char *message, dhara_error_t err)
-{
-	fprintf(stderr, "%s: dhara_error_t => %s\n",
-		message, dhara_strerror(err));
-	abort();
+	return "Unknown error";
 }

@@ -14,20 +14,31 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef TESTS_UTIL_H_
-#define TESTS_UTIL_H_
+#ifndef ECC_HAMMING_H_
+#define ECC_HAMMING_H_
 
 #include <stdint.h>
 #include <stddef.h>
-#include "dhara/error.h"
 
-/* Abort, displaying an error */
-void dabort(const char *message, dhara_error_t err);
+/* ECC size is fixed. Chunk size can't be any larger than the maximum
+ * given below. Hamming codes can correct 1-bit errors and detect 2-bit
+ * errors within a chunk.
+ */
+#define HAMMING_MAX_CHUNK_SIZE	512
+#define HAMMING_ECC_SIZE	3
 
-/* Generate a pseudo-random sequence of data */
-void seq_gen(unsigned int seed, uint8_t *buf, size_t length);
+/* Generate ECC bytes for the given page */
+void hamming_generate(const uint8_t *chunk, size_t len, uint8_t *ecc);
 
-/* Check a pseudo-random sequence */
-void seq_assert(unsigned int seed, const uint8_t *buf, size_t length);
+/* Calculate ECC parity for a given page. If zero, the page is ok. */
+typedef uint32_t hamming_ecc_t;
+
+hamming_ecc_t hamming_syndrome(const uint8_t *chunk, size_t len,
+			       const uint8_t *ecc);
+
+/* Attempt to repair ECC errors. Returns 0 if successful, -1 if an error
+ * occurs.
+ */
+int hamming_repair(uint8_t *chunk, size_t len, hamming_ecc_t syndrome);
 
 #endif
