@@ -1,5 +1,10 @@
 #include "../Inc/dhara.h"
 
+#include <dhara/nand.h>
+#include <dhara/map.h>
+
+#include "W25N_driver.h"
+
 
 //############################################################################
 //##########################    NAND.H FUNCTIONS    ##########################
@@ -12,7 +17,7 @@ const struct dhara_nand my_nand = {
     .num_blocks = 1004     // Number of Blocks minus 20(For Spares to be used in BBM)
 };
 
-uint8_t usedSpareCount=0;
+uint8_t dharaUsedSpareCount=0;
 
 int dhara_nand_is_bad(const struct dhara_nand *n, dhara_block_t b)
 {
@@ -22,12 +27,12 @@ int dhara_nand_is_bad(const struct dhara_nand *n, dhara_block_t b)
 
 	status = W25N_Read(&marker, page, 0, 1);
 
-	if (status != W25N_HAL_OK || marker != 0xFF)// if block is bad
+	if (status == W25N_ECC_CORRECTION_ERROR || marker != 0xFF)// if block is bad
 		return 1;
 
 	// checking spare area byte 0 (offset = 2048)
 	status = W25N_Read(&marker, page, 2048, 1);
-	if (status != W25N_HAL_OK || marker != 0xFF)// if block is bad
+	if (status == W25N_ECC_CORRECTION_ERROR || marker != 0xFF)// if block is bad
 		return 1;
 
 	return 0;  // good block
@@ -36,13 +41,13 @@ int dhara_nand_is_bad(const struct dhara_nand *n, dhara_block_t b)
 void dhara_nand_mark_bad(const struct dhara_nand *n, dhara_block_t b)
 {
 	uint16_t logical_block = (uint16_t)b;
-	uint16_t physical_block = n->num_blocks+usedSpareCount;
+	uint16_t physical_block = n->num_blocks+dharaUsedSpareCount;
 
 	W25N_StatusTypeDef status = W25N_Establish_BBM_Link(logical_block, physical_block);
 
 	if (status != W25N_LUT_FULL&&status == W25N_HAL_OK)//LUT is Full
 	{
-		usedSpareCount++;
+		dharaUsedSpareCount++;
 	}
 }
 
@@ -200,28 +205,30 @@ int dhara_nand_copy(const struct dhara_nand *n, dhara_page_t src,
 //################################################################################
 //##########################    FLASH INITIALIZATION    ##########################
 //################################################################################
+uint8_t journal_buffer[0];
 
-#define JOURNAL_BUFFER_SIZE 4096
-uint8_t journal_buffer[JOURNAL_BUFFER_SIZE];
-
-dhara_error_t err;
 
 struct dhara_map my_map;
 
 
-void flash_init(void){
-	//initializes the W25N drivers
-	W25N_Init();
+dhara_error_t Dhara_Init(void){
+	dhara_error_t err=DHARA_E_NONE;
+	const size_t page_size = 1 << my_nand.log2_page_size;
+	uint8_t journal_buffer[page_size];
 
-	W25N_BBM_LUT_Size(&usedSpareCount);
+	//initializes the W25N drivers
+	W25N_BBM_LUT_Size(&dharaUsedSpareCount);
 
 	//Dhara initialization
-	dhara_map_init(&my_map, &my_nand, journal_buffer, JOURNAL_BUFFER_SIZE);
+	dhara_map_init(&my_map, &my_nand, journal_buffer, page_size);
 
-	//Step 4: Try loading existing mapping from flash
+	//Try loading existing mapping from flash
 	dhara_map_resume(&my_map, &err);
 
-	if (err != DHARA_E_NONE) {
+	//Sink
+	dhara_map_sync(&my_map, &err);
 
+	if (err != DHARA_E_NONE) {
+		return err;
 	}
 }

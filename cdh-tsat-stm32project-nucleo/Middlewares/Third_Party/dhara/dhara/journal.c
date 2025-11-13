@@ -174,6 +174,7 @@ static void clear_recovery(struct dhara_journal *j)
 /* Set up an empty journal */
 static void reset_journal(struct dhara_journal *j)
 {
+	uint8_t* temp;
 	/* We don't yet have a bad block estimate, so make a
 	 * conservative guess.
 	 */
@@ -194,6 +195,7 @@ static void reset_journal(struct dhara_journal *j)
 
 	/* Empty metadata buffer */
 	memset(j->page_buf, 0xff, 1 << j->nand->log2_page_size);
+	memset(temp, 0xff, 1 << j->nand->log2_page_size);
 }
 
 static void roll_stats(struct dhara_journal *j)
@@ -230,6 +232,14 @@ static int find_checkblock(struct dhara_journal *j,
 		const dhara_page_t p =
 			(blk << j->nand->log2_ppb) |
 			((1 << j->log2_ppc) - 1);
+		int testnumber=dhara_nand_is_bad(j->nand, blk);
+		testnumber=dhara_nand_read(j->nand, p,
+			      0, 1 << j->nand->log2_page_size,
+			      j->page_buf, err);
+		testnumber=(!(dhara_nand_is_bad(j->nand, blk) ||
+			      dhara_nand_read(j->nand, p,
+					      0, 1 << j->nand->log2_page_size,
+					      j->page_buf, err)));
 
 		if (!(dhara_nand_is_bad(j->nand, blk) ||
 		      dhara_nand_read(j->nand, p,
