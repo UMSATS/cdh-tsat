@@ -17,6 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <Dhara_Wrapper.h>
 #include "main.h"
 #include "cmsis_os.h"
 
@@ -33,7 +34,6 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
-#include "dhara.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,8 +116,8 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 
   /* USER CODE BEGIN Init */
 
@@ -176,13 +176,13 @@ int main(void)
 
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
-  w25n_operation_status = Test_W25N();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;
-  w25n_operation_status = W25N_Reset_And_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;
-  uint8_t usedSpareCount=0;
-  w25n_operation_status= W25N_BBM_LUT_Size(&usedSpareCount);
-  if (w25n_operation_status != W25N_HAL_OK) goto error;
+//  w25n_operation_status = Test_W25N();
+//  if (w25n_operation_status != W25N_HAL_OK) goto error;
+//  w25n_operation_status = W25N_Reset_And_Init();
+//  if (w25n_operation_status != W25N_HAL_OK) goto error;
+//  uint8_t usedSpareCount=0;
+//  w25n_operation_status= W25N_BBM_LUT_Size(&usedSpareCount);
+//  if (w25n_operation_status != W25N_HAL_OK) goto error;
 
   //this code initializes the Dhara Library
   dhara_error_t dhara_status;
@@ -685,29 +685,36 @@ void StartDharaTestTask(void *argument)
   /* USER CODE BEGIN StartDharaTestTask */
   /* Infinite loop */
 
-	uint8_t buffer={1,2,3,6,5,4,7,8,9,1,2,3,6,5,4,9,8,7,78,9,4,5,6,2,1,5,6,3,4,8,5};
-	uint16_t i=0;
-	const uint16_t MAX_PAGES=100;
+//	uint16_t pageSize=2048;
+//
+//	uint8_t buffer[pageSize];
+//
+//	for(int index=0;index<pageSize;index++){
+//		buffer[index]=index+index*2;
+//	}
+//
+//	uint16_t i=0;
+//	const uint16_t MAX_PAGES=100;
 
 	/* Infinite loop */
 	for(;;)
 	{
-		static dhara_error_t err;
-
-		if(i < MAX_PAGES) {
-			//memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
-			dhara_map_write(&my_map, i, buffer, &err);
-		}else if(i < 2*MAX_PAGES) {
-			dhara_map_trim(&my_map, i - MAX_PAGES, &err);
-		}else{
-			i=0;
-			continue;
-		}
-
-		uint8_t data[sizeof(buffer)];
-		dhara_map_read(&my_map, i, data, &err);
-
-		i++;
+//		static dhara_error_t err;
+//
+//		if(i < MAX_PAGES) {
+//			//memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
+//			dhara_map_write(&my_map, i, buffer, &err);
+//		}else if(i < 2*MAX_PAGES) {
+//			dhara_map_trim(&my_map, i - MAX_PAGES, &err);
+//		}else{
+//			i=0;
+//			continue;
+//		}
+//
+//		uint8_t data[pageSize];
+//		dhara_map_read(&my_map, i, data, &err);
+//
+//		i++;
 		osDelay(1);
 	}
   /* USER CODE END StartDharaTestTask */
