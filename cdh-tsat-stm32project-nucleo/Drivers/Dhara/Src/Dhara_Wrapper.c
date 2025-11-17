@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include <dhara/map.h>
+#include <dhara/nand.h>
 #include <Dhara_Wrapper.h>
 
 #include "W25N_driver.h"
@@ -22,7 +23,7 @@
 
 
 //################################################################################
-//##########################    FLASH INITIALIZATION    ##########################
+//##########################    DHARA INITIALIZATION    ##########################
 //################################################################################
 
 //Map defines
@@ -88,3 +89,98 @@ dhara_error_t Dhara_Init(void){
 
 	return err;
 }
+
+
+
+//###############################################################################
+//###########################    WRAPPER FUNCTIONS    ###########################
+//###############################################################################
+
+void Dhara_Clear()
+{
+	dhara_map_clear(&my_map);
+}
+
+uint32_t Dhara_Capacity()
+{
+	return dhara_map_capacity(&my_map);
+}
+
+/* Obtain the current number of allocated sectors. */
+uint32_t Dhara_Size()
+{
+	return dhara_map_size(&my_map);
+}
+
+int Dhara_Find(uint32_t s, uint32_t *loc, dhara_error_t *err)
+{
+	return dhara_map_find(&my_map, s, loc, err);
+}
+
+int Dhara_Read(uint32_t s, uint8_t *data, const uint16_t dataSize, dhara_error_t *err)
+{
+	if(dataSize==PAGE_SIZE){
+		return dhara_map_read(&my_map, s, data, err);
+	}
+	if(dataSize<PAGE_SIZE){
+		uint8_t fullData[PAGE_SIZE];
+		int status=dhara_map_read(&my_map, s, fullData, err);
+
+		// Read FAILED!!!
+		if(status==-1){return status;}
+
+		memcpy(data,fullData,dataSize);
+
+		return status;
+	}
+
+	//TODO SEE IF THIS IS A GOOD IDEA OR IF WE SHOULD HANDLE DIFFERENTLY
+	// If dataSize is greater then the page size
+	return -1;
+}
+
+int Dhara_Write(uint32_t s, const uint8_t *data, uint16_t dataSize, dhara_error_t *err)
+{
+	if(dataSize==PAGE_SIZE){
+		return dhara_map_write(&my_map, s, data, err);
+	}
+	if(dataSize<PAGE_SIZE){
+		uint8_t newData[PAGE_SIZE];
+
+		// Copies data to new array of correct size and fills the rest with empty datapoints
+		memcpy(newData, data, dataSize);
+		for(unsigned int i=dataSize;i<PAGE_SIZE;i++){
+			newData[i]=0xFF;
+		}
+
+		return dhara_map_write(&my_map, s, newData, err);
+	}else{//TODO figure out what to do when data is tooo large for a single page
+		return -1;
+	}
+}
+
+int Dhara_Copy_Page(uint32_t src, uint32_t dst, dhara_error_t *err)
+{
+	return dhara_map_copy_page(&my_map, src, dst, err);
+}
+
+int Dhara_Copy_Sector(uint32_t src, uint32_t dst, dhara_error_t *err)
+{
+	return dhara_map_copy_sector(&my_map, src, dst, err);
+}
+
+int Dhara_Erase(uint32_t s, dhara_error_t *err)
+{
+	return dhara_map_trim(&my_map, s, err);
+}
+
+int Dhara_Force_Sync(dhara_error_t *err)
+{
+	return dhara_map_sync(&my_map, err);
+}
+
+int Dhara_GC(dhara_error_t *err)
+{
+	return dhara_map_gc(&my_map,err);
+}
+
