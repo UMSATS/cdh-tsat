@@ -39,6 +39,7 @@ uint8_t dharaUsedSpareCount=0;
 
 dhara_error_t Dhara_Init(void){
 	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
 
 	W25N_BBM_LUT_Size(&dharaUsedSpareCount);
 
@@ -49,18 +50,25 @@ dhara_error_t Dhara_Init(void){
 	//Journal Could Not Be Found
 	if(err!=DHARA_E_NONE||result==-1){
 		//Deletes all data and restarts dhara
-		for(int i=0;i<my_nand.num_blocks+20;i++){
-			W25N_Erase(i*64);
+		for(int i=0;i<NAND_NUM_OF_BLOCKS;i++){
+			status=W25N_Erase(i*64);
+
+			if (status != W25N_ERASE_OK) {
+				err=DHARA_E_TOO_BAD;
+				goto error;
+			}
 		}
+
 
 		dhara_map_init(&my_map, &my_nand, journal_buffer, GC_RATIO);
 		dhara_map_resume(&my_map, &err);
-		//NOTE: error will still occur since the journal isn't synced to the nand yet.
+		//NOTE: error will still occur since the journal isn't synced/written to the nand yet.
 		//The journal will be put onto nand when a write call occurs.
 
 		err=DHARA_E_NONE;
 	}
 
+error:
 	return err;
 }
 

@@ -1,5 +1,5 @@
 /*
- * dhara_test.h
+ * Dhara_test.h
  *
  * Author
  *  - Andrew Driver (andrew.driver@umsats.ca)
@@ -7,12 +7,12 @@
  *  Created on: Nov 20, 2025
 */
 
-#include "../Inc/dhara_test.h"
-
 #include <string.h>
 #include <dhara/nand.h>
+#include <dhara/map.h>
 
 #include "Dhara_Wrapper.h"
+#include "Dhara_test.h"
 #include "W25N_driver.h"
 
 
@@ -339,29 +339,90 @@ error:
 //########################    WRAPPER FUNCTION TEST    ########################
 //#############################################################################
 
-dhara_error_t Dhara_Test_Clear(){
+dhara_error_t Dhara_Test_Wrapper_Clear(){
 	dhara_error_t err=DHARA_E_NONE;
+
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	if(dhara_map_size(&my_map)!=0){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	if(dhara_map_size(&my_map)==0){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	Dhara_Clear();
+
+	if(dhara_map_size(&my_map)!=0){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
 
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_Capacity(){
+dhara_error_t Dhara_Test_Wrapper_Capacity(){
 	dhara_error_t err=DHARA_E_NONE;
+
+	uint32_t result=Dhara_Capacity();
+	if(result!=dhara_map_capacity(&my_map)){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
 
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_Size(){
+dhara_error_t Dhara_Test_Wrapper_Size(){
 	dhara_error_t err=DHARA_E_NONE;
+
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	if(dhara_map_size(&my_map)!=Dhara_Size()){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	if(dhara_map_size(&my_map)!=Dhara_Size()){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
 
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_Find(){
+dhara_error_t Dhara_Test_Wrapper_Find(){
 	dhara_error_t err=DHARA_E_NONE;
+
+	if(dhara_map_find(&my_map, 0, 0, &err)!=Dhara_Find(0, 0, &err)){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
 
 error:
 	return err;
@@ -370,6 +431,27 @@ error:
 dhara_error_t Dhara_Test_Wrapper_Read(){
 	dhara_error_t err=DHARA_E_NONE;
 
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	Dhara_Read(0, readData, PAGESIZE, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
 error:
 	return err;
 }
@@ -377,19 +459,98 @@ error:
 dhara_error_t Dhara_Test_Wrapper_Write(){
 	dhara_error_t err=DHARA_E_NONE;
 
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	Dhara_Write(0, data, PAGESIZE, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	dhara_map_read(&my_map, 0, readData, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_Copy_Page(){
+dhara_error_t Dhara_Test_Wrapper_Copy_Page(){
 	dhara_error_t err=DHARA_E_NONE;
+
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	Dhara_Copy_Page(0, 1, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	W25N_StatusTypeDef status;
+
+	uint8_t readData[PAGESIZE];
+
+	//NOTE: There is no dhara_map function that reads pages, only sectors
+	status=W25N_Read(readData, 1, 0, PAGESIZE);
+	//If Read Fails
+	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
+			status!=W25N_ECC_CORRECTION_OK) {
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
 
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_Copy_Sector(){
+dhara_error_t Dhara_Test_Wrapper_Copy_Sector(){
 	dhara_error_t err=DHARA_E_NONE;
+
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	Dhara_Copy_Sector(0, 1, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	dhara_map_read(&my_map, 1, readData, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
 
 error:
 	return err;
@@ -398,42 +559,89 @@ error:
 dhara_error_t Dhara_Test_Wrapper_Erase(){
 	dhara_error_t err=DHARA_E_NONE;
 
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	Dhara_Erase(0, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	dhara_map_read(&my_map, 0, readData, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	for(int i=0;i<PAGESIZE;i++){
+		if(readData[i]!=0xFF){
+			err=DHARA_E_TOO_BAD;
+			goto error;
+		}
+	}
+
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_Force_Sync(){
+dhara_error_t Dhara_Test_Wrapper_Force_Sync(){
 	dhara_error_t err=DHARA_E_NONE;
 
+	// Reset Dhara map
+	memset(&my_map, 0, sizeof(my_map));
+	err=Dhara_Init();
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	// Needed so journal is written to NAND
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	Dhara_Force_Sync(&err);
+
+	dhara_map_resume(&my_map, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
 error:
 	return err;
 }
 
-dhara_error_t Dhara_Test_GC(){
+dhara_error_t Dhara_Test_Wrapper_GC(){
 	dhara_error_t err=DHARA_E_NONE;
 
-error:
+	Dhara_GC(&err);
+
 	return err;
 }
 
 
-//############################################################################
-//########################    NAND.C FUNCTION TEST    ########################
-//############################################################################
+//####################################################################
+//########################    WRAPPER TEST    ########################
+//####################################################################
 
 dhara_error_t Dhara_Test_Wrapper(){
 	dhara_error_t status=DHARA_E_NONE;
 
-	status=Dhara_Test_Clear();
+	status=Dhara_Test_Wrapper_Clear();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_Capacity();
+	status=Dhara_Test_Wrapper_Capacity();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_Size();
+	status=Dhara_Test_Wrapper_Size();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_Find();
+	status=Dhara_Test_Wrapper_Find();
 	if(status!=DHARA_E_NONE) goto error;
 
 	status=Dhara_Test_Wrapper_Read();
@@ -442,24 +650,66 @@ dhara_error_t Dhara_Test_Wrapper(){
 	status=Dhara_Test_Wrapper_Write();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_Copy_Page();
+	status=Dhara_Test_Wrapper_Copy_Page();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_Copy_Sector();
+	status=Dhara_Test_Wrapper_Copy_Sector();
 	if(status!=DHARA_E_NONE) goto error;
 
 	status=Dhara_Test_Wrapper_Erase();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_Force_Sync();
+	status=Dhara_Test_Wrapper_Force_Sync();
 	if(status!=DHARA_E_NONE) goto error;
 
-	status=Dhara_Test_GC();
+	status=Dhara_Test_Wrapper_GC();
 	if(status!=DHARA_E_NONE) goto error;
 
 error:
 	return status;
 }
+
+
+//#######################################################################
+//########################    SIMULATION TEST    ########################
+//#######################################################################
+
+dhara_error_t Dhara_Test_Simulated_Power_Loss(){
+	dhara_error_t err=DHARA_E_NONE;
+
+	dhara_map_clear(&my_map);
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	dhara_map_write(&my_map, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	dhara_map_sync(&my_map, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	// Simulate power loss by resetting Dhara map
+	memset(&my_map, 0, sizeof(my_map));
+	err=Dhara_Init();
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	dhara_map_read(&my_map, 0, readData, &err);
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+
+error:
+	return err;
+}
+
 
 
 //##########################################################################
@@ -486,7 +736,16 @@ dhara_error_t Dhara_Test(){
 	err=Dhara_Test_Wrapper();
 	if(err!=DHARA_E_NONE) goto error;
 
+	err=Dhara_Test_Simulated_Power_Loss();
+	if(err!=DHARA_E_NONE) goto error;
+
+	// If no errors, clean dhara sectors.
+	if(err==DHARA_E_NONE){
+		Dhara_Clear();
+	}
+
 
 error:
 	return err;
 }
+

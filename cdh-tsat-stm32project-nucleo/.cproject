@@ -55,6 +55,7 @@
 									<listOptionValue builtIn="false" value="../Drivers/Hardware_Peripherals/Inc"/>
 									<listOptionValue builtIn="false" value="../Drivers/Hardware_Peripherals/Test/Inc"/>
 									<listOptionValue builtIn="false" value="../Drivers/Dhara/Inc"/>
+									<listOptionValue builtIn="false" value="../Drivers/Dhara/Test/Inc"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/External/tsat-utilities-kit/Inc}&quot;"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/include"/>
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2"/>

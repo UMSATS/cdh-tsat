@@ -31,7 +31,7 @@
  *              result in a given buffer.
  *
  * NOTES:
- *  - Does a thing :D
+ *  - If the journal is not found, then all data is deleted and Dhara is reinitialized.
  *
  * RETURNS:
  * 		A Dhara_error_t, if not equal to DHARA_E_NON then initialization failed.

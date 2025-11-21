@@ -62,6 +62,7 @@ struct dhara_nand {
  * the defines located in the Dhara_Wrapper.h file.
 */
 extern const struct dhara_nand my_nand;
+extern struct dhara_map my_map;
 extern uint8_t dharaUsedSpareCount;
 
 /*
