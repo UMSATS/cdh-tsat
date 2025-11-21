@@ -165,6 +165,11 @@ int main(void)
   w25n_operation_status = W25N_Init();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
 
+  //this code initializes the Dhara Library
+  dhara_error_t dhara_status=DHARA_E_NONE;
+  dhara_status=Dhara_Init();
+  if(dhara_status!=DHARA_E_NONE) goto error;
+
   //this code initializes the AS3001204
   /*HAL_StatusTypeDef as3001204_operation_status;
   as3001204_operation_status = AS3001204_Init();
@@ -180,13 +185,9 @@ int main(void)
 //  if (w25n_operation_status != W25N_HAL_OK) goto error;
 //  w25n_operation_status = W25N_Reset_And_Init();
 //  if (w25n_operation_status != W25N_HAL_OK) goto error;
-//  uint8_t usedSpareCount=0;
-//  w25n_operation_status= W25N_BBM_LUT_Size(&usedSpareCount);
-//  if (w25n_operation_status != W25N_HAL_OK) goto error;
 
-  //this code initializes the Dhara Library
-  dhara_error_t dhara_status;
-  dhara_status=Dhara_Init();
+  //this code performs the Dhara library tests
+  dhara_status=Dhara_Test();
   if(dhara_status!=DHARA_E_NONE) goto error;
 
   //this code performs the AS3001204 unit tests
@@ -685,36 +686,35 @@ void StartDharaTestTask(void *argument)
   /* USER CODE BEGIN StartDharaTestTask */
   /* Infinite loop */
 
-//	uint16_t pageSize=2048;
-//
-//	uint8_t buffer[pageSize];
-//
-//	for(int index=0;index<pageSize;index++){
-//		buffer[index]=index+index*2;
-//	}
-//
-//	uint16_t i=0;
-//	const uint16_t MAX_PAGES=100;
+
+	uint8_t buffer[PAGESIZE];
+
+	for(int index=0;index<PAGESIZE;index++){
+		buffer[index]=index+index*2;
+	}
+
+	uint16_t i=0;
+	const uint16_t MAX_SECTORS=100;
 
 	/* Infinite loop */
 	for(;;)
 	{
-//		static dhara_error_t err;
-//
-//		if(i < MAX_PAGES) {
-//			//memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
-//			dhara_map_write(&my_map, i, buffer, &err);
-//		}else if(i < 2*MAX_PAGES) {
-//			dhara_map_trim(&my_map, i - MAX_PAGES, &err);
-//		}else{
-//			i=0;
-//			continue;
-//		}
-//
-//		uint8_t data[pageSize];
-//		dhara_map_read(&my_map, i, data, &err);
-//
-//		i++;
+		static dhara_error_t err;
+
+		if(i < MAX_SECTORS) {
+			//memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
+			Dhara_Write(i, buffer, PAGESIZE, &err);
+		}else if(i < 2*MAX_SECTORS) {
+			Dhara_Erase(i, &err);
+		}else{
+			i=0;
+			continue;
+		}
+
+		uint8_t data[PAGESIZE];
+		Dhara_Read(i, data, PAGESIZE, &err);
+
+		i++;
 		osDelay(1);
 	}
   /* USER CODE END StartDharaTestTask */

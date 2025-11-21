@@ -1,0 +1,492 @@
+/*
+ * dhara_test.h
+ *
+ * Author
+ *  - Andrew Driver (andrew.driver@umsats.ca)
+ *
+ *  Created on: Nov 20, 2025
+*/
+
+#include "../Inc/dhara_test.h"
+
+#include <string.h>
+#include <dhara/nand.h>
+
+#include "Dhara_Wrapper.h"
+#include "W25N_driver.h"
+
+
+
+//############################################################################
+//########################    NAND.C FUNCTION TEST    ########################
+//############################################################################
+
+dhara_error_t Dhara_Test_NAND_Write(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	dhara_nand_prog(&my_nand, 0, data, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+
+
+	uint8_t readData[PAGESIZE];
+
+	status=W25N_Read(readData, 0, 0, PAGESIZE);
+
+	//If Read Fails
+	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
+			status!=W25N_ECC_CORRECTION_OK) {
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_NAND_Read(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	status=W25N_Write(data, 0, 0, PAGESIZE);
+
+	// Failed to write to NAND
+	if (status !=W25N_PROGRAM_OK){
+		err = DHARA_E_RECOVER;
+		goto error;
+	}
+
+	uint8_t readData[PAGESIZE];
+	dhara_nand_read(&my_nand, 0, 0, PAGESIZE, readData, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_NAND_Erase(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	status=W25N_Write(data, 0, 0, PAGESIZE);
+
+	// Failed to write to NAND
+	if (status !=W25N_PROGRAM_OK){
+		err = DHARA_E_RECOVER;
+		goto error;
+	}
+
+	dhara_nand_erase(&my_nand, 0, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	status=W25N_Read(readData, 0, 0, PAGESIZE);
+
+	//If Read Fails
+	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
+			status!=W25N_ECC_CORRECTION_OK) {
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	for(int i=0;i<PAGESIZE;i++){
+		if(readData[i]!=0xFF){
+			err=DHARA_E_TOO_BAD;
+			goto error;
+		}
+	}
+
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_NAND_Is_Bad(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	//Fresh block shouldn't be bad
+	if(dhara_nand_is_bad(&my_nand, 0)){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	uint8_t bad_marker = 0x00;
+
+	status = W25N_Write_Spare_Area(&bad_marker, 0, 0, 1);
+
+	// Failed to write to NAND
+	if (status !=W25N_PROGRAM_OK){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	//Fresh block shouldn't be bad
+	if(!dhara_nand_is_bad(&my_nand, 0)){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_NAND_Mark_As_Bad(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	//Fresh block shouldn't be bad
+	uint8_t marker = 0xFF;
+
+	// Checking spare area byte 0 for BadBlock marker
+	status = W25N_Read(&marker, 0, PAGESIZE, 1);
+
+	// If read failed or BadBlock marker is found
+	if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
+			marker != 0xFF){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	dhara_nand_mark_bad(&my_nand, 0);
+
+	// Checking spare area byte 0 for BadBlock marker
+	status = W25N_Read(&marker, 0, PAGESIZE, 1);
+
+	// If read failed or BadBlock marker is found
+	if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
+			marker != 0x00){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_NAND_Is_Free(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	if(!dhara_nand_is_free(&my_nand, 0)){
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_NAND_Copy(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	status=W25N_Erase(0);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	uint8_t data[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
+	}
+
+	status=W25N_Write(data, 0, 0, PAGESIZE);
+
+	// Failed to write to NAND
+	if (status !=W25N_PROGRAM_OK){
+		err = DHARA_E_RECOVER;
+		goto error;
+	}
+
+	//copying page 0 to page 1
+	dhara_nand_copy(&my_nand, 0, 1, &err);
+	if(err!=DHARA_E_NONE) goto error;
+
+	uint8_t readData[PAGESIZE];
+
+	status=W25N_Read(readData, 1, 0, PAGESIZE);
+
+	//If Read Fails
+	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
+			status!=W25N_ECC_CORRECTION_OK) {
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+	if(memcmp(data,readData,PAGESIZE)!=0){
+		err = DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+
+error:
+	return err;
+}
+
+
+//############################################################################
+//########################    NAND.C FUNCTION TEST    ########################
+//############################################################################
+
+dhara_error_t Dhara_Test_NAND(){
+	dhara_error_t status=DHARA_E_NONE;
+
+	status=Dhara_Test_NAND_Write();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_NAND_Read();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_NAND_Erase();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_NAND_Is_Bad();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_NAND_Mark_As_Bad();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_NAND_Is_Free();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_NAND_Copy();
+	if(status!=DHARA_E_NONE) goto error;
+
+error:
+	return status;
+}
+
+
+//#############################################################################
+//########################    WRAPPER FUNCTION TEST    ########################
+//#############################################################################
+
+dhara_error_t Dhara_Test_Clear(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Capacity(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Size(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Find(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Wrapper_Read(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Wrapper_Write(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Copy_Page(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Copy_Sector(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Wrapper_Erase(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_Force_Sync(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+dhara_error_t Dhara_Test_GC(){
+	dhara_error_t err=DHARA_E_NONE;
+
+error:
+	return err;
+}
+
+
+//############################################################################
+//########################    NAND.C FUNCTION TEST    ########################
+//############################################################################
+
+dhara_error_t Dhara_Test_Wrapper(){
+	dhara_error_t status=DHARA_E_NONE;
+
+	status=Dhara_Test_Clear();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Capacity();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Size();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Find();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Wrapper_Read();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Wrapper_Write();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Copy_Page();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Copy_Sector();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Wrapper_Erase();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_Force_Sync();
+	if(status!=DHARA_E_NONE) goto error;
+
+	status=Dhara_Test_GC();
+	if(status!=DHARA_E_NONE) goto error;
+
+error:
+	return status;
+}
+
+
+//##########################################################################
+//########################    FULL TEST FUNCTION    ########################
+//##########################################################################
+
+dhara_error_t Dhara_Test(){
+	dhara_error_t err=DHARA_E_NONE;
+	W25N_StatusTypeDef status;
+
+	//Clears NAND blocks
+	for(int i=0;i<NAND_NUM_OF_BLOCKS;i++){
+		status=W25N_Erase(i*64);
+
+		if (status != W25N_ERASE_OK) {
+			err=DHARA_E_TOO_BAD;
+			goto error;
+		}
+	}
+
+	err=Dhara_Test_NAND();
+	if(err!=DHARA_E_NONE) goto error;
+
+	err=Dhara_Test_Wrapper();
+	if(err!=DHARA_E_NONE) goto error;
+
+
+error:
+	return err;
+}

@@ -17,8 +17,6 @@
 #define NAND_NUM_OF_BLOCKS 1024
 #define NAND_NUM_OF_SPARES 20
 #define NAND_NUM_AVAILABLE_BLOCKS NAND_NUM_OF_BLOCKS-NAND_NUM_OF_SPARES
-//For Journal size
-#define PAGE_SIZE   (1 << NAND_LOG2_PAGE_SIZE)
 
 //###############################################################################################
 //Include Directives
