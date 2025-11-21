@@ -17,7 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <Dhara_Wrapper.h>
 #include "main.h"
 #include "cmsis_os.h"
 
@@ -29,6 +28,8 @@
 
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+#include "Dhara_Wrapper.h"
+#include "Dhara_test.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -685,36 +686,29 @@ void StartDharaTestTask(void *argument)
 {
   /* USER CODE BEGIN StartDharaTestTask */
   /* Infinite loop */
+	dhara_error_t err=DHARA_E_NONE;
 
+	uint8_t data[PAGESIZE];
+	uint8_t readData[PAGESIZE];
 
-	uint8_t buffer[PAGESIZE];
-
-	for(int index=0;index<PAGESIZE;index++){
-		buffer[index]=index+index*2;
+	for(int i=0;i<PAGESIZE;i++){
+		data[i]=i;
 	}
 
-	uint16_t i=0;
-	const uint16_t MAX_SECTORS=100;
+	int index=0;
 
 	/* Infinite loop */
 	for(;;)
 	{
-		static dhara_error_t err;
-
-		if(i < MAX_SECTORS) {
-			//memset(buffer, (uint8_t)(i & 0xFF),sizeof(buffer));
-			Dhara_Write(i, buffer, PAGESIZE, &err);
-		}else if(i < 2*MAX_SECTORS) {
-			Dhara_Erase(i, &err);
-		}else{
-			i=0;
-			continue;
+		if(index==0){
+			Dhara_Write(0, data, PAGESIZE, &err);
+			index++;
 		}
 
-		uint8_t data[PAGESIZE];
-		Dhara_Read(i, data, PAGESIZE, &err);
-
-		i++;
+		if(index==1){
+			Dhara_Read(0, readData, PAGESIZE, &err);
+			index++;
+		}
 		osDelay(1);
 	}
   /* USER CODE END StartDharaTestTask */
