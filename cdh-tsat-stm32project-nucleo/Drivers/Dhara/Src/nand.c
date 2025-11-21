@@ -1,7 +1,7 @@
 /*
  * FILENAME: nand.c
  *
- * DESCRIPTION: Contains all Dhara flash interface callback implementations.
+ * DESCRIPTION: Contains all Dhara flash interface callback implementations. Definitions are located at Middlewares/Third_Party/dhara/dhara/nand.h
  *
  * AUTHORS:
  *  - Andrew Driver (andrew.driver@umsats.ca)
@@ -28,16 +28,14 @@ const struct dhara_nand my_nand = {
     .num_blocks = NAND_NUM_AVAILABLE_BLOCKS                 // Number of available Blocks
 };
 
-uint8_t dharaUsedSpareCount=0;
-
 int dhara_nand_is_bad(const struct dhara_nand *n, dhara_block_t b)
 {
 	uint8_t marker = 0xFF;
-	uint32_t page = b << n->log2_ppb;  // first page of the block
+	uint32_t page = b << n->log2_ppb;
 	W25N_StatusTypeDef status;
 
 	// Checking spare area byte 0 for BadBlock marker
-	status = W25N_Read(&marker, page, PAGE_SIZE, 1);
+	status = W25N_Read(&marker, page, PAGESIZE, 1);
 
 	// If read failed or BadBlock marker is found
 	if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
@@ -53,7 +51,7 @@ void dhara_nand_mark_bad(const struct dhara_nand *n, dhara_block_t b)
 {
 	W25N_StatusTypeDef status;
 	uint16_t logical_block = (uint16_t)b;
-	uint16_t physical_block = NAND_NUM_OF_BLOCKS+dharaUsedSpareCount;
+	uint16_t physical_block = NAND_NUM_AVAILABLE_BLOCKS+dharaUsedSpareCount;
 
 	status = W25N_Establish_BBM_Link(logical_block, physical_block);
 
@@ -62,6 +60,16 @@ void dhara_nand_mark_bad(const struct dhara_nand *n, dhara_block_t b)
 			status == W25N_HAL_OK)
 	{
 		dharaUsedSpareCount++;
+	}else if(status == W25N_LUT_FULL){
+		uint8_t bad_marker = 0x00;
+		uint32_t page = b << n->log2_ppb;
+
+		status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
+
+		// Failed to write to NAND
+		if (status !=W25N_PROGRAM_OK){
+			//do something
+		}
 	}
 }
 
@@ -88,7 +96,7 @@ int dhara_nand_prog(const struct dhara_nand *n, dhara_page_t p,
 	uint16_t page_address = (uint16_t)p;
 
 
-	status = W25N_Write((uint8_t *)data, page_address, 0, PAGE_SIZE);
+	status = W25N_Write((uint8_t *)data, page_address, 0, PAGESIZE);
 
 	// Failed to write to NAND
 	if (status !=W25N_PROGRAM_OK)
@@ -106,10 +114,10 @@ int dhara_nand_is_free(const struct dhara_nand *n, dhara_page_t p)
 	W25N_StatusTypeDef status;
 	uint16_t page_address = (uint16_t)p;
 
-	uint8_t data[PAGE_SIZE];
+	uint8_t data[PAGESIZE];
 
 
-	status = W25N_Read(data,page_address, 0, PAGE_SIZE);
+	status = W25N_Read(data,page_address, 0, PAGESIZE);
 
 
 	// If the read failed, assume not free
@@ -120,7 +128,7 @@ int dhara_nand_is_free(const struct dhara_nand *n, dhara_page_t p)
 
 
 	// Checking if all data is unprogrammed
-	for(uint16_t i=0;i<PAGE_SIZE;i++){
+	for(uint16_t i=0;i<PAGESIZE;i++){
 		if(data[i]!=0xff){
 			return 0;
 		}
@@ -138,9 +146,9 @@ int dhara_nand_read(const struct dhara_nand *n, dhara_page_t p,
 
 
 	// Checks if offset and length reach past page size
-	if(offset+length>PAGE_SIZE){
+	if(offset+length>PAGESIZE){
 		offset=0;
-		length=PAGE_SIZE;
+		length=PAGESIZE;
 	}
 
 	// Perform the read
@@ -166,10 +174,10 @@ int dhara_nand_copy(const struct dhara_nand *n, dhara_page_t src,
 	uint16_t page_address_src = (uint16_t)src;
 	uint16_t page_address_dst = (uint16_t)dst;
 
-	uint8_t data[PAGE_SIZE];
+	uint8_t data[PAGESIZE];
 
 
-	status = W25N_Read(data,page_address_src, 0, PAGE_SIZE);
+	status = W25N_Read(data,page_address_src, 0, PAGESIZE);
 
 	// If ECC correction fails
 	if (status == W25N_ECC_CORRECTION_ERROR) {
@@ -184,7 +192,7 @@ int dhara_nand_copy(const struct dhara_nand *n, dhara_page_t src,
 	}
 
 
-	status = W25N_Write((uint8_t *)data, page_address_dst, 0, PAGE_SIZE);
+	status = W25N_Write((uint8_t *)data, page_address_dst, 0, PAGESIZE);
 
 	// If write fails
 	if (status != W25N_PROGRAM_OK)
