@@ -54,6 +54,18 @@ struct dhara_nand {
 };
 
 /*
+ * External declaration of the dhara_nand struct that is initialized in Drivers/Dhara/Src/nand.c
+ *
+ * Used in Drivers/Dhara/Src/Dhara_Wrappers.c and Drivers/Dhara/Src/nand.c
+ *
+ * It is located here to hide it from people so they do not use the values in my_nand rather they use
+ * the defines located in the Dhara_Wrapper.h file.
+*/
+extern const struct dhara_nand my_nand;
+extern struct dhara_map my_map;
+extern uint8_t dharaUsedSpareCount;
+
+/*
  * FUNCTION: dhara_nand_is_bad
  *
  * DESCRIPTION: Checks if given NAND block is bad and returns results
