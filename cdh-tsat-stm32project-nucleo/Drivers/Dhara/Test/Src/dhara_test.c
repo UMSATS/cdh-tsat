@@ -16,6 +16,9 @@
 #include "W25N_driver.h"
 
 
+//Stores a good blocks first page for testing
+uint32_t testPage;
+
 
 //############################################################################
 //########################    NAND.C FUNCTION TEST    ########################
@@ -25,7 +28,7 @@ dhara_error_t Dhara_Test_NAND_Write(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
@@ -38,14 +41,14 @@ dhara_error_t Dhara_Test_NAND_Write(){
 		data[i]=i;
 	}
 
-	dhara_nand_prog(&my_nand, 0, data, &err);
+	dhara_nand_prog(&my_nand, testPage, data, &err);
 	if(err!=DHARA_E_NONE) goto error;
 
 
 
 	uint8_t readData[PAGESIZE];
 
-	status=W25N_Read(readData, 0, 0, PAGESIZE);
+	status=W25N_Read(readData, testPage, 0, PAGESIZE);
 
 	//If Read Fails
 	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
@@ -67,7 +70,7 @@ dhara_error_t Dhara_Test_NAND_Read(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
@@ -80,7 +83,7 @@ dhara_error_t Dhara_Test_NAND_Read(){
 		data[i]=i;
 	}
 
-	status=W25N_Write(data, 0, 0, PAGESIZE);
+	status=W25N_Write(data, testPage, 0, PAGESIZE);
 
 	// Failed to write to NAND
 	if (status !=W25N_PROGRAM_OK){
@@ -89,7 +92,7 @@ dhara_error_t Dhara_Test_NAND_Read(){
 	}
 
 	uint8_t readData[PAGESIZE];
-	dhara_nand_read(&my_nand, 0, 0, PAGESIZE, readData, &err);
+	dhara_nand_read(&my_nand, testPage, 0, PAGESIZE, readData, &err);
 	if(err!=DHARA_E_NONE) goto error;
 
 	if(memcmp(data,readData,PAGESIZE)!=0){
@@ -106,7 +109,7 @@ dhara_error_t Dhara_Test_NAND_Erase(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
@@ -119,7 +122,7 @@ dhara_error_t Dhara_Test_NAND_Erase(){
 		data[i]=i;
 	}
 
-	status=W25N_Write(data, 0, 0, PAGESIZE);
+	status=W25N_Write(data, testPage, 0, PAGESIZE);
 
 	// Failed to write to NAND
 	if (status !=W25N_PROGRAM_OK){
@@ -127,12 +130,12 @@ dhara_error_t Dhara_Test_NAND_Erase(){
 		goto error;
 	}
 
-	dhara_nand_erase(&my_nand, 0, &err);
+	dhara_nand_erase(&my_nand, testPage/(1<<NAND_LOG2_PAGE_PER_BLOCK), &err);
 	if(err!=DHARA_E_NONE) goto error;
 
 	uint8_t readData[PAGESIZE];
 
-	status=W25N_Read(readData, 0, 0, PAGESIZE);
+	status=W25N_Read(readData, testPage, 0, PAGESIZE);
 
 	//If Read Fails
 	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
@@ -157,7 +160,7 @@ dhara_error_t Dhara_Test_NAND_Is_Bad(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
@@ -165,14 +168,14 @@ dhara_error_t Dhara_Test_NAND_Is_Bad(){
 	}
 
 	//Fresh block shouldn't be bad
-	if(dhara_nand_is_bad(&my_nand, 0)){
+	if(dhara_nand_is_bad(&my_nand, testPage/(1<<NAND_LOG2_PAGE_PER_BLOCK))){
 		err=DHARA_E_TOO_BAD;
 		goto error;
 	}
 
 	uint8_t bad_marker = 0x00;
 
-	status = W25N_Write_Spare_Area(&bad_marker, 0, 0, 1);
+	status = W25N_Write_Spare_Area(&bad_marker, testPage, 0, 1);
 
 	// Failed to write to NAND
 	if (status !=W25N_PROGRAM_OK){
@@ -181,7 +184,7 @@ dhara_error_t Dhara_Test_NAND_Is_Bad(){
 	}
 
 	//Fresh block shouldn't be bad
-	if(!dhara_nand_is_bad(&my_nand, 0)){
+	if(!dhara_nand_is_bad(&my_nand, testPage/(1<<NAND_LOG2_PAGE_PER_BLOCK))){
 		err=DHARA_E_TOO_BAD;
 		goto error;
 	}
@@ -194,7 +197,7 @@ dhara_error_t Dhara_Test_NAND_Mark_As_Bad(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
@@ -205,7 +208,7 @@ dhara_error_t Dhara_Test_NAND_Mark_As_Bad(){
 	uint8_t marker = 0xFF;
 
 	// Checking spare area byte 0 for BadBlock marker
-	status = W25N_Read(&marker, 0, PAGESIZE, 1);
+	status = W25N_Read(&marker, testPage, PAGESIZE, 1);
 
 	// If read failed or BadBlock marker is found
 	if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
@@ -214,12 +217,12 @@ dhara_error_t Dhara_Test_NAND_Mark_As_Bad(){
 		goto error;
 	}
 
-	dhara_nand_mark_bad(&my_nand, 0);
+	dhara_nand_mark_bad(&my_nand, testPage/(1<<NAND_LOG2_PAGE_PER_BLOCK));
 
 	// Checking spare area byte 0 for BadBlock marker
-	status = W25N_Read(&marker, 0, PAGESIZE, 1);
+	status = W25N_Read(&marker, testPage, PAGESIZE, 1);
 
-	// If read failed or BadBlock marker is found
+	// If read failed or BadBlock marker is not found
 	if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
 			marker != 0x00){
 		err=DHARA_E_TOO_BAD;
@@ -235,14 +238,14 @@ dhara_error_t Dhara_Test_NAND_Is_Free(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
 		goto error;
 	}
 
-	if(!dhara_nand_is_free(&my_nand, 0)){
+	if(!dhara_nand_is_free(&my_nand, testPage)){
 		err=DHARA_E_TOO_BAD;
 		goto error;
 	}
@@ -255,7 +258,7 @@ dhara_error_t Dhara_Test_NAND_Copy(){
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
-	status=W25N_Erase(0);
+	status=W25N_Erase(testPage);
 
 	if (status != W25N_ERASE_OK) {
 		err=DHARA_E_TOO_BAD;
@@ -268,7 +271,7 @@ dhara_error_t Dhara_Test_NAND_Copy(){
 		data[i]=i;
 	}
 
-	status=W25N_Write(data, 0, 0, PAGESIZE);
+	status=W25N_Write(data, testPage, 0, PAGESIZE);
 
 	// Failed to write to NAND
 	if (status !=W25N_PROGRAM_OK){
@@ -276,13 +279,13 @@ dhara_error_t Dhara_Test_NAND_Copy(){
 		goto error;
 	}
 
-	//copying page 0 to page 1
-	dhara_nand_copy(&my_nand, 0, 1, &err);
+	//copying page testPage to page testPage+1
+	dhara_nand_copy(&my_nand, testPage, testPage+1, &err);
 	if(err!=DHARA_E_NONE) goto error;
 
 	uint8_t readData[PAGESIZE];
 
-	status=W25N_Read(readData, 1, 0, PAGESIZE);
+	status=W25N_Read(readData, testPage+1, 0, PAGESIZE);
 
 	//If Read Fails
 	if (status!=W25N_ECC_CORRECTION_UNNECESSARY&&
@@ -712,6 +715,39 @@ error:
 
 
 
+//#######################################################################
+//########################    HELPER FUNCTION    ########################
+//#######################################################################
+
+dhara_error_t Dhara_Test_Find_Good_Block(){
+	dhara_error_t err=DHARA_E_NONE;
+	uint8_t pageFound=0;
+
+	for(int i =0;i<NAND_NUM_OF_BLOCKS;i++){
+		uint8_t marker = 0xFF;
+		uint32_t page = i * PAGESIZE;
+		W25N_StatusTypeDef status;
+
+		// Checking spare area byte 0 for BadBlock marker
+		status = W25N_Read(&marker, page, PAGESIZE, 1);
+
+		// If read succeeds and BadBlock marker is not found(should be 0xFF)
+		if ((status==W25N_ECC_CORRECTION_UNNECESSARY||status==W25N_ECC_CORRECTION_OK) &&
+				marker == 0xFF){
+			testPage=page;
+			pageFound=1;
+			break;
+		}
+	}
+
+	if(!pageFound){
+		err=DHARA_E_TOO_BAD;
+	}
+
+	return err;
+}
+
+
 //##########################################################################
 //########################    FULL TEST FUNCTION    ########################
 //##########################################################################
@@ -729,6 +765,9 @@ dhara_error_t Dhara_Test(){
 			goto error;
 		}
 	}
+
+	err=Dhara_Test_Find_Good_Block();
+	if(err!=DHARA_E_NONE) goto error;
 
 	err=Dhara_Test_NAND();
 	if(err!=DHARA_E_NONE) goto error;
