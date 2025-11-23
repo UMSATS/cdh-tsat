@@ -71,13 +71,6 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for dharaFlashTest */
-osThreadId_t dharaFlashTestHandle;
-const osThreadAttr_t dharaFlashTest_attributes = {
-  .name = "dharaFlashTest",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -94,7 +87,6 @@ static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM16_Init(void);
 void StartDefaultTask(void *argument);
-void StartDharaTestTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -117,8 +109,8 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
-  HAL_Init();
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -166,11 +158,6 @@ int main(void)
   w25n_operation_status = W25N_Init();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
 
-  //this code initializes the Dhara Library
-  dhara_error_t dhara_status=DHARA_E_NONE;
-  dhara_status=Dhara_Init();
-  if(dhara_status!=DHARA_E_NONE) goto error;
-
   //this code initializes the AS3001204
   /*HAL_StatusTypeDef as3001204_operation_status;
   as3001204_operation_status = AS3001204_Init();
@@ -182,14 +169,10 @@ int main(void)
 
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
-//  w25n_operation_status = Test_W25N();
-//  if (w25n_operation_status != W25N_HAL_OK) goto error;
-//  w25n_operation_status = W25N_Reset_And_Init();
-//  if (w25n_operation_status != W25N_HAL_OK) goto error;
-
-  //this code performs the Dhara library tests
-  dhara_status=Dhara_Test();
-  if(dhara_status!=DHARA_E_NONE) goto error;
+  w25n_operation_status = Test_W25N();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  w25n_operation_status = W25N_Reset_And_Init();
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
 
   //this code performs the AS3001204 unit tests
   //this code should be completed after power cycling the AS3001204
@@ -197,6 +180,20 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  //###############################################################################################
+  //Library Initialization
+  //###############################################################################################
+
+  //this code initializes the Dhara Library
+  dhara_error_t dhara_status=DHARA_E_NONE;
+  dhara_status=Dhara_Init();
+  if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
+  dhara_status=DHARA_E_NONE;
+
+  //this code performs the Dhara library tests
+  dhara_status=Dhara_Test();
+  if(dhara_status!=DHARA_E_NONE) goto error;
 
   /* USER CODE END 2 */
 
@@ -222,9 +219,6 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* creation of dharaFlashTest */
-  dharaFlashTestHandle = osThreadNew(StartDharaTestTask, NULL, &dharaFlashTest_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -673,45 +667,6 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_StartDharaTestTask */
-/**
-* @brief Function implementing the dharaFlashTest thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartDharaTestTask */
-void StartDharaTestTask(void *argument)
-{
-  /* USER CODE BEGIN StartDharaTestTask */
-  /* Infinite loop */
-	dhara_error_t err=DHARA_E_NONE;
-
-	uint8_t data[PAGESIZE];
-	uint8_t readData[PAGESIZE];
-
-	for(int i=0;i<PAGESIZE;i++){
-		data[i]=i;
-	}
-
-	int index=0;
-
-	/* Infinite loop */
-	for(;;)
-	{
-		if(index==0){
-			Dhara_Write(0, data, PAGESIZE, &err);
-			index++;
-		}
-
-		if(index==1){
-			Dhara_Read(0, readData, PAGESIZE, &err);
-			index++;
-		}
-		osDelay(1);
-	}
-  /* USER CODE END StartDharaTestTask */
 }
 
 /**

@@ -189,6 +189,14 @@ dhara_error_t Dhara_Test_NAND_Is_Bad(){
 		goto error;
 	}
 
+	status=W25N_Erase(testPage);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
+
 error:
 	return err;
 }
@@ -228,6 +236,14 @@ dhara_error_t Dhara_Test_NAND_Mark_As_Bad(){
 		err=DHARA_E_TOO_BAD;
 		goto error;
 	}
+
+	status=W25N_Erase(testPage);
+
+	if (status != W25N_ERASE_OK) {
+		err=DHARA_E_TOO_BAD;
+		goto error;
+	}
+
 
 
 error:
@@ -598,7 +614,8 @@ dhara_error_t Dhara_Test_Wrapper_Force_Sync(){
 	// Reset Dhara map
 	memset(&my_map, 0, sizeof(my_map));
 	err=Dhara_Init();
-	if(err!=DHARA_E_NONE) goto error;
+	if(err!=DHARA_E_NONE&&err!=DHARA_E_NOT_FOUND) goto error;
+	err=DHARA_E_NONE;
 
 	uint8_t data[PAGESIZE];
 
@@ -697,7 +714,8 @@ dhara_error_t Dhara_Test_Simulated_Power_Loss(){
 	// Simulate power loss by resetting Dhara map
 	memset(&my_map, 0, sizeof(my_map));
 	err=Dhara_Init();
-	if(err!=DHARA_E_NONE) goto error;
+	if(err!=DHARA_E_NONE&&err!=DHARA_E_NOT_FOUND) goto error;
+	err=DHARA_E_NONE;
 
 	uint8_t readData[PAGESIZE];
 
