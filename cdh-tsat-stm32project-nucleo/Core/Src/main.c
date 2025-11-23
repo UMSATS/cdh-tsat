@@ -154,9 +154,9 @@ int main(void)
   if (can_operation_status != HAL_OK) goto error;*/
 
   //this code initializes the W25N
-  W25N_StatusTypeDef w25n_operation_status;
+  /*W25N_StatusTypeDef w25n_operation_status;
   w25n_operation_status = W25N_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
 
   //this code initializes the AS3001204
   /*HAL_StatusTypeDef as3001204_operation_status;
@@ -169,10 +169,10 @@ int main(void)
 
   //this code performs the W25N unit tests
   //this code should be completed after power cycling the W25N
-  w25n_operation_status = Test_W25N();
+  /*w25n_operation_status = Test_W25N();
   if (w25n_operation_status != W25N_HAL_OK) goto error;
   w25n_operation_status = W25N_Reset_And_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;
+  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
 
   //this code performs the AS3001204 unit tests
   //this code should be completed after power cycling the AS3001204
@@ -186,14 +186,14 @@ int main(void)
   //###############################################################################################
 
   //this code initializes the Dhara Library
-  dhara_error_t dhara_status=DHARA_E_NONE;
+  /*dhara_error_t dhara_status=DHARA_E_NONE;
   dhara_status=Dhara_Init();
   if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
-  dhara_status=DHARA_E_NONE;
+  dhara_status=DHARA_E_NONE;*/
 
   //this code performs the Dhara library tests
-  dhara_status=Dhara_Test();
-  if(dhara_status!=DHARA_E_NONE) goto error;
+  /*dhara_status=Dhara_Test();
+  if(dhara_status!=DHARA_E_NONE) goto error;*/
 
   /* USER CODE END 2 */
 
