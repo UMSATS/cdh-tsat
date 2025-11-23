@@ -65,7 +65,7 @@ dhara_error_t Dhara_Init(void){
 		//NOTE: error will still occur since the journal isn't synced/written to the nand yet.
 		//The journal will be put onto nand when a write call occurs.
 
-		err=DHARA_E_NONE;
+		err=DHARA_E_NOT_FOUND;
 	}
 
 error:
