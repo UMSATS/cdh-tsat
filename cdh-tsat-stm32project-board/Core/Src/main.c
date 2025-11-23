@@ -34,6 +34,8 @@
 
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+#include "Dhara_Wrapper.h"
+#include "Dhara_test.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -317,6 +319,21 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  //###############################################################################################
+    //Library Initialization
+    //###############################################################################################
+
+    //this code initializes the Dhara Library
+    dhara_error_t dhara_status=DHARA_E_NONE;
+    dhara_status=Dhara_Init();
+    if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
+    dhara_status=DHARA_E_NONE;
+
+    //this code performs the Dhara library tests
+    dhara_status=Dhara_Test();
+    if(dhara_status!=DHARA_E_NONE) goto error;
+
   /* USER CODE END 2 */
 
   /* Init scheduler */

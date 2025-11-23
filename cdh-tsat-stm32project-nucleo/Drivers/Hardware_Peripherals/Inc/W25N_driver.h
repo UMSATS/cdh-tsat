@@ -6,6 +6,7 @@
  * AUTHORS:
  *  - Daigh Burgess (daigh.burgess@umsats.ca)
  *  - Rodrigo Alegria (rodrigo.alegria@umsats.ca)
+ *  - Andrew Driver (andrew.driver@umsats.ca) (Just wrote the W25N_Write_Spare_Area and W25N_BBM_LUT_Size)
  *
  * CREATED ON: Oct. 30, 2022
  */
@@ -217,6 +218,30 @@ W25N_StatusTypeDef W25N_Read(uint8_t *p_buffer, uint16_t page_address, uint16_t 
 W25N_StatusTypeDef W25N_Write(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
+ * FUNCTION: W25N_Write_Spare_Area
+ *
+ * DESCRIPTION: Write data to a single physical memory page from the given buffer.
+ *
+ * NOTES:
+ *  - This high-level function waits until the W25N is not busy & sets the WEL before issuing the
+ *    write commands.
+ *  - This high-level function checks if the write operation was successful or not after the write
+ *    is complete.
+ *
+ * PARAMETERS:
+ *  p_buffer: Pointer to the buffer which contains the data bytes to write.
+ *  page_address: Address of the physical memory page to write the data to.
+ *  column_address: Starting byte address within the physical memory page spare area to write the data to.
+ *  num_of_bytes: Number of bytes to write to the physical memory page.
+ *
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
+ *  W25N_PROGRAM_OK: The program operation was successful.
+ *  W25N_PROGRAM_ERROR: The program operation was unsuccessful.
+ */
+W25N_StatusTypeDef W25N_Write_Spare_Area(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes);
+
+/*
  * FUNCTION: W25N_Erase
  *
  * DESCRIPTION: Sets all memory within a specified block (64Pages, 128KBytes) to the erased state
@@ -271,6 +296,20 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
  *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
  */
 W25N_StatusTypeDef W25N_Reset_And_Init();
+
+/*
+ * FUNCTION: W25N_BBM_LUT_Size
+ *
+ * DESCRIPTION: Sets the given variable to the amount of spare management blocks that have been used.
+ *
+ * NOTES:
+ *  - If the chip says that the LUT is full then it doesn't matter what is read inside of the LUT. Value will be set to
+ *    all spares used up.
+ *
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  W25N_HANGING: The W25N is hanging since it was busy for longer than 10ms.
+ */
+W25N_StatusTypeDef W25N_BBM_LUT_Size(uint8_t *usedSpareCount);
 
 //###############################################################################################
 //Public Helper Function Prototypes
