@@ -353,16 +353,16 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of canQueue */
-  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage_t), &canQueue_attributes);
+  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
 
   /* creation of telemQueue */
   telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
 
   /* creation of timeTagTaskInitQueue */
-  timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &timeTagTaskInitQueue_attributes);
+  timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &timeTagTaskInitQueue_attributes);
 
   /* creation of setRTCQueue */
-  setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage_t), &setRTCQueue_attributes);
+  setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &setRTCQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
