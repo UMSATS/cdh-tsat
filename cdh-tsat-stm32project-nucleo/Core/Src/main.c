@@ -35,6 +35,10 @@
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+
+//TODO remove once testing is done
+#include "tuk/tuk.h"
+#include "../../App/Inc/command_handling.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,6 +75,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for telemHandlerHan */
+osThreadId_t telemHandlerHanHandle;
+const osThreadAttr_t telemHandlerHan_attributes = {
+  .name = "telemHandlerHan",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -87,6 +98,7 @@ static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM16_Init(void);
 void StartDefaultTask(void *argument);
+extern void StartTelemHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -219,6 +231,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of telemHandlerHan */
+  telemHandlerHanHandle = osThreadNew(StartTelemHandler, NULL, &telemHandlerHan_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
