@@ -38,7 +38,7 @@ void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 //		osThreadFlagsSet(getRTCHandle, 0x0001);
 //		break;
 	case CMD_CDH_PROCESS_TELEMETRY_REPORT:
-		osMessageQueuePut(telemHandlerHanHandle, msg, 0, 0);
+		osMessageQueuePut(telemHandlerHandle, msg, 0, 0);
 		break;
 	default:
 		break;

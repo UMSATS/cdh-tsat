@@ -13,10 +13,53 @@ void StartTelemHandler(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osMessageQueueGet(telemHandlerHanHandle, &telemetry_message, NULL, osWaitForever);
-    switch(telemetry_message.key)
+    osMessageQueueGet(telemQueueHandle, &telemetry_message, NULL, osWaitForever);
+    switch(telemetry_message.key>>4)
     {
-      //TODO: Implement telemetry handling
+    case TEL_PCB_TEMP:
+
+		break;
+    case TEL_MCU_TEMP:
+
+		break;
+    case TEL_RSSI:
+
+		break;
+    case TEL_CONVERTER_STATUS:
+
+		break;
+	case TEL_BATTERY_TEMP:
+
+		break;
+	case TEL_BATTERY_VOLTAGE:
+
+		break;
+	case TEL_BATTERY_CURRENT:
+
+		break;
+	case TEL_COULOMB_COUNT:
+
+		break;
+	case TEL_SOLAR_PANEL_TEMP:
+
+		break;
+	case TEL_SOLAR_PANEL_CURRENT:
+
+		break;
+	case TEL_MAGNETIC_FIELD:
+
+		break;
+	case TEL_ANGULAR_VELOCITY:
+
+		break;
+	case TEL_WELL_TEMP:
+
+		break;
+	case TEL_WELL_LUMINOSITY:
+
+		break;
+    default:
+		break;
     }
   }
   osThreadExit();
