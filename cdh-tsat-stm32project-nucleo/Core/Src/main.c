@@ -37,8 +37,11 @@
 #include "LTC1154_driver.h"
 
 //TODO remove once testing is done
-#include "tuk/tuk.h"
-#include "../../App/Inc/command_handling.h"
+#include "telemetry.h"
+#include "telemetry_handling.h"
+#include "command_handling.h"
+#include "tuk/can_wrapper/can_message.h"
+#include "tuk/can_wrapper/can_command_list.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,12 +78,22 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for telemHandlerHan */
-osThreadId_t telemHandlerHanHandle;
-const osThreadAttr_t telemHandlerHan_attributes = {
-  .name = "telemHandlerHan",
+/* Definitions for telemHandler */
+osThreadId_t telemHandlerHandle;
+const osThreadAttr_t telemHandler_attributes = {
+  .name = "telemHandler",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for telemQueue */
+osMessageQueueId_t telemQueueHandle;
+const osMessageQueueAttr_t telemQueue_attributes = {
+  .name = "telemQueue"
+};
+/* Definitions for canQueue */
+osMessageQueueId_t canQueueHandle;
+const osMessageQueueAttr_t canQueue_attributes = {
+  .name = "canQueue"
 };
 /* USER CODE BEGIN PV */
 
@@ -166,9 +179,9 @@ int main(void)
   if (can_operation_status != HAL_OK) goto error;*/
 
   //this code initializes the W25N
-  /*W25N_StatusTypeDef w25n_operation_status;
+  W25N_StatusTypeDef w25n_operation_status;
   w25n_operation_status = W25N_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+  if (w25n_operation_status != W25N_HAL_OK) goto error;
 
   //this code initializes the AS3001204
   /*HAL_StatusTypeDef as3001204_operation_status;
@@ -198,14 +211,18 @@ int main(void)
   //###############################################################################################
 
   //this code initializes the Dhara Library
-  /*dhara_error_t dhara_status=DHARA_E_NONE;
+  dhara_error_t dhara_status=DHARA_E_NONE;
   dhara_status=Dhara_Init();
   if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
-  dhara_status=DHARA_E_NONE;*/
+  dhara_status=DHARA_E_NONE;
+
+  //###############################################################################################
+  //Library Unit Tests
+  //###############################################################################################
 
   //this code performs the Dhara library tests
-  /*dhara_status=Dhara_Test();
-  if(dhara_status!=DHARA_E_NONE) goto error;*/
+//  dhara_status=Dhara_Test();
+//  if(dhara_status!=DHARA_E_NONE) goto error;
 
   /* USER CODE END 2 */
 
@@ -224,6 +241,13 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of canQueue */
+  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
+
+  /* creation of telemQueue */
+  telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -232,8 +256,8 @@ int main(void)
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* creation of telemHandlerHan */
-  telemHandlerHanHandle = osThreadNew(StartTelemHandler, NULL, &telemHandlerHan_attributes);
+  /* creation of telemHandler */
+  telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -242,6 +266,30 @@ int main(void)
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
+
+  //TODO remove this test code
+  // Initialise CAN Wrapper Module.
+	const CANWrapper_InitTypeDef CAN_WRAPPER_CONFIG = {
+		  .node_id = NODE_CDH,
+		  .message_callback = On_CAN_Message_Ready,
+		  .error_callback = On_CAN_Error
+	};
+	CANWrapper_Init(&CAN_WRAPPER_CONFIG);
+
+  CAN_HandleTypeDef temp;
+
+  uint8_t data[7] = {0};
+
+  CANMessage msg;
+  msg.cmd       = CMD_CDH_PROCESS_TELEMETRY_REPORT;
+  memcpy(msg.body, data, 7);
+  msg.body_size = sizeof(data);
+  msg.is_ack    = 0;
+  msg.priority  = 0;
+  msg.recipient = NODE_CDH;
+  msg.sender    = NODE_PAYLOAD;
+
+  On_CAN_Message_Ready(&temp, &msg);
 
   /* Start scheduler */
   osKernelStart();
