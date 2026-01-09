@@ -90,11 +90,6 @@ osMessageQueueId_t telemQueueHandle;
 const osMessageQueueAttr_t telemQueue_attributes = {
   .name = "telemQueue"
 };
-/* Definitions for canQueue */
-osMessageQueueId_t canQueueHandle;
-const osMessageQueueAttr_t canQueue_attributes = {
-  .name = "canQueue"
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -242,9 +237,6 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of canQueue */
-  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
-
   /* creation of telemQueue */
   telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
 
@@ -266,30 +258,6 @@ int main(void)
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
-
-  //TODO remove this test code
-  // Initialise CAN Wrapper Module.
-	const CANWrapper_InitTypeDef CAN_WRAPPER_CONFIG = {
-		  .node_id = NODE_CDH,
-		  .message_callback = On_CAN_Message_Ready,
-		  .error_callback = On_CAN_Error
-	};
-	CANWrapper_Init(&CAN_WRAPPER_CONFIG);
-
-  CAN_HandleTypeDef temp;
-
-  uint8_t data[7] = {0};
-
-  CANMessage msg;
-  msg.cmd       = CMD_CDH_PROCESS_TELEMETRY_REPORT;
-  memcpy(msg.body, data, 7);
-  msg.body_size = sizeof(data);
-  msg.is_ack    = 0;
-  msg.priority  = 0;
-  msg.recipient = NODE_CDH;
-  msg.sender    = NODE_PAYLOAD;
-
-  On_CAN_Message_Ready(&temp, &msg);
 
   /* Start scheduler */
   osKernelStart();
@@ -724,6 +692,22 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+
+	//TODO REMOVE
+	CAN_HandleTypeDef temp;
+
+  uint8_t data[7] = {0};
+
+  CANMessage msg;
+  msg.cmd       = CMD_CDH_PROCESS_TELEMETRY_REPORT;
+  memcpy(msg.body, data, 7);
+  msg.body_size = sizeof(data);
+  msg.is_ack    = 0;
+  msg.priority  = 0;
+  msg.recipient = NODE_CDH;
+  msg.sender    = NODE_PAYLOAD;
+
+  On_CAN_Message_Ready(&temp, &msg);
   /* Infinite loop */
   for(;;)
   {
