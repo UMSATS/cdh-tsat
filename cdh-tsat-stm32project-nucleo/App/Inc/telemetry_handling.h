@@ -1,8 +1,10 @@
 /*
- * telemetry_handling.h
+ * FILENAME: telemetry_handling.h
  *
- *  Created on: Feb 15, 2025
- *      Author: drive
+ * AUTHORS:
+ *  - Andrew Driver (andrew.driver@umsats.ca)
+ *
+ * CREATED ON: Feb 15, 2025
  */
 
 #ifndef INC_TELEMETRY_HANDLING_H_
