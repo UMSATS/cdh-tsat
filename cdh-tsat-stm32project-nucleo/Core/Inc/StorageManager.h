@@ -11,79 +11,111 @@
 #define INC_STORAGEMANAGER_H_
 
 //
-// INCLUDES
-#include <Dhara_Wrapper.h>
-
-#include "../Inc/telemetry.h"
-
-
-//
-// DEFINES
-#define MAX_NUM_OF_ACTIVE_SECTORS 16 //16 * 2048 bytes = 32768 bytes
-
-//
 // Data Type used to determine the configuration for how the data is stored
 enum DataType{
-	raw,
-	telem,
-	log,
-	firmware
+	RAW = 0,
+	TELEM = 1,
+	LOG = 2,
+	FIRMWARE = 3
 };
 
-
-//#####################################################
-//##############    DATA TYPE CONFIGS    ##############
-//#####################################################
-
-// RAW
-
-//TODO see if raw should just input at a given sector. maybe write function can take in a sector number for desired sector to write to,
-//ie. if 1 is given then data will be written/appended to given sector, write will replace and append will read and add to back, will need 
-//protection from when sector is too full when data append request is submitted.
-// I like this idea, uint32_t storageWrite(DataType type, int sector "-1 to write to empty sector/create new at back") returns the sector
-// that it wrote to so the user can store the value.
-
-//TODO create a status enum that describes if the write was successful or not and other errors that might occur
-
-// TELEM 
-#define TEL_NUM_OF_BACKUPS 2
-
-uint8_t telActive[MAX_NUM_OF_ACTIVE_SECTORS];
-uint8_t telActiveCount=0; 
-
-uint8_t telActive[TEL_NUM_OF_BACKUPS*MAX_NUM_OF_ACTIVE_SECTORS];
-uint8_t telBackupCount=0;
-
-// LOG
-#define LOG_NUM_OF_BACKUP 1
-
-uint8_t logActive[MAX_NUM_OF_ACTIVE_SECTORS];
-uint8_t logActiveCount=0; 
-
-uint8_t logActive[LOG_NUM_OF_BACKUP*MAX_NUM_OF_ACTIVE_SECTORS];
-uint8_t logBackupCount=0;
-
-// FIRMWARE
-#define FIRM_NUM_OF_BACKUP 0
-
-uint8_t firmActive[MAX_NUM_OF_ACTIVE_SECTORS];
-uint8_t firmActiveCount=0; 
-
-uint8_t firmActive[FIRM_NUM_OF_BACKUP*MAX_NUM_OF_ACTIVE_SECTORS];
-uint8_t firmBackupCount=0;
 
 
 //#############################################
 //##############    FUNCTIONS    ##############
 //#############################################
 
-uint32_t storageWrite(DataType type, uint8_t sector);
-uint32_t storageAppend(DataType type, uint8_t sector);
+/*
+ * FUNCTION: Storage_Write
+ *
+ * DESCRIPTION: Initializes the storage sectors found on NAND.
+ *
+ * RETURNS:
+ * 		The sector written to if successful or -1 if an error occurs.
+*/
+int Storage_Init();
 
-uint32_t storageSendToBackup(DataType type);
+/*
+ * FUNCTION: Storage_Write
+ *
+ * DESCRIPTION: Write data to a logical sector.
+ *
+ * NOTE:
+ *     - If s is set as -1, a new sector will be used.
+ *
+ * VARIABLES:
+ * 		type is the desired data type
+ *      s is the desired sector
+ *      data is the data buffer
+ *      dataSize is the size of the data buffer
+ *
+ * RETURNS:
+ * 		The sector written to if successful or -1 if an error occurs.
+*/
+int Storage_Write(const DataType type, const dhara_sector_t s, const uint8_t *data, const uint16_t dataSize);
 
+/*
+ * FUNCTION: Storage_Append
+ *
+ * DESCRIPTION: Appends data to a logical sector.
+ *
+ * NOTE:
+ *     - If s is set as -1, a new sector will be used. TODO fix
+ *
+ * VARIABLES:
+ * 		type is the desired data type
+ *      s is the desired sector
+ *      data is the data buffer
+ *      dataSize is the size of the data buffer
+ *
+ * RETURNS:
+ * 		The sector written to if successful or -1 if an error occurs. TODO add case where data is too large for sector
+*/
+int Storage_Append(const DataType type, const dhara_sector_t s, const uint8_t *data, const uint16_t dataSize);
 
-// TODO Maybe private functions
-uint32_t findEmptySector();
+/*
+ * FUNCTION: Storage_Send_To_Backup
+ *
+ * DESCRIPTION: Sends the active sectors to the backup sectors
+ *
+ * Note:
+ * 	   - This also handles
+ *
+ * VARIABLES:
+ *      type is the desired data type
+ *
+ * RETURNS:
+ * 		0 on success or -1 if an error occurs.
+*/
+int Storage_Send_To_Backup(const DataType type);
+
+/*
+ * FUNCTION: Storage_Read_Active
+ *
+ * DESCRIPTION:
+ *
+ *
+ * VARIABLES:
+ *      type is the desired data type
+ *
+ * RETURNS:
+ * 		0 on success or -1 if an error occurs.
+*/
+int Storage_Read_Active(const DataType type, uint8_t* data, uint32_t* dataSize);
+
+/*
+ * FUNCTION: Storage_Read_Backup
+ *
+ * DESCRIPTION:
+ *
+ *
+ * VARIABLES:
+ *      type is the desired data type
+ *
+ * RETURNS:
+ * 		0 on success or -1 if an error occurs.
+*/
+int Storage_Read_Backup(const DataType type, uint8_t* data, uint32_t* dataSize);
+
 
 #endif /* INC_STORAGEMANAGER_H_ */
