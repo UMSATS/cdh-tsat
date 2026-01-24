@@ -9,7 +9,11 @@
 // INCLUDES
 #include "../Inc/StorageManager.h"
 
+#include <time.h>
+
 #include <Dhara_Wrapper.h>
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_rtc.h"
 
 #include "../Inc/telemetry.h"
 
@@ -17,8 +21,6 @@
 
 //
 // DEFINES
-#define DEFAULT_NUM_OF_SECTORS 4 //4 * 2048 bytes = 8192 bytes
-
 const uint8_t STORAGE_MAGIC=42;
 
 //###############################################
@@ -26,37 +28,25 @@ const uint8_t STORAGE_MAGIC=42;
 //###############################################
 
 
-enum SectorType{
+typedef enum {
 	ACTIVE=0,
 	BACKUP=1
-};
+}SectorType;
 
-struct SectorHeader{
+typedef struct {
 	uint8_t magic;
 
-	uint8_t magic;
 	uint8_t type;
 	uint8_t state;
+	uint8_t stateNumber;
 
-	uint8_t sequence;//TODO figure out
-};
+	uint16_t offset;
 
+	dhara_sector_t nextSector;
+	dhara_sector_t prevSector;
 
-//#####################################################
-//##############    DATA TYPE STRUCTS    ##############
-//#####################################################
-
-struct StorageStruct{
-
-	// Sector
-	dhara_sector_t s;
-
-	// Current Offset
-	uint32_t offset;
-
-	//
-	uint8_t hasRoom=1;
-};
+	dhara_sector_t curSector;
+}SectorHeader;
 
 //#####################################################
 //##############    DATA TYPE CONFIGS    ##############
@@ -64,34 +54,30 @@ struct StorageStruct{
 
 // RAW
 
-StorageStruct rawActive[DEFAULT_NUM_OF_SECTORS];
-uint16_t rawActiveCount=0;
+SectorHeader rawActive={ .magic=0};
 
 // TELEM
 #define TEL_NUM_OF_BACKUPS 2
 
-StorageStruct telActive[DEFAULT_NUM_OF_SECTORS];
-uint16_t telActiveCount=0;
+SectorHeader telActive={ .magic=0};
 
-StorageStruct telBackup[TEL_NUM_OF_BACKUPS][DEFAULT_NUM_OF_SECTORS];
+SectorHeader telBackup[TEL_NUM_OF_BACKUPS]={0};
 uint16_t telBackupCount=0;
 
 // LOG
 #define LOG_NUM_OF_BACKUP 1
 
-StorageStruct logActive[DEFAULT_NUM_OF_SECTORS];
-uint16_t logActiveCount=0;
+SectorHeader logActive={ .magic=0};
 
-StorageStruct logBackup[TEL_NUM_OF_BACKUPS][DEFAULT_NUM_OF_SECTORS];
+SectorHeader logBackup[TEL_NUM_OF_BACKUPS]={0};
 uint16_t logBackupCount=0;
 
 // FIRMWARE
 #define FIRM_NUM_OF_BACKUP 0
 
-StorageStruct firmActive[DEFAULT_NUM_OF_SECTORS];
-uint16_t firmActiveCount=0;
+SectorHeader firmActive={ .magic=0};
 
-StorageStruct firmBackup[TEL_NUM_OF_BACKUPS][DEFAULT_NUM_OF_SECTORS];
+SectorHeader firmBackup[TEL_NUM_OF_BACKUPS]={0};
 uint16_t firmBackupCount=0;
 
 
@@ -101,41 +87,113 @@ uint16_t firmBackupCount=0;
 
 int Storage_Init(){
 
-	for(uint32_t i=0;i<Dhara_Capacity();i++){
+	for(dhara_sector_t i=0;i<Dhara_Capacity();i++){
 
 		dhara_error_t err;
 		SectorHeader hdr;
 
-		Dhara_Read(i, &hdr, sizeof(hdr), &err);
+		Dhara_Read(i, (uint8_t*)&hdr, sizeof(SectorHeader)-sizeof(dhara_sector_t), &err);
 		if(err){ continue;}
 
 		if(hdr.magic!=STORAGE_MAGIC){
 			continue;
 		}
 
-		// RAW
-		if(data[0]==raw){
 
-		}
+		switch (hdr.type){
+		case RAW:
 
-		// TELEMETRY
-		if(data[0]==TELEM){
+			if(hdr.state==ACTIVE){
 
-			Current_Sector++;
-		}
+				// IF UNINITIALIZED AND SECTOR HAS NOT PREVIOUS SECTOR AKA FIRST IN LIST
+				if(rawActive.magic!=STORAGE_MAGIC&&hdr.prevSector==INVALID_SECTOR){
 
-		// DATA LOGS
-		if(data[0]==LOG){
+					rawActive=hdr;
+					rawActive.curSector=i;
 
-			Current_Sector++;
-		}
+				}else{
 
-		// FIRMWARE
-		if(data[0]==FIRMWARE){
+					Dhara_Erase(i, &err);
+					if(err){ continue;}
 
-			Current_Sector++;
+				}
+			}else{
+
+				Dhara_Erase(i, &err);
+				if(err){ continue;}
+
+			}
+
+			break;
+		case TELEM:
+
+			if(hdr.state==ACTIVE){
+
+				// IF UNINITIALIZED AND SECTOR HAS NOT PREVIOUS SECTOR AKA FIRST IN LIST
+				if(telActive.magic!=STORAGE_MAGIC&&hdr.prevSector==INVALID_SECTOR){
+
+					telActive=hdr;
+					telActive.curSector=i;
+
+				}else{
+
+					Dhara_Erase(i, &err);
+					if(err){ continue;}
+
+				}
+			}else{
+
+				//TODO SETUP BACKUP
+
+			}
+
+			break;
+		case LOG:
+
+			if(hdr.state==ACTIVE){
+
+				// IF UNINITIALIZED AND SECTOR HAS NOT PREVIOUS SECTOR AKA FIRST IN LIST
+				if(logActive.magic!=STORAGE_MAGIC&&hdr.prevSector==INVALID_SECTOR){
+
+					logActive=hdr;
+					logActive.curSector=i;
+
+
+					RTC_HandleTypeDef hrtc;
+
+					RTC_TimeTypeDef sTime;
+					RTC_DateTypeDef sDate;
+
+					HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+					HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+
+				}else{
+
+					Dhara_Erase(i, &err);
+					if(err){ continue;}
+
+				}
+			}else{
+
+				//TODO SETUP BACKUP
+
+			}
+
+			break;
+		case FIRMWARE:
+
+			break;
+		default:
+			Dhara_Erase(i, &err);
+			if(err){ continue;}
+
+			break;
 		}
 	}
+
+
+	return -1;
 }
 
 int Storage_Write(const DataType type, const dhara_sector_t s, const uint8_t *data, const uint16_t dataSize){
