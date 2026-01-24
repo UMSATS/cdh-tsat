@@ -211,6 +211,8 @@ int main(void)
   if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
   dhara_status=DHARA_E_NONE;
 
+  if(!Storage_Init()) goto error;
+
   //###############################################################################################
   //Library Unit Tests
   //###############################################################################################

@@ -10,14 +10,26 @@
 #ifndef INC_STORAGEMANAGER_H_
 #define INC_STORAGEMANAGER_H_
 
+//###############################################################################################
+//Include Directives
+//###############################################################################################
+#include <dhara/error.h>
+#include <stdint.h>
+#include <dhara/map.h>
+
+
+//
+// DEFINES
+const dhara_sector_t INVALID_SECTOR=((dhara_sector_t)-1);
+
 //
 // Data Type used to determine the configuration for how the data is stored
-enum DataType{
+typedef enum {
 	RAW = 0,
 	TELEM = 1,
 	LOG = 2,
 	FIRMWARE = 3
-};
+}DataType;
 
 
 
