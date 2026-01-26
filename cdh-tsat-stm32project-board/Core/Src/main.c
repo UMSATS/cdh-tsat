@@ -192,10 +192,10 @@ const osThreadAttr_t calculateBDot_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
 };
-/* Definitions for Notification */
-osThreadId_t NotificationHandle;
-const osThreadAttr_t Notification_attributes = {
-  .name = "Notification",
+/* Definitions for notifHandler */
+osThreadId_t notifHandlerHandle;
+const osThreadAttr_t notifHandler_attributes = {
+  .name = "notifHandler",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -254,7 +254,7 @@ extern void StartTimeTagTaskInit(void *argument);
 extern void StartSetRTC(void *argument);
 extern void StartGetRTC(void *argument);
 extern void StartBDot(void *argument);
-extern void StartNotification(void *argument);
+extern void StartNotifHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -434,8 +434,8 @@ int main(void)
   /* creation of calculateBDot */
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
 
-  /* creation of Notification */
-  NotificationHandle = osThreadNew(StartNotification, NULL, &Notification_attributes);
+  /* creation of notifHandler */
+  notifHandlerHandle = osThreadNew(StartNotifHandler, NULL, &notifHandler_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
