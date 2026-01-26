@@ -7,35 +7,31 @@
 
 void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 {
-	// TODO: These command ID's are OLD and must be updated. Refer to command reference.
 	switch (msg->cmd)
 	{
-	case 0x40:
+	case CMD_CDH_RESET_SUBSYSTEM:
 		osThreadFlagsSet(stm32ResetHandle, 0x0001);
 		break;
-	case 0x41:
+	case CMD_CDH_TEST_FLASH:
 		osThreadFlagsSet(flashUnitTestHandle, 0x0001);
 		break;
-	case 0x42:
+	case CMD_CDH_TEST_MRAM:
 		osThreadFlagsSet(mramUnitTestHandle, 0x0001);
 		break;
-	case 0x43:
+	case CMD_CDH_ENABLE_ANTENNA:
 		osThreadFlagsSet(deployAHandle, 0x0001);
 		break;
-	case 0x44:
+	case CMD_CDH_DEPLOY_ANTENNA:
 		osThreadFlagsSet(deployBHandle, 0x0001);
 		break;
-	case 0x47:
-		osThreadFlagsSet(getTasksNumHandle, 0x0001);
-		break;
-	case 0x48:
-		osMessageQueuePut(timeTagTaskInitQueueHandle, msg, 0, 0);
-		break;
-	case 0x49:
+	case CMD_CDH_SET_RTC:
 		osMessageQueuePut(setRTCQueueHandle, msg, 0, 0);
 		break;
-	case 0x4A:
+	case CMD_CDH_GET_RTC:
 		osThreadFlagsSet(getRTCHandle, 0x0001);
+		break;
+	case CMD_CDH_PROCESS_NOTIFICATION:
+		osMessageQueuePut(notificationQueueHandle, msg, 0, 0);
 		break;
 	default:
 		break;
