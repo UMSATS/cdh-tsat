@@ -39,7 +39,7 @@ static void Handle_Payload_Startup()
 
 }
 
-void StartNotification(void *argument)
+void StartNotifHandler(void *argument)
 {
 	CANMessage msg;
 

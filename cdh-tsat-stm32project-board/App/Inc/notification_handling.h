@@ -12,7 +12,7 @@
 
 extern osMessageQueueId_t notificationQueueHandle;
 
-void StartNotification(void *argument);
+void StartNotifHandler(void *argument);
 
 
 #endif /* INC_NOTIFICATION_HANDLING_H_ */
