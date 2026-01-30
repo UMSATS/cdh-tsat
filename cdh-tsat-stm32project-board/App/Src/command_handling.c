@@ -9,7 +9,7 @@ void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 {
 	switch (msg->cmd)
 	{
-	case CMD_CDH_RESET_SUBSYSTEM:
+	case CMD_COMM_RESET:
 		osThreadFlagsSet(stm32ResetHandle, 0x0001);
 		break;
 	case CMD_CDH_TEST_FLASH:

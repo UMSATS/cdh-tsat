@@ -12,6 +12,11 @@
 
 extern osMessageQueueId_t notificationQueueHandle;
 
+/**
+* @brief Function implementing the notifHandler thread.
+* @param argument: Not used
+* @retval None
+*/
 void StartNotifHandler(void *argument);
 
 
