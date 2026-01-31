@@ -12,9 +12,8 @@
 #include <time.h>
 
 #include <Dhara_Wrapper.h>
-#include "stm32l4xx_hal.h"
-#include "stm32l4xx_hal_rtc.h"
 
+#include "../../Core/Inc/utils.h"
 #include "../Inc/telemetry.h"
 
 
@@ -36,16 +35,15 @@ typedef enum {
 typedef struct {
 	uint8_t magic;
 
-	uint8_t type;
-	uint8_t state;
-	uint8_t stateNumber;
+	uint8_t dataType;
+	uint8_t sectorType;
+
+	// 1 is the first in sequence of sectors
+	uint32_t sequence;
 
 	uint16_t offset;
 
-	dhara_sector_t nextSector;
-	dhara_sector_t prevSector;
 
-	dhara_sector_t curSector;
 }SectorHeader;
 
 //#####################################################
@@ -54,7 +52,8 @@ typedef struct {
 
 // RAW
 
-SectorHeader rawActive={ .magic=0};
+uint16_t curSequence=0;
+uint16_t* rawActive;
 
 // TELEM
 #define TEL_NUM_OF_BACKUPS 2
@@ -90,7 +89,7 @@ int Storage_Init(){
 	for(dhara_sector_t i=0;i<Dhara_Capacity();i++){
 
 		dhara_error_t err;
-		SectorHeader hdr;
+		RawSectorHeader hdr;
 
 		Dhara_Read(i, (uint8_t*)&hdr, sizeof(SectorHeader)-sizeof(dhara_sector_t), &err);
 		if(err){ continue;}
@@ -103,7 +102,7 @@ int Storage_Init(){
 		switch (hdr.type){
 		case RAW:
 
-			if(hdr.state==ACTIVE){
+			if(hdr.sectorType==ACTIVE){
 
 				// IF UNINITIALIZED AND SECTOR HAS NOT PREVIOUS SECTOR AKA FIRST IN LIST
 				if(rawActive.magic!=STORAGE_MAGIC&&hdr.prevSector==INVALID_SECTOR){
@@ -157,15 +156,6 @@ int Storage_Init(){
 
 					logActive=hdr;
 					logActive.curSector=i;
-
-
-					RTC_HandleTypeDef hrtc;
-
-					RTC_TimeTypeDef sTime;
-					RTC_DateTypeDef sDate;
-
-					HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-					HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
 
 				}else{

@@ -47,7 +47,7 @@
 typedef struct{
     uint8_t key; // Telemetry key
     uint8_t sequence_number; // Sequence number
-    uint8_t timestamp[4]; // 4 BYTES UNIX TIME
+    uint32_t timestamp; // 4 BYTES UNIX TIME
     uint8_t data[MAX_NUM_OF_PACKET*DATA_SIZE]; // Telemetry data.
 } TelemetryMessage_t;
 
