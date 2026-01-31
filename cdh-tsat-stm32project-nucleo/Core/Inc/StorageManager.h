@@ -57,33 +57,29 @@ int Storage_Init();
  *
  * VARIABLES:
  * 		type is the desired data type
- *      s is the desired sector
+ *      sequence is the desired sector in the sector sequence you want to write to
  *      data is the data buffer
  *      dataSize is the size of the data buffer
  *
  * RETURNS:
  * 		The sector written to if successful or -1 if an error occurs.
 */
-int Storage_Write(const DataType type, const dhara_sector_t s, const uint8_t *data, const uint16_t dataSize);
+int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *data, const uint16_t dataSize);
 
 /*
  * FUNCTION: Storage_Append
  *
  * DESCRIPTION: Appends data to a logical sector.
  *
- * NOTE:
- *     - If s is set as -1, a new sector will be used. TODO fix
- *
  * VARIABLES:
  * 		type is the desired data type
- *      s is the desired sector
  *      data is the data buffer
  *      dataSize is the size of the data buffer
  *
  * RETURNS:
- * 		The sector written to if successful or -1 if an error occurs. TODO add case where data is too large for sector
+ * 		If the data is successfully written to the dataType sector it will return 0 else -1 if failed
 */
-int Storage_Append(const DataType type, const dhara_sector_t s, const uint8_t *data, const uint16_t dataSize);
+int Storage_Append(const DataType type, const uint8_t *data, const uint16_t dataSize);
 
 /*
  * FUNCTION: Storage_Send_To_Backup
