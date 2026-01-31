@@ -9,6 +9,9 @@
 
 #include "telemetry_handling.h"
 
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_rtc.h"
+
 void StartTelemHandler(void *argument)
 {
   TelemetryMessage_t telemetry_message;
@@ -19,6 +22,20 @@ void StartTelemHandler(void *argument)
     switch(telemetry_message.key>>4)
     {
     case TEL_PCB_TEMP:
+
+    	// TODO check for HAL errors
+
+    	TelemetryMessage_t temp;
+
+		RTC_HandleTypeDef hrtc;
+
+		RTC_TimeTypeDef sTime;
+		RTC_DateTypeDef sDate;
+
+		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+		temp.timestamp=rtc_to_unix_timestamp(sTime, sDate);// TIMESTAMP IS IN UNIX, CHECK telemetry.h file
 
 		break;
     case TEL_MCU_TEMP:
