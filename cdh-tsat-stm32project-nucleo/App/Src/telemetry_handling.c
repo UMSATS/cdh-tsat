@@ -37,6 +37,13 @@ void StartTelemHandler(void *argument)
 
 		temp.timestamp=rtc_to_unix_timestamp(sTime, sDate);// TIMESTAMP IS IN UNIX, CHECK telemetry.h file
 
+		// Storage_Write will always use data type TELEM for telemetry data, which sector in the sector sequence is used, the data thats to be written, and the size of the data
+		// Storage write deletes all previous data on the storage sector and then writes the given data
+		Storage_Write(TELEM,0, 0, 0);
+
+		// I would use storage append so data is just appended to the back of the back of the storage sector sequence
+		Storage_Append(TELEM, data, dataSize);
+
 		break;
     case TEL_MCU_TEMP:
 
