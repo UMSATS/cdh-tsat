@@ -28,8 +28,8 @@ const uint8_t STORAGE_MAGIC=42;
 
 
 typedef enum {
-	ACTIVE=0,
-	BACKUP=1
+	ACTIVE=0b00000000,
+	BACKUP=0b00001111
 }SectorType;
 
 typedef struct {
@@ -52,32 +52,35 @@ typedef struct {
 
 // RAW
 
-uint16_t curSequence=0;
-uint16_t* rawActive;
+uint16_t curRawSeqence=0;
+dhara_sector_t rawActive=INVALID_SECTOR;
 
 // TELEM
 #define TEL_NUM_OF_BACKUPS 2
 
-SectorHeader telActive={ .magic=0};
+uint16_t curTelSeqence=0;
+dhara_sector_t telActive=INVALID_SECTOR;
 
-SectorHeader telBackup[TEL_NUM_OF_BACKUPS]={0};
+// KEEPS TRACK OF THE NUMBER OF BACKUPS STORED
 uint16_t telBackupCount=0;
 
 // LOG
 #define LOG_NUM_OF_BACKUP 1
 
-SectorHeader logActive={ .magic=0};
+uint16_t curLogSeqence=0;
+dhara_sector_t logActive=INVALID_SECTOR;
 
-SectorHeader logBackup[TEL_NUM_OF_BACKUPS]={0};
+// KEEPS TRACK OF THE NUMBER OF BACKUPS STORED
 uint16_t logBackupCount=0;
 
 // FIRMWARE
 #define FIRM_NUM_OF_BACKUP 0
 
-SectorHeader firmActive={ .magic=0};
+uint16_t curFirmSeqence=0;
+dhara_sector_t firmActive=INVALID_SECTOR;
 
-SectorHeader firmBackup[TEL_NUM_OF_BACKUPS]={0};
-uint16_t firmBackupCount=0;
+// KEEPS TRACK OF THE NUMBER OF BACKUPS STORED
+uint16_t firmBackupCount=0;// TODO EITHER READ AND WRITE BACKUP NUMBER OR
 
 
 //#############################################
@@ -96,7 +99,7 @@ int Storage_Init(){
 
 		if(hdr.magic!=STORAGE_MAGIC){
 			continue;
-		}
+		}// TODO maybe delete the sector?
 
 
 		switch (hdr.type){
