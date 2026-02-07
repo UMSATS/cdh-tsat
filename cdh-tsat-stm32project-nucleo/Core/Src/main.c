@@ -42,6 +42,7 @@
 #include "command_handling.h"
 #include "tuk/can_wrapper/can_message.h"
 #include "tuk/can_wrapper/can_command_list.h"
+#include "StorageManager.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -696,7 +697,7 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
 
 	//TODO REMOVE
-	CAN_HandleTypeDef temp;
+	CAN_HandleTypeDef temp={0};
 
   uint8_t data[7] = {0};
 
