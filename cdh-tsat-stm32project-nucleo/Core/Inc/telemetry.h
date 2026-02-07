@@ -45,7 +45,7 @@
 // Structs
 //###############################################################################################
 typedef struct{
-    uint8_t key; // Telemetry key
+    uint8_t key; // Telemetry key, consists of the Telemetry Type Id and the Variant Number
     uint8_t sequence_number; // Sequence number
     uint32_t timestamp; // 4 BYTES UNIX TIME
     uint8_t data[MAX_NUM_OF_PACKET*DATA_SIZE]; // Telemetry data.

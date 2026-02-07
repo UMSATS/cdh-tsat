@@ -20,7 +20,7 @@
 
 //
 // DEFINES
-const dhara_sector_t INVALID_SECTOR=((dhara_sector_t)-1);
+#define INVALID_SECTOR ((dhara_sector_t)-1)
 
 //
 // Data Type used to determine the configuration for how the data is stored
