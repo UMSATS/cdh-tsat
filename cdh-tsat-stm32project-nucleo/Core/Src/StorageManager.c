@@ -22,16 +22,28 @@
 // DEFINES
 const uint8_t STORAGE_MAGIC=42;
 
+uint32_t largestSector=0;
+
 //###############################################
 //##############    SECTOR TYPE    ##############
 //###############################################
 
-
+//
+// SECTOR TYPES
 typedef enum {
 	ACTIVE=0b00000000,
 	BACKUP=0b00001111
 }SectorType;
 
+// Backup Sector Helper Macro
+#define MAKE_SECTOR_TYPE(group, type) \
+        ((((group) & 0x0F) << 4) | ((type) & 0x0F))
+
+#define GET_SECTOR_TYPE(x)   ((x) & 0x0F)
+#define GET_BACKUP_GROUP(x)  (((x) & 0xF0) >> 4)
+
+//
+// HEADER STRUCT
 typedef struct {
 	uint8_t magic;
 
@@ -78,26 +90,17 @@ dhara_sector_t rawActive=INVALID_SECTOR;
 uint32_t curTelSeqence=0;
 dhara_sector_t telActive=INVALID_SECTOR;
 
-// KEEPS TRACK OF THE NUMBER OF BACKUPS STORED
-uint16_t telBackupCount=0;
-
 // LOG
 #define LOG_NUM_OF_BACKUPS 1
 
 uint32_t curLogSeqence=0;
 dhara_sector_t logActive=INVALID_SECTOR;
 
-// KEEPS TRACK OF THE NUMBER OF BACKUPS STORED
-uint16_t logBackupCount=0;
-
 // FIRMWARE
 #define FIRM_NUM_OF_BACKUPS 0
 
 uint32_t curFirmSeqence=0;
 dhara_sector_t firmActive=INVALID_SECTOR;
-
-// KEEPS TRACK OF THE NUMBER OF BACKUPS STORED
-uint16_t firmBackupCount=0;// TODO EITHER READ AND WRITE BACKUP NUMBER OR
 
 
 //#############################################
@@ -119,10 +122,11 @@ int Storage_Init(){
 		if(err){ continue;}
 
 		if(hdr.magic!=STORAGE_MAGIC){
+			Dhara_Erase(i, &err);
 			continue;
-		}// TODO maybe delete the sector?
+		}
 
-
+		largestSector=i;
 
 		//
 		// TYPE SWITCH
@@ -143,7 +147,7 @@ int Storage_Init(){
 
 
 			//
-			// BACKUP SECTOR
+			// Invalid SECTOR
 			}else{
 
 				Dhara_Erase(i, &err);
@@ -168,10 +172,20 @@ int Storage_Init(){
 
 			//
 			// BACKUP SECTOR
-			}else if(hdr.sectorType==BACKUP&&TEL_NUM_OF_BACKUPS>0){
+			}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
 
-				// TODO manage backups
+				if(GET_BACKUP_GROUP(hdr.sectorType)<TEL_NUM_OF_BACKUPS){
+					// manage backups
 
+				}else{
+
+					Dhara_Erase(i, &err);
+					if(err){ continue;}
+
+				}
+
+			//
+			// Invalid SECTOR
 			}else{
 
 				Dhara_Erase(i, &err);
@@ -196,10 +210,20 @@ int Storage_Init(){
 
 			//
 			// BACKUP SECTOR
-			}else if(hdr.sectorType==BACKUP&&LOG_NUM_OF_BACKUPS>0){
+			}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
 
-				// TODO manage backups
+				if(GET_BACKUP_GROUP(hdr.sectorType)<LOG_NUM_OF_BACKUPS){
+					// manage backups
 
+				}else{
+
+					Dhara_Erase(i, &err);
+					if(err){ continue;}
+
+				}
+
+			//
+			// Invalid SECTOR
 			}else{
 
 				Dhara_Erase(i, &err);
@@ -224,10 +248,20 @@ int Storage_Init(){
 
 			//
 			// BACKUP SECTOR
-			}else if(hdr.sectorType==BACKUP&&FIRM_NUM_OF_BACKUPS>0){
+			}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
 
-				// TODO manage backups
+				if(GET_BACKUP_GROUP(hdr.sectorType)<FIRM_NUM_OF_BACKUPS){
+					// manage backups
 
+				}else{
+
+					Dhara_Erase(i, &err);
+					if(err){ continue;}
+
+				}
+
+			//
+			// Invalid SECTOR
 			}else{
 
 				Dhara_Erase(i, &err);
@@ -240,7 +274,7 @@ int Storage_Init(){
 		//
 		// DEFAULT CASE
 		default:
-
+			largestSector--;
 			Dhara_Erase(i, &err);
 			if(err){ continue;}
 
@@ -279,9 +313,30 @@ int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *d
 
 int Storage_Append(const DataType type, const uint8_t *data, const uint16_t dataSize){
 
+	dhara_error_t err;
+
+	uint8_t mData[PAGESIZE];
+
 	// RAW
 	if(type==RAW){
+		Dhara_Read(s, mData, PAGESIZE, err);
+		if(err){ break;}
 
+		// Fetch header
+		SectorHeader *hdr = (SectorHeader*)mData;
+
+		//
+		// HAS ROOM
+		if(PAGESIZE-hdr->offset>=dataSize){
+
+		}else{
+
+		}
+
+		Dhara_Write(rawActive, mData, PAGESIZE, err);
+		if(err){ break;}
+
+		return 0;
 	}
 
 	// TELEMETRY
