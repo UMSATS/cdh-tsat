@@ -10,11 +10,12 @@
 #include "../Inc/StorageManager.h"
 
 #include <time.h>
+#include <string.h>
 
 #include <Dhara_Wrapper.h>
 
-#include "../../Core/Inc/utils.h"
-#include "../Inc/telemetry.h"
+#include "utils.h"
+#include "telemetry.h"
 
 
 
@@ -22,7 +23,8 @@
 // DEFINES
 const uint8_t STORAGE_MAGIC=42;
 
-uint32_t largestSector=0;
+dhara_sector_t Find_Empty_Sector();
+
 
 //###############################################
 //##############    SECTOR TYPE    ##############
@@ -79,28 +81,39 @@ typedef struct {
 */
 
 
+#define NUM_TYPES 4
+
 // RAW
 
-uint32_t curRawSeqence=0;
-dhara_sector_t rawActive=INVALID_SECTOR;
 
 // TELEM
 #define TEL_NUM_OF_BACKUPS 2
 
-uint32_t curTelSeqence=0;
-dhara_sector_t telActive=INVALID_SECTOR;
 
 // LOG
 #define LOG_NUM_OF_BACKUPS 1
 
-uint32_t curLogSeqence=0;
-dhara_sector_t logActive=INVALID_SECTOR;
-
 // FIRMWARE
 #define FIRM_NUM_OF_BACKUPS 0
 
-uint32_t curFirmSeqence=0;
-dhara_sector_t firmActive=INVALID_SECTOR;
+
+dhara_sector_t largestSector=0;
+
+dhara_sector_t TYPE_SECTORS[NUM_TYPES] = {
+		// TYPE     // SECTOR
+		[RAW]          =INVALID_SECTOR,
+		[TELEM]        =INVALID_SECTOR,
+		[LOG]          =INVALID_SECTOR,
+		[FIRMWARE]     =INVALID_SECTOR
+};
+
+dhara_sector_t TYPE_SEQUENCE[NUM_TYPES] = {
+		// TYPE     // SECTOR
+		[RAW]          =0,
+		[TELEM]        =0,
+		[LOG]          =0,
+		[FIRMWARE]     =0
+};
 
 
 //#############################################
@@ -140,9 +153,9 @@ int Storage_Init(){
 			// ACTIVE SECTOR
 			if(hdr.sectorType==ACTIVE){
 
-				if(curRawSeqence<hdr.sequence){
-					curRawSeqence=hdr.sequence;
-					rawActive=i;
+				if(TYPE_SEQUENCE[RAW]<hdr.sequence){
+					TYPE_SEQUENCE[RAW]=hdr.sequence;
+					TYPE_SECTORS[RAW]=i;
 				}
 
 
@@ -165,9 +178,9 @@ int Storage_Init(){
 			// ACTIVE SECTOR
 			if(hdr.sectorType==ACTIVE){
 
-				if(curTelSeqence<hdr.sequence){
-					curTelSeqence=hdr.sequence;
-					telActive=i;
+				if(TYPE_SEQUENCE[TELEM]<hdr.sequence){
+					TYPE_SEQUENCE[TELEM]=hdr.sequence;
+					TYPE_SECTORS[TELEM]=i;
 				}
 
 			//
@@ -203,9 +216,9 @@ int Storage_Init(){
 			// ACTIVE SECTOR
 			if(hdr.sectorType==ACTIVE){
 
-				if(curLogSeqence<hdr.sequence){
-					curLogSeqence=hdr.sequence;
-					logActive=i;
+				if(TYPE_SEQUENCE[LOG]<hdr.sequence){
+					TYPE_SEQUENCE[LOG]=hdr.sequence;
+					TYPE_SECTORS[LOG]=i;
 				}
 
 			//
@@ -241,9 +254,9 @@ int Storage_Init(){
 			// ACTIVE SECTOR
 			if(hdr.sectorType==ACTIVE){
 
-				if(curFirmSeqence<hdr.sequence){
-					curFirmSeqence=hdr.sequence;
-					firmActive=i;
+				if(TYPE_SEQUENCE[FIRMWARE]<hdr.sequence){
+					TYPE_SEQUENCE[FIRMWARE]=hdr.sequence;
+					TYPE_SECTORS[FIRMWARE]=i;
 				}
 
 			//
@@ -288,85 +301,162 @@ int Storage_Init(){
 
 int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *data, const uint16_t dataSize){
 
-	// RAW
-	if(type==RAW){
+	// Checks for valid DataType
+	if (type < 0 || type >= NUM_TYPES)
+		return -4;
 
-	}
 
-	// TELEMETRY
-	if(type==TELEM){
 
-	}
+	dhara_error_t err;
 
-	// DATA LOGS
-	if(type==LOG){
+	// data array
+	uint8_t mData[PAGESIZE];
 
-	}
 
-	// FIRMWARE
-	if(type==FIRMWARE){
 
-	}
+	memset(mData, 0xFF, PAGESIZE);
 
-	return -1;
+	// Fetch header
+	SectorHeader *hdr = (SectorHeader*)mData;
+
+	// Setup header
+	hdr->dataType=type;
+	hdr->magic=STORAGE_MAGIC;
+	hdr->offset=dataSize;
+	hdr->sectorType=ACTIVE;
+	hdr->sequence=TYPE_SEQUENCE[type];
+
+	// Append data to array
+	memcpy(mData + sizeof(SectorHeader),data,dataSize);
+
+	// Write to Sector
+	Dhara_Write(TYPE_SECTORS[type], mData, PAGESIZE, &err);
+	if(err) return -3;
+
+
+	// Moves to next number in sequence
+	TYPE_SEQUENCE[type]++;
+
+
+
+	// Great Success!
+	return 0;
 }
 
 int Storage_Append(const DataType type, const uint8_t *data, const uint16_t dataSize){
 
+	// Checks for valid DataType
+	if (type < 0 || type >= NUM_TYPES)
+	    return -4;
+
+
+
 	dhara_error_t err;
 
+	// data array
 	uint8_t mData[PAGESIZE];
 
-	// RAW
-	if(type==RAW){
-		Dhara_Read(s, mData, PAGESIZE, err);
-		if(err){ break;}
+
+
+	Dhara_Read(TYPE_SECTORS[type], mData, PAGESIZE, &err);
+	if(err) return -1;
+
+	// Fetch header
+	SectorHeader *hdr = (SectorHeader*)mData;
+
+	//
+	// HAS ROOM
+	if (PAGESIZE - sizeof(SectorHeader) - hdr->offset >= dataSize){
+
+		// Append data to array
+		memcpy(mData + sizeof(SectorHeader) + hdr->offset,data,dataSize);
+
+		// Update offset
+		hdr->offset += dataSize;
+
+		// Write back
+		Dhara_Write(TYPE_SECTORS[type], mData, PAGESIZE, &err);
+		if(err) return -3;
+
+	}else{
+		// Find New Sector
+		dhara_sector_t emptySector=Find_Empty_Sector();
+		if(emptySector==INVALID_SECTOR) return -2;
+
+		if(emptySector>largestSector){
+			largestSector=emptySector;
+		}
+
+		// Switch To New Sector
+		TYPE_SECTORS[type]=emptySector;
+
+		memset(mData, 0xFF, PAGESIZE);
 
 		// Fetch header
 		SectorHeader *hdr = (SectorHeader*)mData;
 
-		//
-		// HAS ROOM
-		if(PAGESIZE-hdr->offset>=dataSize){
+		// Setup header
+		hdr->dataType=type;
+		hdr->magic=STORAGE_MAGIC;
+		hdr->offset=dataSize;
+		hdr->sectorType=ACTIVE;
+		hdr->sequence=TYPE_SEQUENCE[type];
 
-		}else{
+		// Append data to array
+		memcpy(mData + sizeof(SectorHeader),data,dataSize);
 
-		}
+		// Write to Sector
+		Dhara_Write(TYPE_SECTORS[type], mData, PAGESIZE, &err);
+		if(err) return -3;
 
-		Dhara_Write(rawActive, mData, PAGESIZE, err);
-		if(err){ break;}
 
-		return 0;
+		// Moves to next number in sequence
+		TYPE_SEQUENCE[type]++;
 	}
 
-	// TELEMETRY
-	if(type==TELEM){
 
-	}
-
-	// DATA LOGS
-	if(type==LOG){
-
-	}
-
-	// FIRMWARE
-	if(type==FIRMWARE){
-
-	}
-
-	return -1;
+	// Great Success!
+	return 0;
 }
 
 int Storage_Send_To_Backup(const DataType type){
 	// TODO SET BACKUP ARRAY SIZE TO MATCH CURRENTS ACTIVE COUNT
+
+	// Checks for valid DataType
+	if (type < 0 || type >= NUM_TYPES)
+		return -4;
+
+	for(dhara_sector_t i=0;i<=largestSector;i++){
+
+	}
+
 	return 1;
 }
 
-int Storage_Read_Active(const DataType type, uint8_t* data, uint32_t* dataSize){
+int Storage_Read_Active(const DataType type, const uint8_t sectorSequence, uint8_t* data, uint32_t* dataSize){
+
+	// Checks for valid DataType
+	if (type < 0 || type >= NUM_TYPES)
+		return -4;
+
+	// Checks if sectorSequence exists
+	if(sectorSequence <= 0 || sectorSequence >= TYPE_SEQUENCE[type])
+		return -5;
+
+
+	for(dhara_sector_t i=0;i<=largestSector;i++){
+
+	}
+
 	return 1;
 }
 
-int Storage_Read_Backup(const DataType type, uint8_t* data, uint32_t* dataSize){
+int Storage_Read_Backup(const DataType type, const uint8_t backupGroup, uint8_t* data, uint32_t* dataSize){
+
+	// Checks for valid DataType
+	if (type < 0 || type >= NUM_TYPES)
+		return -4;
+
 	return 1;
 }
 
@@ -383,7 +473,7 @@ int Storage_Read_Backup(const DataType type, uint8_t* data, uint32_t* dataSize){
  * RETURNS:
  * 		empty sector number on success or -1 if an error occurs.
 */
-int Find_Empty_Sector(){
+dhara_sector_t Find_Empty_Sector(){
 
 	for(dhara_sector_t i=0;i<Dhara_Capacity();i++){
 
@@ -401,5 +491,5 @@ int Find_Empty_Sector(){
 		}
 	}
 
-	return -1;
+	return INVALID_SECTOR;
 }

@@ -13,7 +13,7 @@
 #include "stm32l4xx_hal_rtc.h"
 
 #include "tuk/tuk.h"
-#include "../../Core/Inc/utils.h"
+#include "utils.h"
 
 #include "StorageManager.h"
 

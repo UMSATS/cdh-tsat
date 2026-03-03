@@ -94,6 +94,13 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
  *
  * RETURNS:
  * 		0 on success or -1 if an error occurs.
+ *
+ * ERROR CODES
+ * 		0 no error
+ * 		-1 Read Fail
+ * 		-2 Fail to Find or New Free Sector
+ * 		-3 Failed Write
+ * 		-4 Enum Type Fail
 */
 int Storage_Send_To_Backup(const DataType type);
 
@@ -109,7 +116,7 @@ int Storage_Send_To_Backup(const DataType type);
  * RETURNS:
  * 		0 on success or -1 if an error occurs.
 */
-int Storage_Read_Active(const DataType type, uint8_t* data, uint32_t* dataSize);
+int Storage_Read_Active(const DataType type, const uint8_t sectorSequence, uint8_t* data, uint32_t* dataSize);
 
 /*
  * FUNCTION: Storage_Read_Backup
@@ -123,7 +130,7 @@ int Storage_Read_Active(const DataType type, uint8_t* data, uint32_t* dataSize);
  * RETURNS:
  * 		0 on success or -1 if an error occurs.
 */
-int Storage_Read_Backup(const DataType type, uint8_t* data, uint32_t* dataSize);
+int Storage_Read_Backup(const DataType type, const uint8_t backupGroup, uint8_t* data, uint32_t* dataSize);
 
 /*
  * FUNCTION: Storage_Trim
