@@ -27,6 +27,7 @@ typedef struct {
 	uint8_t packets;
 	uint8_t data[MAX_NUM_OF_PACKET*DATA_SIZE];
 	uint8_t active;
+	uint32_t timestamp;
 }TelemetryBuffer_t;
 
 

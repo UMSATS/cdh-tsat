@@ -18,8 +18,11 @@
 
 #include "StorageManager.h"
 
+#define TIMEOUT_MS 5000
+
 uint8_t get_expected_packets(uint8_t key) {
-    if (key == TEL_BATTERY_VOLTAGE_SIZE || key == TEL_MAGNETIC_FIELD_SIZE || key == TEL_ANGULAR_VELOCITY_SIZE) {
+	TelemetryID telem_id = GET_TELEMETRY_ID(key);
+    if (telem_id == TEL_BATTERY_VOLTAGE || telem_id == TEL_MAGNETIC_FIELD || telem_id == TEL_ANGULAR_VELOCITY) {
         return 2;
     }
     return 1;
@@ -46,6 +49,21 @@ void writeToFlash(TelemetryBuffer_t *buffer){
 	Storage_Append(TELEM, (const uint8_t *)&telemMessage, sizeof(telemMessage));
 }
 
+void cleanTelemBuffers(TelemetryBuffer_t *telemBuffers){
+	uint32_t TICK_FREQ = osKernelGetTickFreq();
+	uint32_t TIMEOUT_TICKS = (uint32_t)TIMEOUT_MS * TICK_FREQ / 1000;
+
+	uint32_t current_tick = osKernelGetTickCount();
+
+	for(int i = 0; i < MAX_NUM_OF_BUFFERS; i++){
+		if(telemBuffers[i].active == 1){
+			if((current_tick - telemBuffers[i].timestamp) > TIMEOUT_TICKS){
+				telemBuffers[i].active = 0;
+			}
+		}
+	}
+}
+
 void StartTelemHandler(void *argument)
 {
   CANMessage telemetry_can_message;
@@ -55,6 +73,8 @@ void StartTelemHandler(void *argument)
   for(;;)
   {
     osMessageQueueGet(telemQueueHandle, &telemetry_can_message, NULL, osWaitForever);
+
+    cleanTelemBuffers(telemBuffers);
 
     uint8_t key = telemetry_can_message.body[0];
     uint8_t sequence_number = telemetry_can_message.body[1];
@@ -80,6 +100,7 @@ void StartTelemHandler(void *argument)
     			buffer->sequence_number = sequence_number;
     			buffer->packets++;
     			buffer->active = 1;
+    			buffer->timestamp = osKernelGetTickCount();
     			break;
     		}
     	}
