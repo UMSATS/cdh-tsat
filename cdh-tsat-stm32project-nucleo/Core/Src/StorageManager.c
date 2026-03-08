@@ -107,12 +107,12 @@ dhara_sector_t TYPE_SECTORS[NUM_TYPES] = {
 		[FIRMWARE]     =INVALID_SECTOR
 };
 
-dhara_sector_t TYPE_SEQUENCE[NUM_TYPES] = {
+int32_t TYPE_SEQUENCE[NUM_TYPES] = {
 		// TYPE     // SECTOR
-		[RAW]          =0,
-		[TELEM]        =0,
-		[LOG]          =0,
-		[FIRMWARE]     =0
+		[RAW]          =-1,
+		[TELEM]        =-1,
+		[LOG]          =-1,
+		[FIRMWARE]     =-1
 };
 
 
@@ -131,7 +131,7 @@ int Storage_Init(){
 
 		//
 		// READ HEADER
-		Dhara_Read(i, (uint8_t*)&hdr, sizeof(SectorHeader)-sizeof(dhara_sector_t), &err);
+		Dhara_Read(i, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
 		if(err){ continue;}
 
 		if(hdr.magic!=STORAGE_MAGIC){
@@ -139,7 +139,8 @@ int Storage_Init(){
 			continue;
 		}
 
-		largestSector=i;
+		if(i > largestSector)
+		    largestSector = i;
 
 		//
 		// TYPE SWITCH
@@ -287,7 +288,6 @@ int Storage_Init(){
 		//
 		// DEFAULT CASE
 		default:
-			largestSector--;
 			Dhara_Erase(i, &err);
 			if(err){ continue;}
 
@@ -296,14 +296,22 @@ int Storage_Init(){
 	}
 
 
-	return -1;
+	return 0;
 }
 
 int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *data, const uint16_t dataSize){
 
-	// Checks for valid DataType
+	// Checks if valid DataType
 	if (type < 0 || type >= NUM_TYPES)
-		return -4;
+		return -1;
+
+	// Checks if sequence exists
+	if(sequence < 0 || sequence>TYPE_SEQUENCE[type])
+		return -2;
+
+	// Checks if dataSize is Too Large
+	if(dataSize+sizeof(SectorHeader)>PAGESIZE)
+		return -3;
 
 
 
@@ -324,18 +332,14 @@ int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *d
 	hdr->magic=STORAGE_MAGIC;
 	hdr->offset=dataSize;
 	hdr->sectorType=ACTIVE;
-	hdr->sequence=TYPE_SEQUENCE[type];
+	hdr->sequence=sequence;
 
 	// Append data to array
 	memcpy(mData + sizeof(SectorHeader),data,dataSize);
 
 	// Write to Sector
 	Dhara_Write(TYPE_SECTORS[type], mData, PAGESIZE, &err);
-	if(err) return -3;
-
-
-	// Moves to next number in sequence
-	TYPE_SEQUENCE[type]++;
+	if(err) return -4;
 
 
 
@@ -345,9 +349,19 @@ int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *d
 
 int Storage_Append(const DataType type, const uint8_t *data, const uint16_t dataSize){
 
-	// Checks for valid DataType
+	// Checks if valid DataType
 	if (type < 0 || type >= NUM_TYPES)
-	    return -4;
+	    return -1;
+
+	// Checks if dataSize is Too Large
+	if(dataSize+sizeof(SectorHeader)>PAGESIZE)
+		return -2;
+
+	// Checks if TYPE_SECTOR[type] exists
+	if(TYPE_SECTORS[type]==INVALID_SECTOR){
+		TYPE_SECTORS[type] = Find_Empty_Sector();
+		TYPE_SEQUENCE=0;
+	}
 
 
 
@@ -359,7 +373,7 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
 
 
 	Dhara_Read(TYPE_SECTORS[type], mData, PAGESIZE, &err);
-	if(err) return -1;
+	if(err) return -3;
 
 	// Fetch header
 	SectorHeader *hdr = (SectorHeader*)mData;
@@ -376,12 +390,12 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
 
 		// Write back
 		Dhara_Write(TYPE_SECTORS[type], mData, PAGESIZE, &err);
-		if(err) return -3;
+		if(err) return -5;
 
 	}else{
 		// Find New Sector
 		dhara_sector_t emptySector=Find_Empty_Sector();
-		if(emptySector==INVALID_SECTOR) return -2;
+		if(emptySector==INVALID_SECTOR) return -4;
 
 		if(emptySector>largestSector){
 			largestSector=emptySector;
@@ -395,6 +409,9 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
 		// Fetch header
 		SectorHeader *hdr = (SectorHeader*)mData;
 
+		// Moves to next number in sequence
+		TYPE_SEQUENCE[type]++;
+
 		// Setup header
 		hdr->dataType=type;
 		hdr->magic=STORAGE_MAGIC;
@@ -407,11 +424,8 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
 
 		// Write to Sector
 		Dhara_Write(TYPE_SECTORS[type], mData, PAGESIZE, &err);
-		if(err) return -3;
+		if(err) return -5;
 
-
-		// Moves to next number in sequence
-		TYPE_SEQUENCE[type]++;
 	}
 
 
@@ -433,22 +447,82 @@ int Storage_Send_To_Backup(const DataType type){
 	return 1;
 }
 
-int Storage_Read_Active(const DataType type, const uint8_t sectorSequence, uint8_t* data, uint32_t* dataSize){
+int Storage_Fetch_Sectors(const DataType dType, const uint8_t sType, uint8_t* sectorArray, uint32_t* sectorArraySize){
 
-	// Checks for valid DataType
-	if (type < 0 || type >= NUM_TYPES)
-		return -4;
+	// Checks if valid DataType
+	if (dType < 0 || dType >= NUM_TYPES)
+		return -1;
 
-	// Checks if sectorSequence exists
-	if(sectorSequence <= 0 || sectorSequence >= TYPE_SEQUENCE[type])
-		return -5;
+	// Checks if Valid Sector Type
+	uint8_t typeVal = GET_SECTOR_TYPE(sType);
+	if(typeVal != ACTIVE && typeVal != BACKUP)
+		return -2;
 
-
-	for(dhara_sector_t i=0;i<=largestSector;i++){
-
+	// Release data if array has any
+	if(sectorArray!=NULL){
+		free(sectorArray);
 	}
 
-	return 1;
+	// Release data if array has any
+	if(sectorArraySize!=NULL){
+		free(sectorArray);
+	}
+
+
+
+	return 0;
+}
+
+int Storage_Read(const DataType dType, const uint8_t sType, const uint16_t sequence, uint8_t* data, uint32_t* dataSize){
+
+	// Checks if valid DataType
+	if (dType < 0 || dType >= NUM_TYPES)
+		return -1;
+
+	// Checks if Valid Sector Type
+	uint8_t typeVal = GET_SECTOR_TYPE(sType);
+	if(typeVal != ACTIVE && typeVal != BACKUP)
+	    return -2;
+
+	// Checks if sequence exists
+	if(sequence < 0 || sequence>TYPE_SEQUENCE[dType])
+		return -3;
+
+
+
+	// Searching For Sequence
+	for(dhara_sector_t i=0;i<=largestSector;i++){
+
+		dhara_error_t err;
+
+		// data array
+		uint8_t mData[PAGESIZE];
+
+
+
+		Dhara_Read(i, mData, PAGESIZE, &err);
+		if(err) continue;
+
+		// Fetch header
+		SectorHeader *hdr = (SectorHeader*)mData;
+
+		// Checks if Magic exist in header
+		if(hdr->magic!=STORAGE_MAGIC)
+			continue;
+
+		// Checks if sequences are the same
+		if(hdr->sequence==sequence){
+
+			*dataSize=PAGESIZE;
+
+			// Append data to array
+			memcpy(data,mData,PAGESIZE);
+
+			return 0;
+		}
+	}
+
+	return -4;
 }
 
 int Storage_Read_Backup(const DataType type, const uint8_t backupGroup, uint8_t* data, uint32_t* dataSize){
