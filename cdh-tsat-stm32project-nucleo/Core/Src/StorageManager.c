@@ -11,12 +11,12 @@
 
 #include <time.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <Dhara_Wrapper.h>
 
 #include "utils.h"
 #include "telemetry.h"
-
 
 
 //
@@ -83,21 +83,16 @@ typedef struct {
 
 #define NUM_TYPES 4
 
-// RAW
+dhara_sector_t largestSector=INVALID_SECTOR;
 
 
-// TELEM
-#define TEL_NUM_OF_BACKUPS 2
-
-
-// LOG
-#define LOG_NUM_OF_BACKUPS 1
-
-// FIRMWARE
-#define FIRM_NUM_OF_BACKUPS 0
-
-
-dhara_sector_t largestSector=0;
+const uint32_t NUM_OF_BACKUPS[NUM_TYPES] = {
+		// TYPE     // NUMBER OF BACKUPS
+		[RAW]          =0,
+		[TELEM]        =2,
+		[LOG]          =1,
+		[FIRMWARE]     =0
+};
 
 dhara_sector_t TYPE_SECTORS[NUM_TYPES] = {
 		// TYPE     // SECTOR
@@ -122,7 +117,9 @@ int32_t TYPE_SEQUENCE[NUM_TYPES] = {
 
 int Storage_Init(){
 
-	for(dhara_sector_t i=0;i<Dhara_Capacity();i++){
+	dhara_sector_t capacity = Dhara_Capacity();
+
+	for(dhara_sector_t i=0;i<capacity;i++){
 
 		dhara_error_t err;
 		SectorHeader hdr;
@@ -134,168 +131,45 @@ int Storage_Init(){
 		Dhara_Read(i, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
 		if(err){ continue;}
 
+		// Checks if Magic exist in header
 		if(hdr.magic!=STORAGE_MAGIC){
 			Dhara_Erase(i, &err);
 			continue;
 		}
 
-		if(i > largestSector)
-		    largestSector = i;
-
-		//
-		// TYPE SWITCH
-		switch (hdr.dataType){
-
-		//
-		// RAW DATA TYPE
-		case RAW:
-
-			//
-			// ACTIVE SECTOR
-			if(hdr.sectorType==ACTIVE){
-
-				if(TYPE_SEQUENCE[RAW]<hdr.sequence){
-					TYPE_SEQUENCE[RAW]=hdr.sequence;
-					TYPE_SECTORS[RAW]=i;
-				}
-
-
-			//
-			// Invalid SECTOR
-			}else{
-
-				Dhara_Erase(i, &err);
-				if(err){ continue;}
-
-			}
-
-			break;
-
-		//
-		// TELEMETRY DATA TYPE
-		case TELEM:
-
-			//
-			// ACTIVE SECTOR
-			if(hdr.sectorType==ACTIVE){
-
-				if(TYPE_SEQUENCE[TELEM]<hdr.sequence){
-					TYPE_SEQUENCE[TELEM]=hdr.sequence;
-					TYPE_SECTORS[TELEM]=i;
-				}
-
-			//
-			// BACKUP SECTOR
-			}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
-
-				if(GET_BACKUP_GROUP(hdr.sectorType)<TEL_NUM_OF_BACKUPS){
-					// manage backups
-
-				}else{
-
-					Dhara_Erase(i, &err);
-					if(err){ continue;}
-
-				}
-
-			//
-			// Invalid SECTOR
-			}else{
-
-				Dhara_Erase(i, &err);
-				if(err){ continue;}
-
-			}
-
-			break;
-
-		//
-		// LOG DATA TYPE
-		case LOG:
-
-			//
-			// ACTIVE SECTOR
-			if(hdr.sectorType==ACTIVE){
-
-				if(TYPE_SEQUENCE[LOG]<hdr.sequence){
-					TYPE_SEQUENCE[LOG]=hdr.sequence;
-					TYPE_SECTORS[LOG]=i;
-				}
-
-			//
-			// BACKUP SECTOR
-			}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
-
-				if(GET_BACKUP_GROUP(hdr.sectorType)<LOG_NUM_OF_BACKUPS){
-					// manage backups
-
-				}else{
-
-					Dhara_Erase(i, &err);
-					if(err){ continue;}
-
-				}
-
-			//
-			// Invalid SECTOR
-			}else{
-
-				Dhara_Erase(i, &err);
-				if(err){ continue;}
-
-			}
-
-			break;
-
-		//
-		// FIRMWARE DATA TYPE
-		case FIRMWARE:
-
-			//
-			// ACTIVE SECTOR
-			if(hdr.sectorType==ACTIVE){
-
-				if(TYPE_SEQUENCE[FIRMWARE]<hdr.sequence){
-					TYPE_SEQUENCE[FIRMWARE]=hdr.sequence;
-					TYPE_SECTORS[FIRMWARE]=i;
-				}
-
-			//
-			// BACKUP SECTOR
-			}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
-
-				if(GET_BACKUP_GROUP(hdr.sectorType)<FIRM_NUM_OF_BACKUPS){
-					// manage backups
-
-				}else{
-
-					Dhara_Erase(i, &err);
-					if(err){ continue;}
-
-				}
-
-			//
-			// Invalid SECTOR
-			}else{
-
-				Dhara_Erase(i, &err);
-				if(err){ continue;}
-
-			}
-
-			break;
-
-		//
-		// DEFAULT CASE
-		default:
-			Dhara_Erase(i, &err);
-			if(err){ continue;}
-
-			break;
+		// Checks if valid DataType
+		if(hdr.dataType >= NUM_TYPES){
+			Dhara_Erase(i,&err);
+			continue;
 		}
+
+
+
+		// Checks if it is ACTIVE or BACKUP
+		if(hdr.sectorType==ACTIVE){
+
+			// Checks if header contains a higher sequence number
+			if(hdr.sequence>TYPE_SEQUENCE[hdr.dataType]){
+				TYPE_SEQUENCE[hdr.dataType]=hdr.sequence;
+				TYPE_SECTORS[hdr.dataType]=i;
+			}
+
+		}else if(GET_SECTOR_TYPE(hdr.sectorType)==BACKUP){
+
+			if(GET_BACKUP_GROUP(hdr.sectorType)>=NUM_OF_BACKUPS[hdr.dataType]){
+				Dhara_Erase(i, &err);
+				continue;
+			}
+
+			// manage backups
+
+		}else{
+			Dhara_Erase(i, &err);
+			continue;
+		}
+
+		largestSector = i;
 	}
-
-
 	return 0;
 }
 
@@ -360,7 +234,7 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
 	// Checks if TYPE_SECTOR[type] exists
 	if(TYPE_SECTORS[type]==INVALID_SECTOR){
 		TYPE_SECTORS[type] = Find_Empty_Sector();
-		TYPE_SEQUENCE=0;
+		TYPE_SEQUENCE[type]=0;
 	}
 
 
