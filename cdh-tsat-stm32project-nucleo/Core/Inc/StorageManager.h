@@ -18,6 +18,24 @@
 #include <dhara/map.h>
 
 
+//###############################################################################################
+//                                          SECTOR NODE
+//###############################################################################################
+
+typedef struct SectorNode{
+
+	// SECTOR AND SEQUENCE NUMBER
+	dhara_sector_t s;
+	int32_t sequence;
+
+	struct SectorNode* nextSector;
+}SectorNode;
+
+
+//###############################################################################################
+//                                        STORAGE MANAGER
+//###############################################################################################
+
 //
 // DEFINES
 #define INVALID_SECTOR ((dhara_sector_t)-1)
@@ -33,9 +51,9 @@ typedef enum {
 
 
 
-//#############################################
-//##############    FUNCTIONS    ##############
-//#############################################
+//###############################################################################################
+//                                           FUNCTIONS
+//###############################################################################################
 
 /*
  * FUNCTION: Storage_Init
@@ -63,8 +81,16 @@ int Storage_Init();
  *
  * RETURNS:
  * 		The sector written to if successful or -1 if an error occurs.
+ *
+ * ERROR CODES
+ * 		0 no error
+ * 		-1 Invalid DataType
+ * 		-2 Sequence Does Not Exits
+ * 		-3 Sequence could not be found in list
+ * 		-4 dataSize is Too Large
+ * 		-5 Failed Write
 */
-int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *data, const uint16_t dataSize);
+int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *data, const uint16_t dataSize);
 
 /*
  * FUNCTION: Storage_Append
@@ -73,7 +99,6 @@ int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *d
  *
  * VARIABLES:
  * 		type is the desired data type
- * 		sequence is the sequence number within the sector batch
  *      data is the data buffer
  *      dataSize is the size of the data buffer
  *
@@ -82,12 +107,13 @@ int Storage_Write(const DataType type, const uint16_t sequence, const uint8_t *d
  *
  * ERROR CODES
  * 		0 no error
- * 		-1 Data Type Fail
- * 		-2 Sequence Does Not Exits
- * 		-3 dataSize is Too Large
- * 		-4 Failed Write
+ * 		-1 Invalid DataType
+ * 		-2 dataSize is Too Large
+ * 		-3 Read Fail
+ * 		-4 Fail to Find or New Free Sector
+ * 		-5 Failed Write
 */
-int Storage_Append(const DataType type, const uint8_t *data, const uint16_t dataSize);
+int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dataSize);
 
 /*
  * FUNCTION: Storage_Send_To_Backup
@@ -95,7 +121,7 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
  * DESCRIPTION: Sends the active sectors to the backup sectors
  *
  * Note:
- * 	   - This also handles
+ * 	   - This also calls the method to delete unnecessary Lists
  *
  * VARIABLES:
  *      type is the desired data type
@@ -105,57 +131,57 @@ int Storage_Append(const DataType type, const uint8_t *data, const uint16_t data
  *
  * ERROR CODES
  * 		0 no error
- * 		-1 Data Type Fail
- * 		-2 dataSize is Too Large
- * 		-3 Read Fail
- * 		-4 Fail to Find or New Free Sector
- * 		-5 Failed Write
+ * 		-1 Invalid DataType
+ * 		-2 Read Fail
+ * 		-3 Write Fail
 */
-int Storage_Send_To_Backup(const DataType type);
+int Storage_Send_To_Backup(const DataType dType);
 
-/*
- * FUNCTION: Storage_Fetch_Sectors
- *
- * DESCRIPTION:
- *
- * RETURNS:
- * 		0 on success or -1 if an error occurs.
+/* FUNCTION: Storage_Get_SectorNode
+*
+* DESCRIPTION: Fetches a specific SectorNode from the given DataType, SectorType and sequence number
+*
+*
+* VARIABLES:
+*		dType
+*		sType
+*		sequence
+*		sectorNode
+*
+* RETURNS:
+* 		0 on success or a negative number if an error occurs.
+*
+* ERROR CODES
+* 		0 no error
+* 		-1 Invalid DataType
+* 		-2 address pointer is null
+* 		-3 sequence number is out of range
+* 		-4 invalid SectorType
+* 		-5 sequence number is not found in list
 */
-int Storage_Fetch_Sectors(const DataType dType, const uint8_t sType, uint8_t* sectorArray, uint32_t* sectorArraySize);
+int Storage_Get_SectorNode(const DataType dType, const uint8_t sType, const uint16_t sequence, SectorNode** sectorNode);
 
 /*
  * FUNCTION: Storage_Read
  *
- * DESCRIPTION:
+ * DESCRIPTION: Reads sector of given sector node
  *
  *
  * VARIABLES:
- *      type is the desired data type
- *
- * RETURNS:
- * 		0 on success or -1 if an error occurs.
-*/
-int Storage_Read(const DataType dType, const uint8_t sType, const uint16_t sequence, uint8_t* data, uint32_t* dataSize);
-
-/*
- * FUNCTION: Storage_Read_Sector
- *
- * DESCRIPTION:
- *
- *
- * VARIABLES:
+ *		sectorNode is the contains the desired sector to read
+ *      data it the pointer that stores the read data
+ *      dataSize is the size of the read data (Max Size is PAGESIZE)
  *
  * RETURNS:
  * 		0 on success or a negative number if an error occurs.
  *
  * ERROR CODES
  * 		0 no error
- * 		-1 Data Type Fail
- * 		-2 Sector Type Fail
- * 		-3 Sequence Does Not Exits
- * 		-4 Failed To Find Sector
+ * 		-1 SectorNode is NULL
+ * 		-2 dataSize is larger then PAGESIZE
+ * 		-3 Dhara_Read failed
 */
-int Storage_Read_Sector(const uint32_t sector, uint8_t* data, uint32_t* dataSize);
+int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize);
 
 /*
  * FUNCTION: Storage_Trim
