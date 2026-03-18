@@ -57,8 +57,6 @@ typedef struct {
 #define NUM_TYPES 4
 #define MAX_BACKUPS 2
 
-dhara_sector_t largestSector=INVALID_SECTOR;
-
 
 const uint32_t NUM_OF_BACKUPS[NUM_TYPES] = {
 		// TYPE     // NUMBER OF BACKUPS
@@ -120,7 +118,6 @@ int Storage_Init(){
 			continue;
 		}
 
-		largestSector = i;
 	}
 	return 0;
 }
@@ -255,9 +252,6 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 		dhara_sector_t emptySector=Storage_Find_Empty_Sector();
 		if(emptySector==INVALID_SECTOR) return -4;
 
-		if(emptySector>largestSector){
-			largestSector=emptySector;
-		}
 
 		// Switch To New Sector
 		Storage_Add_SectorNode(dType, 0, emptySector, SECTOR_LIST_HEAD[dType][0]->sequence+1);
@@ -387,11 +381,6 @@ int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize)
 	if (err) {  return -3;  }
 
 
-	return 0;
-}
-
-int Storage_Trim(){
-	// TODO implement trimming
 	return 0;
 }
 
