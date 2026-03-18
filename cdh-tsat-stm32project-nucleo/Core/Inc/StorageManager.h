@@ -183,15 +183,4 @@ int Storage_Get_SectorNode(const DataType dType, const uint8_t sType, const uint
 */
 int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize);
 
-/*
- * FUNCTION: Storage_Trim
- *
- * DESCRIPTION: Trims down current storage area by replacing empty sector near the front with filled sectors.
- *
- * RETURNS:
- * 		0 on success or -1 if an error occurs.
-*/
-int Storage_Trim();
-
-
 #endif /* INC_STORAGEMANAGER_H_ */
