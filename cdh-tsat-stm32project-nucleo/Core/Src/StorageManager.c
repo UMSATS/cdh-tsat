@@ -84,7 +84,7 @@ int Storage_Init(){
 
 	for(dhara_sector_t i=0;i<capacity;i++){
 
-		dhara_error_t err;
+		dhara_error_t err=DHARA_E_NONE;
 		SectorHeader hdr;
 
 
@@ -119,7 +119,7 @@ int Storage_Init(){
 		}
 
 	}
-	return 0;
+	return 1;
 }
 
 int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *data, const uint16_t dataSize){
