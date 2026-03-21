@@ -83,7 +83,7 @@ int Storage_Init();
  * 		The sector written to if successful or -1 if an error occurs.
  *
  * ERROR CODES
- * 		0 no error
+ * 		1 no error
  * 		-1 Invalid DataType
  * 		-2 Sequence Does Not Exits
  * 		-3 Sequence could not be found in list
