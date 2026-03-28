@@ -32,7 +32,7 @@ int Storage_Delete_Sector_List(DataType dataType, uint8_t sectorType);
 //##############    SECTOR TYPE    ##############
 //###############################################
 
-// Starts at 0 for ACTIVE and anything about is a the backup number, TODO write better
+// Starts at 0 for ACTIVE and anything greater is a the backup number, TODO write better
 
 //
 // HEADER STRUCT
@@ -88,6 +88,8 @@ int Storage_Init(){
 		SectorHeader hdr;
 
 
+		uint8_t mData[PAGESIZE];
+		Dhara_Read(i, mData, PAGESIZE, &err);
 
 		//
 		// READ HEADER
@@ -158,7 +160,7 @@ int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *
 
 
 
-	dhara_error_t err;
+	dhara_error_t err=DHARA_E_NONE;
 
 	// data array
 	uint8_t mData[PAGESIZE];
@@ -219,7 +221,7 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 
 
 	// Reading Data On Flash
-	dhara_error_t err;
+	dhara_error_t err=DHARA_E_NONE;
 	uint8_t mData[PAGESIZE];
 
 	Dhara_Read(SECTOR_LIST_HEAD[dType][0]->s, mData, PAGESIZE, &err);
@@ -227,6 +229,22 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 
 	// Locating Header Info
 	SectorHeader *hdr = (SectorHeader*)mData;
+
+	//
+	// Checks if header is contained on sector
+	if(hdr->magic!=STORAGE_MAGIC){
+
+		Dhara_Erase(SECTOR_LIST_HEAD[dType][0]->s, &err);
+		if(err) return -6;
+
+		// Setup hdr values
+		hdr->magic=STORAGE_MAGIC;
+		hdr->dataType=dType;
+		hdr->sectorType=0;
+		hdr->sequence=SECTOR_LIST_HEAD[dType][0]->sequence;
+		hdr->offset=0;
+
+	}
 
 
 
@@ -307,7 +325,7 @@ int Storage_Send_To_Backup(const DataType dType){
 
 			while(cur != NULL){
 
-				dhara_error_t err;
+				dhara_error_t err=DHARA_E_NONE;
 				uint8_t mData[PAGESIZE];
 
 				Dhara_Read(cur->s, mData, PAGESIZE, &err);
@@ -375,7 +393,7 @@ int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize)
 
 	//
 	// READING SECTOR DATA
-	dhara_error_t err;
+	dhara_error_t err=DHARA_E_NONE;
 
 	Dhara_Read(sectorNode->s, data, dataSize, &err);
 	if (err) {  return -3;  }
@@ -401,7 +419,7 @@ dhara_sector_t Storage_Find_Empty_Sector(){
 
 	for(dhara_sector_t i=0;i<Dhara_Capacity();i++){
 
-		dhara_error_t err;
+		dhara_error_t err=DHARA_E_NONE;
 		SectorHeader hdr = {0};
 
 		Dhara_Read(i, (uint8_t *)&hdr, sizeof(hdr), &err);
