@@ -463,6 +463,10 @@ dhara_error_t Dhara_Test_Wrapper_Read(){
 
 	uint8_t readData[PAGESIZE];
 
+	for(int i=0;i<PAGESIZE;i++){
+		readData[i]=-1;
+	}
+
 	Dhara_Read(0, readData, PAGESIZE, &err);
 	if(err!=DHARA_E_NONE) goto error;
 

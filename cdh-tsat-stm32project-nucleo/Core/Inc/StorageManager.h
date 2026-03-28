@@ -112,6 +112,7 @@ int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *
  * 		-3 Read Fail
  * 		-4 Fail to Find or New Free Sector
  * 		-5 Failed Write
+ * 		-6 Failed to Erase Sector
 */
 int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dataSize);
 
