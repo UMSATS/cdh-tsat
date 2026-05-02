@@ -87,10 +87,6 @@ int Storage_Init(){
 		dhara_error_t err=DHARA_E_NONE;
 		SectorHeader hdr;
 
-
-		uint8_t mData[PAGESIZE];
-		Dhara_Read(i, mData, PAGESIZE, &err);
-
 		//
 		// READ HEADER
 		Dhara_Read(i, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
@@ -131,7 +127,7 @@ int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *
 		{ return -1; }
 
 	// SECTOR_HEAD DOESN'T EXIST
-	if(SECTOR_LIST_HEAD[dType][0]!=NULL){
+	if(SECTOR_LIST_HEAD[dType][0]==NULL){
 		dhara_sector_t sector = Storage_Find_Empty_Sector();
 
 		Storage_Add_SectorNode(dType, 0, sector, 0);
@@ -218,6 +214,8 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 	//
 	//  Actual Function
 	//
+
+	SectorNode* temp=SECTOR_LIST_HEAD[dType][0];
 
 
 	// Reading Data On Flash
