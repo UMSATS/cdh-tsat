@@ -214,6 +214,21 @@ int main(void)
 
   if(!Storage_Init()) goto error;
 
+
+  //TODO delete
+  uint8_t temp[7] = {0};
+  Storage_Append(TELEM, temp, 7);
+
+  uint8_t temp2[PAGESIZE];
+  SectorNode* sectorNode = NULL;
+  Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
+  Storage_Read(sectorNode, temp2, PAGESIZE);
+
+  uint8_t temp3[7] = {7,7,7,7,7,7,7};
+  Storage_Append(TELEM, temp3, 7);
+
+  Storage_Read(sectorNode, temp2, PAGESIZE);
+
   //###############################################################################################
   //Library Unit Tests
   //###############################################################################################
