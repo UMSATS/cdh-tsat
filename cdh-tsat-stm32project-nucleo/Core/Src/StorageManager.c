@@ -215,8 +215,6 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 	//  Actual Function
 	//
 
-	SectorNode* temp=SECTOR_LIST_HEAD[dType][0];
-
 
 	// Reading Data On Flash
 	dhara_error_t err=DHARA_E_NONE;
@@ -461,6 +459,7 @@ int Storage_Add_SectorNode(DataType dataType, uint8_t sectorType, dhara_sector_t
 		return 0;
 	}
 
+	// TODO Handle if sequence duplication
 	while(cur!=NULL){
 
 		// Is newNode greater then cur
