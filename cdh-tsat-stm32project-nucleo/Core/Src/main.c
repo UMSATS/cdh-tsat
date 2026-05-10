@@ -229,6 +229,27 @@ int main(void)
 
   Storage_Read(sectorNode, temp2, PAGESIZE);
 
+
+  uint8_t temp4[7] = {7,7,7,7,7,7,7};
+  Storage_Write(TELEM,0, temp4, 7);
+
+  Storage_Read(sectorNode, temp2, PAGESIZE);
+
+  Storage_Send_To_Backup(TELEM);
+
+  // Read Backup 1
+  Storage_Get_SectorNode(TELEM, 1, 0, &sectorNode);
+  Storage_Read(sectorNode, temp2, PAGESIZE);
+
+  // Read Active
+  Storage_Append(TELEM, temp3, 7);
+
+  Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
+  Storage_Read(sectorNode, temp2, PAGESIZE);
+
+  // TODO figure out when to call sync
+  Dhara_Force_Sync(&dhara_status);
+
   //###############################################################################################
   //Library Unit Tests
   //###############################################################################################
