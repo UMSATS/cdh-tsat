@@ -215,40 +215,10 @@ int main(void)
   if(!Storage_Init()) goto error;
 
 
-  //TODO delete
+  //TODO setup properly
   uint8_t temp[7] = {0};
   Storage_Append(TELEM, temp, 7);
-
-  uint8_t temp2[PAGESIZE];
-  SectorNode* sectorNode = NULL;
-  Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
-  Storage_Read(sectorNode, temp2, PAGESIZE);
-
-  uint8_t temp3[7] = {7,7,7,7,7,7,7};
-  Storage_Append(TELEM, temp3, 7);
-
-  Storage_Read(sectorNode, temp2, PAGESIZE);
-
-
-  uint8_t temp4[7] = {7,7,7,7,7,7,7};
-  Storage_Write(TELEM,0, temp4, 7);
-
-  Storage_Read(sectorNode, temp2, PAGESIZE);
-
-  Storage_Send_To_Backup(TELEM);
-
-  // Read Backup 1
-  Storage_Get_SectorNode(TELEM, 1, 0, &sectorNode);
-  Storage_Read(sectorNode, temp2, PAGESIZE);
-
-  // Read Active
-  Storage_Append(TELEM, temp3, 7);
-
-  Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
-  Storage_Read(sectorNode, temp2, PAGESIZE);
-
-  // TODO figure out when to call sync
-  Dhara_Force_Sync(&dhara_status);
+  if(!Storage_Unit_Test(temp, 7)) goto error;
 
   //###############################################################################################
   //Library Unit Tests

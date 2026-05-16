@@ -26,7 +26,6 @@ const uint8_t STORAGE_MAGIC=42;
 // Function Declarations
 dhara_sector_t Storage_Find_Empty_Sector();
 int Storage_Add_SectorNode(DataType dataType, uint8_t sectorType, dhara_sector_t sector, int32_t sequence);
-int Storage_Delete_Sector_List(DataType dataType, uint8_t sectorType);
 
 //###############################################
 //##############    SECTOR TYPE    ##############
@@ -80,7 +79,8 @@ SectorNode* SECTOR_LIST_HEAD[NUM_TYPES][MAX_BACKUPS + 1] = {
 
 int Storage_Init(){
 
-	dhara_sector_t capacity = Dhara_Capacity();
+	//dhara_sector_t capacity = Dhara_Capacity();
+	dhara_sector_t capacity = 100;
 
 	for(dhara_sector_t i=0;i<capacity;i++){
 
@@ -329,7 +329,7 @@ int Storage_Send_To_Backup(const DataType dType){
 
 				SectorHeader *hdr = (SectorHeader*)mData;
 
-				hdr->sequence++;
+				hdr->sectorType++;
 
 				Dhara_Write(cur->s, mData, PAGESIZE, &err);
 				if(err) return -3;
@@ -356,6 +356,7 @@ int Storage_Get_SectorNode(const DataType dType, const uint8_t sType, const uint
 	if(sequence>SECTOR_LIST_HEAD[dType][sType]->sequence)
 		return -3;
 
+	// Checks if sType exists
 	if(sType>NUM_OF_BACKUPS[dType])
 		return -4;
 
@@ -382,7 +383,7 @@ int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize)
 	if (sectorNode==NULL)
 		return -1;
 
-	//
+	// Checks if data can fit in one page
 	if(dataSize>PAGESIZE)
 		return -2;
 
@@ -394,6 +395,128 @@ int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize)
 	Dhara_Read(sectorNode->s, data, dataSize, &err);
 	if (err) {  return -3;  }
 
+
+	// TODO figure out when to call sync
+	Dhara_Force_Sync(&err);
+	if (err) {  return -3;  }// Sync fail
+
+	return 0;
+}
+
+int Storage_Delete_Sector(DataType dType, uint8_t sType, const uint16_t sequence){
+
+	// Checks if valid DataType
+	if (dType < 0 || dType >= NUM_TYPES)
+		return -1;
+
+	// Checks if sType exists
+	if(sType>NUM_OF_BACKUPS[dType])
+		return -2;
+
+	// Checks if list head exists
+	if(SECTOR_LIST_HEAD[dType][sType]==NULL)
+		return -3;
+
+	// Checks if sequence exists
+	if(sequence>SECTOR_LIST_HEAD[dType][sType]->sequence)
+		return -4;
+
+
+	dhara_error_t err=DHARA_E_NONE;
+	SectorNode* cur=SECTOR_LIST_HEAD[dType][sType];
+
+	// Checks if cur sequence is the desired sequence
+	if(cur->sequence==sequence){
+		SECTOR_LIST_HEAD[dType][sType]=cur->nextSector;
+
+		Dhara_Erase(cur->s, &err);
+		if (err) {  return -5;  }
+
+		free(cur);
+	}else{
+
+		while(cur->nextSector!=NULL && cur->sequence>=sequence){
+			SectorNode* nextCur=cur->nextSector;
+			cur->sequence=cur->sequence-1;
+
+			if(nextCur->sequence==sequence){
+				cur->nextSector=nextCur->nextSector;
+
+				Dhara_Erase(nextCur->s, &err);
+				if (err) {  return -5;  }
+
+				free(nextCur);
+
+				break;
+			}
+
+			cur=nextCur;
+		}
+
+	}
+
+
+
+	return 0;
+}
+
+int Storage_Delete_Sector_List(DataType dType, uint8_t sType){
+
+	// Checks if valid DataType
+	if (dType < 0 || dType >= NUM_TYPES)
+		return -1;
+
+	// Checks if sType exists
+	if(sType>NUM_OF_BACKUPS[dType])
+		return -2;
+
+	// Checks if list head exists
+	if(SECTOR_LIST_HEAD[dType][sType]==NULL)
+		return -3;
+
+	dhara_error_t err=DHARA_E_NONE;
+	SectorNode* cur=SECTOR_LIST_HEAD[dType][sType];
+
+	while(cur!=NULL){
+		SectorNode* temp=cur;
+		cur=cur->nextSector;
+
+		Dhara_Erase(temp->s, &err);
+		if (err) {  return -4;  }
+
+		free(temp);
+	}
+
+	SECTOR_LIST_HEAD[dType][sType]=NULL;
+
+	return 0;
+}
+
+int Storage_Erase(const SectorNode* sectorNode){
+
+	// Reading Data On Flash
+	dhara_error_t err=DHARA_E_NONE;
+	uint8_t mData[PAGESIZE];
+	SectorHeader hdr;
+
+	//
+	// READ HEADER
+	Dhara_Read(sectorNode->s, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
+	if(err){ return -1;}
+
+	// SETTING UP NEW DATA CHUNK
+	SectorHeader *mData_hdr = (SectorHeader*)mData;
+
+	mData_hdr->magic=hdr.magic;
+	mData_hdr->dataType=hdr.dataType;
+	mData_hdr->sectorType=hdr.sectorType;
+	mData_hdr->sequence=hdr.sequence;
+	mData_hdr->offset=0;
+
+
+	// WRITE TO SECTOR
+	Dhara_Write(sectorNode->s, mData, PAGESIZE, &err);
+	if(err) return -2;
 
 	return 0;
 }
@@ -484,26 +607,119 @@ int Storage_Add_SectorNode(DataType dataType, uint8_t sectorType, dhara_sector_t
 	return 0;
 }
 
-/*
- * FUNCTION: Storage_Delete_Sector_List
- *
- * DESCRIPTION: Frees memory used by list of given DataType and SectorType
- *
- *
- * RETURNS:
- * 		0 if no error
-*/
-int Storage_Delete_Sector_List(DataType dType, uint8_t sType){
-	SectorNode* cur=SECTOR_LIST_HEAD[dType][sType];
+//#############################################
+//##############    UNIT TEST    ##############
+//#############################################
 
-	while(cur!=NULL){
-		SectorNode* temp=cur;
-		cur=cur->nextSector;
+int Storage_Unit_Test(uint8_t* data, uint32_t dataSize){
 
-		free(temp);
+	uint8_t final[PAGESIZE];
+	for(uint32_t i=0;i<PAGESIZE;i++){
+		final[i]=255;
 	}
 
-	SECTOR_LIST_HEAD[dType][sType]=NULL;
+	// Fetch header
+	SectorHeader *hdr = (SectorHeader*)final;
 
-	return 0;
+
+	// Setup header
+	hdr->dataType=TELEM;
+	hdr->magic=STORAGE_MAGIC;
+	hdr->offset=dataSize;
+	hdr->sectorType=0;
+	hdr->sequence=0;
+
+	// If given data is too large
+	if(dataSize>PAGESIZE-sizeof(SectorHeader)){
+		return -1;
+	}
+
+	memcpy(final+sizeof(SectorHeader), data, dataSize);
+
+	//
+	//    WRITE TEST
+	//
+
+	// Deleting active list of the TELEM type
+	Storage_Delete_Sector_List(TELEM, 0);
+	{
+		// Writing data to TELEM storage
+		Storage_Write(TELEM, 0, data, dataSize);
+
+		uint8_t readData[PAGESIZE];
+		SectorNode* sectorNode = NULL;
+		// Fetch head of link list
+		Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
+
+		// Read data associated with link list node
+		Storage_Read(sectorNode, readData, PAGESIZE);
+
+		// Checking if data is the same as final
+		if(memcmp(final,readData,PAGESIZE)!=0){
+			return -2;
+		}
+	}
+
+	//
+	//    APPEND TEST
+	//
+
+	// Deleting active list of the TELEM type
+	Storage_Delete_Sector_List(TELEM, 0);
+	{
+		// Appending data to TELEM storage
+		Storage_Append(TELEM, data, dataSize);
+
+		uint8_t readData[PAGESIZE];
+		SectorNode* sectorNode = NULL;
+		// Fetch head of link list
+		Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
+
+		// Read data associated with link list node
+		Storage_Read(sectorNode, readData, PAGESIZE);
+
+		// Checking if data is the same as final
+		if(memcmp(final,readData,PAGESIZE)!=0){
+			return -2;
+		}
+	}
+
+	//
+	//    BACKUP CHECK
+	//
+
+	// Sending active data list to backup
+	Storage_Send_To_Backup(TELEM);
+	{ // Reading backup
+		hdr->sectorType=1;
+		uint8_t readData[PAGESIZE];
+		SectorNode* sectorNode = NULL;
+		// Fetch head of link list
+		Storage_Get_SectorNode(TELEM, 1, 0, &sectorNode);
+
+		// Read data associated with link list node
+		Storage_Read(sectorNode, readData, PAGESIZE);
+
+		// Checking if data is the same as final
+		if(memcmp(final,readData,PAGESIZE)!=0){
+			return -2;
+		}
+	}
+	{ // Reading active (Should be different)
+		hdr->sectorType=0;// TODO find backup error
+		uint8_t readData[PAGESIZE];
+		SectorNode* sectorNode = NULL;
+		// Fetch head of link list
+		Storage_Get_SectorNode(TELEM, 0, 0, &sectorNode);
+
+		// Read data associated with link list node
+		Storage_Read(sectorNode, readData, PAGESIZE);
+
+		// Checking if data is the same as final
+		if(memcmp(final,readData,PAGESIZE)==0){
+			return -2;
+		}
+	}
+
+	return 1;
 }
