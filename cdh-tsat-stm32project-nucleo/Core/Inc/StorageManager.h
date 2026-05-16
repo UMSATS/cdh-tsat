@@ -144,10 +144,10 @@ int Storage_Send_To_Backup(const DataType dType);
 *
 *
 * VARIABLES:
-*		dType
-*		sType
-*		sequence
-*		sectorNode
+*		dType is the data type
+ *		sType is the sector type
+ *		sequence is the sequence number
+*		sectorNode is the desired sector node that the data will be stored in
 *
 * RETURNS:
 * 		0 on success or a negative number if an error occurs.
@@ -183,5 +183,95 @@ int Storage_Get_SectorNode(const DataType dType, const uint8_t sType, const uint
  * 		-3 Dhara_Read failed
 */
 int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize);
+
+/*
+ * FUNCTION: Storage_Delete_Sector
+ *
+ * DESCRIPTION: Erases data inside given sector
+ *
+ *
+ * VARIABLES:
+ *		dType is the data type
+ *		sType is the sector type
+ *		sequence is the sequence number
+ *
+ * RETURNS:
+ * 		0 on success or a negative number if an error occurs.
+ *
+ * ERROR CODES
+ * 		0 no error
+ * 		-1 invalid DataType
+ * 		-2 Sector type doesn't exist
+ * 		-3 list head is null
+ * 		-4 sequence does not exist
+ * 		-5 Dhara failed to erase sector
+*/
+int Storage_Delete_Sector(DataType dType, uint8_t sType, const uint16_t sequence);
+
+/*
+ * FUNCTION: Storage_Delete_Sector_List
+ *
+ * DESCRIPTION: Frees memory used by list of given DataType and SectorType
+ *
+ *
+ * VARIABLES:
+ *		dType is the data type
+ *		sType is the sector type
+ *
+ * RETURNS:
+ * 		0 on success or a negative number if an error occurs.
+ *
+ * ERROR CODES
+ * 		0 no error
+ * 		-1 invalid DataType
+ * 		-2 Sector type doesn't exist
+ * 		-3 list head is null
+ * 		-4 Dhara failed erase
+ *
+*/
+int Storage_Delete_Sector_List(DataType dType, uint8_t sType);
+
+/*
+ * FUNCTION: Storage_Erase
+ *
+ * DESCRIPTION: Erases data inside given sector
+ *
+ *
+ * VARIABLES:
+ *		sectorNode is the contains the desired sector to read
+ *
+ * RETURNS:
+ * 		0 on success or a negative number if an error occurs.
+ *
+ * ERROR CODES
+ * 		0 no error
+ * 		-1 failed to read sector header data
+ * 		-2 failed to write new sector data
+*/
+int Storage_Erase(const SectorNode* sectorNode);
+
+//###############################################################################################
+//                                         UNIT TEST
+//###############################################################################################
+
+/*
+ * FUNCTION: Storage_Unit_Test
+ *
+ * DESCRIPTION: Tests the Storage Manager functions
+ *
+ *
+ * VARIABLES:
+ *      data it the pointer that stores the read data
+ *      dataSize is the size of the read data (Max Size is PAGESIZE)
+ *
+ * RETURNS:
+ * 		0 on success or a negative number if an error occurs.
+ *
+ * ERROR CODES
+ * 		0 no error
+ * 		-1 given data is too large
+ * 		-2 read data does not match given data
+*/
+int Storage_Unit_Test(uint8_t* data, uint32_t dataSize);
 
 #endif /* INC_STORAGEMANAGER_H_ */
