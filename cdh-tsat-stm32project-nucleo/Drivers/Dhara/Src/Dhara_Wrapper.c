@@ -35,6 +35,10 @@ uint8_t journal_buffer[PAGESIZE];
 
 uint8_t dharaUsedSpareCount=0;
 
+//Defines
+static uint8_t dhara_read_buf[PAGESIZE];
+static uint8_t dhara_write_buf[PAGESIZE];
+
 
 
 dhara_error_t Dhara_Init(void){
@@ -105,13 +109,12 @@ int Dhara_Read(uint32_t s, uint8_t *data, const uint16_t dataSize, dhara_error_t
 		return dhara_map_read(&my_map, s, data, err);
 	}
 	if(dataSize<PAGESIZE){
-		uint8_t fullData[PAGESIZE];
-		int status=dhara_map_read(&my_map, s, fullData, err);
+		int status = dhara_map_read(&my_map, s, dhara_read_buf, err);
 
 		// Read FAILED!!!
 		if(status==-1){return status;}
 
-		memcpy(data,fullData,dataSize);
+		memcpy(data,dhara_read_buf,dataSize);
 
 		return status;
 	}
@@ -126,7 +129,7 @@ int Dhara_Write(uint32_t s, const uint8_t *data, uint16_t dataSize, dhara_error_
 		return dhara_map_write(&my_map, s, data, err);
 	}
 	if(dataSize<PAGESIZE){
-		uint8_t newData[PAGESIZE];
+		uint8_t *newData = dhara_write_buf;
 
 		// Copies data to new array of correct size and fills the rest with empty datapoints
 		memcpy(newData, data, dataSize);

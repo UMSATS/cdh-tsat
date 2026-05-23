@@ -22,6 +22,8 @@
 //
 // DEFINES
 const uint8_t STORAGE_MAGIC=42;
+//static uint8_t sm_read_buf[PAGESIZE];
+static uint8_t sm_write_buf[PAGESIZE];
 
 // Function Declarations
 dhara_sector_t Storage_Find_Empty_Sector();
@@ -159,7 +161,7 @@ int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *
 	dhara_error_t err=DHARA_E_NONE;
 
 	// data array
-	uint8_t mData[PAGESIZE];
+	uint8_t *mData = sm_write_buf;
 
 
 
@@ -183,6 +185,10 @@ int Storage_Write(const DataType dType, const uint16_t sequence, const uint8_t *
 	Dhara_Write(cur->s, mData, PAGESIZE, &err);
 	if(err) { return -5; }
 
+
+	// TODO figure out when to call sync
+	Dhara_Force_Sync(&err);
+	if (err) {  return -3;  }// Sync fail
 
 
 	// Great Success!
@@ -218,7 +224,7 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 
 	// Reading Data On Flash
 	dhara_error_t err=DHARA_E_NONE;
-	uint8_t mData[PAGESIZE];
+	uint8_t *mData = sm_write_buf;
 
 	Dhara_Read(SECTOR_LIST_HEAD[dType][0]->s, mData, PAGESIZE, &err);
 	if(err) return -3;
@@ -293,6 +299,11 @@ int Storage_Append(const DataType dType, const uint8_t *data, const uint16_t dat
 	}
 
 
+	// TODO figure out when to call sync
+	Dhara_Force_Sync(&err);
+	if (err) {  return -3;  }// Sync fail
+
+
 	// Great Success!
 	return 0;
 }
@@ -322,7 +333,7 @@ int Storage_Send_To_Backup(const DataType dType){
 			while(cur != NULL){
 
 				dhara_error_t err=DHARA_E_NONE;
-				uint8_t mData[PAGESIZE];
+				uint8_t *mData = sm_write_buf;
 
 				Dhara_Read(cur->s, mData, PAGESIZE, &err);
 				if(err) return -2;
@@ -394,11 +405,6 @@ int Storage_Read(const SectorNode* sectorNode, uint8_t* data, uint32_t dataSize)
 
 	Dhara_Read(sectorNode->s, data, dataSize, &err);
 	if (err) {  return -3;  }
-
-
-	// TODO figure out when to call sync
-	Dhara_Force_Sync(&err);
-	if (err) {  return -3;  }// Sync fail
 
 	return 0;
 }
@@ -494,31 +500,18 @@ int Storage_Delete_Sector_List(DataType dType, uint8_t sType){
 
 int Storage_Erase(const SectorNode* sectorNode){
 
-	// Reading Data On Flash
-	dhara_error_t err=DHARA_E_NONE;
-	uint8_t mData[PAGESIZE];
-	SectorHeader hdr;
+    dhara_error_t err = DHARA_E_NONE;
+    SectorHeader hdr;
 
-	//
-	// READ HEADER
-	Dhara_Read(sectorNode->s, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
-	if(err){ return -1;}
+    Dhara_Read(sectorNode->s, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
+    if(err) return -1;
 
-	// SETTING UP NEW DATA CHUNK
-	SectorHeader *mData_hdr = (SectorHeader*)mData;
+    hdr.offset = 0;
 
-	mData_hdr->magic=hdr.magic;
-	mData_hdr->dataType=hdr.dataType;
-	mData_hdr->sectorType=hdr.sectorType;
-	mData_hdr->sequence=hdr.sequence;
-	mData_hdr->offset=0;
+    Dhara_Write(sectorNode->s, (uint8_t*)&hdr, sizeof(SectorHeader), &err);
+    if(err) return -2;
 
-
-	// WRITE TO SECTOR
-	Dhara_Write(sectorNode->s, mData, PAGESIZE, &err);
-	if(err) return -2;
-
-	return 0;
+    return 0;
 }
 
 //###################################################
