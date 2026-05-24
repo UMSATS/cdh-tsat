@@ -20,6 +20,8 @@
 
 #define TIMEOUT_MS 5000
 
+extern RTC_HandleTypeDef hrtc;
+
 uint8_t get_expected_packets(uint8_t key) {
 	TelemetryID telem_id = GET_TELEMETRY_ID(key);
     if (telem_id == TEL_BATTERY_VOLTAGE || telem_id == TEL_MAGNETIC_FIELD || telem_id == TEL_ANGULAR_VELOCITY) {
@@ -29,24 +31,28 @@ uint8_t get_expected_packets(uint8_t key) {
 }
 
 void writeToFlash(TelemetryBuffer_t *buffer){
+
+	// Variable setup
 	TelemetryMessage_t telemMessage = {0};
-
-	telemMessage.key = buffer->key;
-	telemMessage.sequence_number = buffer->sequence_number;
-
-	RTC_HandleTypeDef hrtc;
 
 	RTC_TimeTypeDef sTime;
 	RTC_DateTypeDef sDate;
 
+	// Fetching Time
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
-	memcpy(telemMessage.data, buffer->data, MAX_NUM_OF_PACKET * DATA_SIZE);
 
+	// Building telemMesssage
+	telemMessage.key = buffer->key;
+	telemMessage.sequence_number = buffer->sequence_number;
 	telemMessage.timestamp=rtc_to_unix_timestamp(sTime, sDate);
 
+	memcpy(telemMessage.data, buffer->data, MAX_NUM_OF_PACKET * DATA_SIZE);
+
+	// Appending to TELEM data batch
 	Storage_Append(TELEM, (const uint8_t *)&telemMessage, sizeof(telemMessage));
+
 }
 
 void cleanTelemBuffers(TelemetryBuffer_t *telemBuffers){
