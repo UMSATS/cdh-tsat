@@ -7,7 +7,6 @@
 
 void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 {
-	// TODO: These command ID's are OLD and must be updated. Refer to command reference.
 	switch (msg->cmd)
 	{
 //	case CMD_COMM_RESET:

@@ -18,57 +18,21 @@
 
 #include "StorageManager.h"
 
+//
+// DEFINES
 #define TIMEOUT_MS 5000
 
 extern RTC_HandleTypeDef hrtc;
 
-uint8_t get_expected_packets(uint8_t key) {
-	TelemetryID telem_id = GET_TELEMETRY_ID(key);
-    if (telem_id == TEL_BATTERY_VOLTAGE || telem_id == TEL_MAGNETIC_FIELD || telem_id == TEL_ANGULAR_VELOCITY) {
-        return 2;
-    }
-    return 1;
-}
-
-void writeToFlash(TelemetryBuffer_t *buffer){
-
-	// Variable setup
-	TelemetryMessage_t telemMessage = {0};
-
-	RTC_TimeTypeDef sTime;
-	RTC_DateTypeDef sDate;
-
-	// Fetching Time
-	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+// Function Declarations
+uint8_t get_expected_packets(uint8_t key);
+void writeToFlash(TelemetryBuffer_t *buffer);
+void cleanTelemBuffers(TelemetryBuffer_t *telemBuffers);
 
 
-	// Building telemMesssage
-	telemMessage.key = buffer->key;
-	telemMessage.sequence_number = buffer->sequence_number;
-	telemMessage.timestamp=rtc_to_unix_timestamp(sTime, sDate);
-
-	memcpy(telemMessage.data, buffer->data, MAX_NUM_OF_PACKET * DATA_SIZE);
-
-	// Appending to TELEM data batch
-	Storage_Append(TELEM, (const uint8_t *)&telemMessage, sizeof(telemMessage));
-
-}
-
-void cleanTelemBuffers(TelemetryBuffer_t *telemBuffers){
-	uint32_t TICK_FREQ = osKernelGetTickFreq();
-	uint32_t TIMEOUT_TICKS = (uint32_t)TIMEOUT_MS * TICK_FREQ / 1000;
-
-	uint32_t current_tick = osKernelGetTickCount();
-
-	for(int i = 0; i < MAX_NUM_OF_BUFFERS; i++){
-		if(telemBuffers[i].active == 1){
-			if((current_tick - telemBuffers[i].timestamp) > TIMEOUT_TICKS){
-				telemBuffers[i].active = 0;
-			}
-		}
-	}
-}
+//#############################################
+//##############    FUNCTIONS    ##############
+//#############################################
 
 void StartTelemHandler(void *argument)
 {
@@ -122,3 +86,56 @@ void StartTelemHandler(void *argument)
   }
   osThreadExit();
 }
+
+//###################################################
+//##############    HELPER FUNCTIONS    #############
+//###################################################
+
+uint8_t get_expected_packets(uint8_t key) {
+	TelemetryID telem_id = GET_TELEMETRY_ID(key);
+    if (telem_id == TEL_BATTERY_VOLTAGE || telem_id == TEL_MAGNETIC_FIELD || telem_id == TEL_ANGULAR_VELOCITY) {
+        return 2;
+    }
+    return 1;
+}
+
+void writeToFlash(TelemetryBuffer_t *buffer){
+
+	// Variable setup
+	TelemetryMessage_t telemMessage = {0};
+
+	RTC_TimeTypeDef sTime;
+	RTC_DateTypeDef sDate;
+
+	// Fetching Time
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+
+	// Building telemMesssage
+	telemMessage.key = buffer->key;
+	telemMessage.sequence_number = buffer->sequence_number;
+	telemMessage.timestamp=rtc_to_unix_timestamp(sTime, sDate);
+
+	memcpy(telemMessage.data, buffer->data, MAX_NUM_OF_PACKET * DATA_SIZE);
+
+	// Appending to TELEM data batch
+	Storage_Append(TELEM, (const uint8_t *)&telemMessage, sizeof(telemMessage));
+
+}
+
+void cleanTelemBuffers(TelemetryBuffer_t *telemBuffers){
+	uint32_t TICK_FREQ = osKernelGetTickFreq();
+	uint32_t TIMEOUT_TICKS = (uint32_t)TIMEOUT_MS * TICK_FREQ / 1000;
+
+	uint32_t current_tick = osKernelGetTickCount();
+
+	for(int i = 0; i < MAX_NUM_OF_BUFFERS; i++){
+		if(telemBuffers[i].active == 1){
+			if((current_tick - telemBuffers[i].timestamp) > TIMEOUT_TICKS){
+				telemBuffers[i].active = 0;
+			}
+		}
+	}
+}
+
