@@ -125,10 +125,15 @@ int Dhara_Read(uint32_t s, uint8_t *data, const uint16_t dataSize, dhara_error_t
 
 int Dhara_Write(uint32_t s, const uint8_t *data, uint16_t dataSize, dhara_error_t *err)
 {
+
+	int result;
+
 	if(dataSize==PAGESIZE){
-		return dhara_map_write(&my_map, s, data, err);
-	}
-	if(dataSize<PAGESIZE){
+
+		result=dhara_map_write(&my_map, s, data, err);
+
+	}else if(dataSize<PAGESIZE){
+
 		uint8_t *newData = dhara_write_buf;
 
 		// Copies data to new array of correct size and fills the rest with empty datapoints
@@ -137,10 +142,19 @@ int Dhara_Write(uint32_t s, const uint8_t *data, uint16_t dataSize, dhara_error_
 			newData[i]=0xFF;
 		}
 
-		return dhara_map_write(&my_map, s, newData, err);
+		result=dhara_map_write(&my_map, s, newData, err);
+
 	}else{//data is larger then a single page
+
 		return -1;
+
 	}
+
+	if(result != -1){
+		dhara_map_sync(&my_map, err);
+	}
+
+	return result;
 }
 
 int Dhara_Copy_Page(uint32_t src, uint32_t dst, dhara_error_t *err)

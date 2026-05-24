@@ -216,13 +216,8 @@ int main(void)
   if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
   dhara_status=DHARA_E_NONE;
 
+  //this code initializes the Storage Manager
   if(!Storage_Init()) goto error;
-
-
-  //TODO setup properly
-  uint8_t temp[7] = {0};
-  Storage_Append(TELEM, temp, 7);
-  if(!Storage_Unit_Test(temp, 7)) goto error;
 
   //###############################################################################################
   //Library Unit Tests
@@ -231,6 +226,11 @@ int main(void)
   //this code performs the Dhara library tests
 //  dhara_status=Dhara_Test();
 //  if(dhara_status!=DHARA_E_NONE) goto error;
+
+  //this code performs the Storage Manager Test
+//  uint8_t temp[7] = {0};
+//  Storage_Append(TELEM, temp, 7);
+//  if(!Storage_Unit_Test(temp, 7)) goto error;
 
   /* USER CODE END 2 */
 

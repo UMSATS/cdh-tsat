@@ -23,6 +23,7 @@ extern osThreadId_t getTasksNumHandle;
 extern osThreadId_t timeTagTaskInitQueueHandle;
 extern osThreadId_t setRTCQueueHandle;
 extern osThreadId_t getRTCHandle;
+extern osMessageQueueId_t telemQueueHandle;
 
 /**
 * Handles incoming messages from the CAN bus. Called by CAN Wrapper Module.
