@@ -30,19 +30,14 @@
 #include "W25N_driver_test.h"
 #include "Dhara_Wrapper.h"
 #include "Dhara_test.h"
+#include "StorageManager.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
-
-//TODO remove once testing is done
-#include "telemetry.h"
 #include "telemetry_handling.h"
-#include "command_handling.h"
-#include "tuk/can_wrapper/can_message.h"
-#include "tuk/can_wrapper/can_command_list.h"
-#include "StorageManager.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -771,21 +766,6 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
 
-	//TODO REMOVE
-	CAN_HandleTypeDef temp={0};
-
-  uint8_t data[7] = {0};
-
-  CANMessage msg;
-  msg.cmd       = CMD_CDH_PROCESS_TELEMETRY_REPORT;
-  memcpy(msg.body, data, 7);
-  msg.body_size = sizeof(data);
-  msg.is_ack    = 0;
-  msg.priority  = 0;
-  msg.recipient = NODE_CDH;
-  msg.sender    = NODE_PAYLOAD;
-
-  On_CAN_Message_Ready(&temp, &msg);
   /* Infinite loop */
   for(;;)
   {
