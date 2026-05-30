@@ -30,9 +30,6 @@ void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 	case CMD_CDH_GET_RTC:
 		osThreadFlagsSet(getRTCHandle, 0x0001);
 		break;
-	case CMD_CDH_PROCESS_NOTIFICATION:
-		osMessageQueuePut(notificationQueueHandle, msg, 0, 0);
-		break;
 	case CMD_CDH_PROCESS_TELEMETRY_REPORT:
 		osMessageQueuePut(telemQueueHandle, msg, 0, 0);
 		break;
