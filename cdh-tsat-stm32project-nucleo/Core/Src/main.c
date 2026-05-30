@@ -39,6 +39,7 @@
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
 #include "telemetry_handling.h"
+#include "fetch_telem_data.h"
 
 /* USER CODE END Includes */
 
@@ -85,6 +86,13 @@ const osThreadAttr_t telemHandler_attributes = {
   .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for fetchTelemData */
+osThreadId_t fetchTelemDataHandle;
+const osThreadAttr_t fetchTelemData_attributes = {
+  .name = "fetchTelemData",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for telemQueue */
 osMessageQueueId_t telemQueueHandle;
 const osMessageQueueAttr_t telemQueue_attributes = {
@@ -108,6 +116,7 @@ static void MX_TIM16_Init(void);
 static void MX_RTC_Init(void);
 void StartDefaultTask(void *argument);
 extern void StartTelemHandler(void *argument);
+extern void StartFetchTelemData(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -260,6 +269,9 @@ int main(void)
 
   /* creation of telemHandler */
   telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
+
+  /* creation of fetchTelemData */
+  fetchTelemDataHandle = osThreadNew(StartFetchTelemData, NULL, &fetchTelemData_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
