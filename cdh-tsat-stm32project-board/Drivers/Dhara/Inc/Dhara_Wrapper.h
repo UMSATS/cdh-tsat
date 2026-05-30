@@ -240,7 +240,7 @@ int Dhara_Force_Sync(dhara_error_t *err);
  * automatically and is interleaved with other operations.
  */
 /*
- * FUNCTION: Dhara_Force_Sync
+ * FUNCTION: Dhara_GC
  *
  * DESCRIPTION: Perform one garbage collection step.
  *
