@@ -36,6 +36,7 @@
 #include "W25N_driver_test.h"
 #include "Dhara_Wrapper.h"
 #include "Dhara_test.h"
+#include "StorageManager.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -342,9 +343,6 @@ int main(void)
 //    if(dhara_status!=DHARA_E_NONE) goto error;
 
     //this code performs the Storage Manager Test
-//    uint8_t temp[7] = {0};
-//    Storage_Append(TELEM, temp, 7);
-//    if(!Storage_Unit_Test(temp, 7)) goto error;
 
   /* USER CODE END 2 */
 
