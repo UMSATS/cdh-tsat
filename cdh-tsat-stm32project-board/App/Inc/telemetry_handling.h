@@ -1,8 +1,11 @@
 /*
- * telemetry_handling.h
+ * FILENAME: telemetry_handling.h
  *
- *  Created on: Feb 15, 2025
- *      Author: drive
+ * AUTHORS:
+ *  - Andrew Driver (andrew.driver@umsats.ca)
+ *  - Jagrit Sharma (jagrit.sharma@umsats.ca)
+ *
+ * CREATED ON: Feb 15, 2025
  */
 
 #ifndef INC_TELEMETRY_HANDLING_H_
@@ -11,8 +14,21 @@
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
 #include "telemetry.h"
+#include "tuk/can_wrapper/telemetry_id.h"
 
 extern osMessageQueueId_t telemQueueHandle;
+
+#define MAX_NUM_OF_BUFFERS 10
+
+
+typedef struct {
+	uint8_t key;
+	uint8_t sequence_number;
+	uint8_t packets;
+	uint8_t data[MAX_NUM_OF_PACKET*DATA_SIZE];
+	uint8_t active;
+	uint32_t timestamp;
+}TelemetryBuffer_t;
 
 
 /**
