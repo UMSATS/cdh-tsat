@@ -90,6 +90,7 @@ error:
     {
       //TODO: Implement error handling for StartTimeTagTask
     }*/
+	osDelay(1000);
   }
   osThreadExit();
 }
