@@ -80,7 +80,7 @@ const osThreadAttr_t defaultTask_attributes = {
 osThreadId_t telemHandlerHandle;
 const osThreadAttr_t telemHandler_attributes = {
   .name = "telemHandler",
-  .stack_size = 256 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for telemQueue */
@@ -246,7 +246,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of telemQueue */
-  telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
+  telemQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &telemQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */

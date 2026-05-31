@@ -112,7 +112,7 @@ const osThreadAttr_t toggleWDI_attributes = {
 osThreadId_t telemHandlerHandle;
 const osThreadAttr_t telemHandler_attributes = {
   .name = "telemHandler",
-  .stack_size = 256 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for timeTagTask */
@@ -366,7 +366,7 @@ int main(void)
   canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
 
   /* creation of telemQueue */
-  telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
+  telemQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &telemQueue_attributes);
 
   /* creation of timeTagTaskInitQueue */
   timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &timeTagTaskInitQueue_attributes);
@@ -426,6 +426,20 @@ int main(void)
 
   /* creation of calculateBDot */
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
+    CAN_HandleTypeDef temp={0};
+
+      uint8_t data[7] = {0};
+
+      CANMessage msg;
+      msg.cmd       = CMD_CDH_PROCESS_TELEMETRY_REPORT;
+      memcpy(msg.body, data, 7);
+      msg.body_size = sizeof(data);
+      msg.is_ack    = 0;
+      msg.priority  = 0;
+      msg.recipient = NODE_CDH;
+      msg.sender    = NODE_PAYLOAD;
+
+      On_CAN_Message_Ready(&temp, &msg);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
