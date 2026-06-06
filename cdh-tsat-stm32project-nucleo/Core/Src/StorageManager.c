@@ -6,7 +6,7 @@
  *
  * CREATED ON: Jan 13, 2026
  */
-
+#ifdef FLASH_INSTALLED
 
 //###############################################################################################
 //Include Directives
@@ -774,3 +774,5 @@ int Storage_Unit_Test(uint8_t* data, uint32_t dataSize){
 
 	return 1;
 }
+
+#endif
