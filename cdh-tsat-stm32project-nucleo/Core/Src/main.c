@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <tuk/tuk.h>
+
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 #include "Dhara_Wrapper.h"
