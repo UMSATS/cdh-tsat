@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <tuk/tuk.h>
+
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 #include "Dhara_Wrapper.h"
@@ -49,7 +51,7 @@
 #include "bdot_algorithm.h"
 #include "deployment_tasks.h"
 #include "command_handling.h"
-#include "tuk/tuk.h"
+#include "notification_handling.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
