@@ -426,20 +426,6 @@ int main(void)
 
   /* creation of calculateBDot */
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
-    CAN_HandleTypeDef temp={0};
-
-      uint8_t data[7] = {0};
-
-      CANMessage msg;
-      msg.cmd       = CMD_CDH_PROCESS_TELEMETRY_REPORT;
-      memcpy(msg.body, data, 7);
-      msg.body_size = sizeof(data);
-      msg.is_ack    = 0;
-      msg.priority  = 0;
-      msg.recipient = NODE_CDH;
-      msg.sender    = NODE_PAYLOAD;
-
-      On_CAN_Message_Ready(&temp, &msg);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
@@ -449,6 +435,7 @@ int main(void)
 		  .error_callback = On_CAN_Error
   };
   CANWrapper_Init(&CAN_WRAPPER_CONFIG);
+  CANWrapper_CAN_Start(&hcan1);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
