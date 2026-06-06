@@ -445,6 +445,7 @@ int main(void)
 		  .error_callback = On_CAN_Error
   };
   CANWrapper_Init(&CAN_WRAPPER_CONFIG);
+  CANWrapper_CAN_Start(&hcan1);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
