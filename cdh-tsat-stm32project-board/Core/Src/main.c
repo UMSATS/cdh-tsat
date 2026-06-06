@@ -192,6 +192,13 @@ const osThreadAttr_t calculateBDot_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
 };
+/* Definitions for notifHandler */
+osThreadId_t notifHandlerHandle;
+const osThreadAttr_t notifHandler_attributes = {
+  .name = "notifHandler",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -211,6 +218,11 @@ const osMessageQueueAttr_t timeTagTaskInitQueue_attributes = {
 osMessageQueueId_t setRTCQueueHandle;
 const osMessageQueueAttr_t setRTCQueue_attributes = {
   .name = "setRTCQueue"
+};
+/* Definitions for notificationQueue */
+osMessageQueueId_t notificationQueueHandle;
+const osMessageQueueAttr_t notificationQueue_attributes = {
+  .name = "notificationQueue"
 };
 /* USER CODE BEGIN PV */
 
@@ -242,6 +254,7 @@ extern void StartTimeTagTaskInit(void *argument);
 extern void StartSetRTC(void *argument);
 extern void StartGetRTC(void *argument);
 extern void StartBDot(void *argument);
+extern void StartNotifHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -374,6 +387,9 @@ int main(void)
   /* creation of setRTCQueue */
   setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &setRTCQueue_attributes);
 
+  /* creation of notificationQueue */
+  notificationQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &notificationQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -426,6 +442,9 @@ int main(void)
 
   /* creation of calculateBDot */
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
+
+  /* creation of notifHandler */
+  notifHandlerHandle = osThreadNew(StartNotifHandler, NULL, &notifHandler_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
