@@ -358,6 +358,9 @@ int main(void)
 //    if(dhara_status!=DHARA_E_NONE) goto error;
 
     //this code performs the Storage Manager Test
+//    uint8_t temp[7] = {0};
+//    Storage_Append(TELEM, temp, 7);
+//    if(!Storage_Unit_Test(temp, 7)) goto error;
 
   /* USER CODE END 2 */
 
