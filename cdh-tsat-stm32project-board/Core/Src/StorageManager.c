@@ -147,8 +147,9 @@ SectorNode* SECTOR_LIST_HEAD[NUM_TYPES][MAX_BACKUPS + 1] = {
 
 int Storage_Init(){
 
-	//dhara_sector_t capacity = Dhara_Capacity();
-	dhara_sector_t capacity = 100;
+	dhara_sector_t capacity = Dhara_Capacity();
+	// To load faster, shrink capacity size
+	//dhara_sector_t capacity = 100;
 
 	for(dhara_sector_t i=0;i<capacity;i++){
 
