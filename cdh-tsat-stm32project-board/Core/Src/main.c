@@ -32,10 +32,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <tuk/tuk.h>
+
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 #include "Dhara_Wrapper.h"
 #include "Dhara_test.h"
+#include "StorageManager.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -48,7 +51,6 @@
 #include "bdot_algorithm.h"
 #include "deployment_tasks.h"
 #include "command_handling.h"
-#include "tuk/tuk.h"
 #include "notification_handling.h"
 /* USER CODE END Includes */
 
@@ -112,7 +114,7 @@ const osThreadAttr_t toggleWDI_attributes = {
 osThreadId_t telemHandlerHandle;
 const osThreadAttr_t telemHandler_attributes = {
   .name = "telemHandler",
-  .stack_size = 128 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for timeTagTask */
@@ -344,9 +346,21 @@ int main(void)
     if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
     dhara_status=DHARA_E_NONE;
 
+    //this code initializes the Storage Manager
+    if(!Storage_Init()) goto error;
+
+    //###############################################################################################
+    //Library Unit Tests
+    //###############################################################################################
+
     //this code performs the Dhara library tests
-    dhara_status=Dhara_Test();
-    if(dhara_status!=DHARA_E_NONE) goto error;
+//    dhara_status=Dhara_Test();
+//    if(dhara_status!=DHARA_E_NONE) goto error;
+
+    //this code performs the Storage Manager Test
+//    uint8_t temp[7] = {0};
+//    Storage_Append(TELEM, temp, 7);
+//    if(!Storage_Unit_Test(temp, 7)) goto error;
 
   /* USER CODE END 2 */
 
@@ -370,7 +384,7 @@ int main(void)
   canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
 
   /* creation of telemQueue */
-  telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
+  telemQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &telemQueue_attributes);
 
   /* creation of timeTagTaskInitQueue */
   timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &timeTagTaskInitQueue_attributes);

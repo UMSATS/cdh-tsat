@@ -26,15 +26,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <tuk/tuk.h>
+
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
 #include "Dhara_Wrapper.h"
 #include "Dhara_test.h"
+#include "StorageManager.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
 #include "MAX6822_driver.h"
 #include "LTC1154_driver.h"
+#include "telemetry_handling.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,6 +59,8 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
+RTC_HandleTypeDef hrtc;
+
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
@@ -71,6 +78,18 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for telemHandler */
+osThreadId_t telemHandlerHandle;
+const osThreadAttr_t telemHandler_attributes = {
+  .name = "telemHandler",
+  .stack_size = 1024 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for telemQueue */
+osMessageQueueId_t telemQueueHandle;
+const osMessageQueueAttr_t telemQueue_attributes = {
+  .name = "telemQueue"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -86,7 +105,9 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_UART4_Init(void);
 static void MX_TIM16_Init(void);
+static void MX_RTC_Init(void);
 void StartDefaultTask(void *argument);
+extern void StartTelemHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -133,6 +154,7 @@ int main(void)
   MX_SPI3_Init();
   MX_UART4_Init();
   MX_TIM16_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 
   //###############################################################################################
@@ -154,9 +176,9 @@ int main(void)
   if (can_operation_status != HAL_OK) goto error;*/
 
   //this code initializes the W25N
-  /*W25N_StatusTypeDef w25n_operation_status;
-  w25n_operation_status = W25N_Init();
-  if (w25n_operation_status != W25N_HAL_OK) goto error;*/
+//  W25N_StatusTypeDef w25n_operation_status;
+//  w25n_operation_status = W25N_Init();
+//  if (w25n_operation_status != W25N_HAL_OK) goto error;
 
   //this code initializes the AS3001204
   /*HAL_StatusTypeDef as3001204_operation_status;
@@ -186,14 +208,26 @@ int main(void)
   //###############################################################################################
 
   //this code initializes the Dhara Library
-  /*dhara_error_t dhara_status=DHARA_E_NONE;
-  dhara_status=Dhara_Init();
-  if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
-  dhara_status=DHARA_E_NONE;*/
+//  dhara_error_t dhara_status=DHARA_E_NONE;
+//  dhara_status=Dhara_Init();
+//  if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
+//  dhara_status=DHARA_E_NONE;
+
+  //this code initializes the Storage Manager
+//  if(!Storage_Init()) goto error;
+
+  //###############################################################################################
+  //Library Unit Tests
+  //###############################################################################################
 
   //this code performs the Dhara library tests
-  /*dhara_status=Dhara_Test();
-  if(dhara_status!=DHARA_E_NONE) goto error;*/
+//  dhara_status=Dhara_Test();
+//  if(dhara_status!=DHARA_E_NONE) goto error;
+
+  //this code performs the Storage Manager Test
+//  uint8_t temp[7] = {0};
+//  Storage_Append(TELEM, temp, 7);
+//  if(!Storage_Unit_Test(temp, 7)) goto error;
 
   /* USER CODE END 2 */
 
@@ -212,6 +246,10 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of telemQueue */
+  telemQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &telemQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -219,6 +257,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of telemHandler */
+  telemHandlerHandle = osThreadNew(StartTelemHandler, NULL, &telemHandler_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -265,9 +306,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
@@ -329,6 +371,70 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 0x0;
+  sTime.Minutes = 0x0;
+  sTime.Seconds = 0x0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+  sDate.Month = RTC_MONTH_JANUARY;
+  sDate.Date = 0x1;
+  sDate.Year = 0x0;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
 
 }
 
@@ -661,6 +767,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+
   /* Infinite loop */
   for(;;)
   {

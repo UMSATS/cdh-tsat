@@ -13,17 +13,18 @@
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
 
-extern osMessageQueueId_t canQueueHandle;
-extern osThreadId_t stm32ResetHandle;
-extern osThreadId_t flashUnitTestHandle;
-extern osThreadId_t mramUnitTestHandle;
-extern osThreadId_t deployAHandle;
-extern osThreadId_t deployBHandle;
-extern osThreadId_t setRTCQueueHandle;
-extern osThreadId_t getRTCHandle;
+//extern osMessageQueueId_t canQueueHandle;
+//extern osThreadId_t stm32ResetHandle;
+//extern osThreadId_t flashUnitTestHandle;
+//extern osThreadId_t mramUnitTestHandle;
+//extern osThreadId_t deployAHandle;
+//extern osThreadId_t deployBHandle;
+//extern osThreadId_t getTasksNumHandle;
+//extern osThreadId_t timeTagTaskInitQueueHandle;
+//extern osThreadId_t setRTCQueueHandle;
+//extern osThreadId_t getRTCHandle;
 extern osMessageQueueId_t telemQueueHandle;
 
-extern osThreadId_t notificationQueueHandle;
 /**
 * Handles incoming messages from the CAN bus. Called by CAN Wrapper Module.
 *

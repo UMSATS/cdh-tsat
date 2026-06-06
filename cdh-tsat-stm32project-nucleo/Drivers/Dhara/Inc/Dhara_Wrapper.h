@@ -235,12 +235,8 @@ int Dhara_Erase(uint32_t s, dhara_error_t *err);
 */
 int Dhara_Force_Sync(dhara_error_t *err);
 
-/* Perform one garbage collection step. You can do this whenever you
- * like, but it's not necessary -- garbage collection happens
- * automatically and is interleaved with other operations.
- */
 /*
- * FUNCTION: Dhara_Force_Sync
+ * FUNCTION: Dhara_GC
  *
  * DESCRIPTION: Perform one garbage collection step.
  *
