@@ -93,13 +93,6 @@ const osThreadAttr_t fetchTelemData_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for fetchTelemData */
-osThreadId_t fetchTelemDataHandle;
-const osThreadAttr_t fetchTelemData_attributes = {
-  .name = "fetchTelemData",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
 /* Definitions for telemQueue */
 osMessageQueueId_t telemQueueHandle;
 const osMessageQueueAttr_t telemQueue_attributes = {
