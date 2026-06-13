@@ -201,6 +201,13 @@ const osThreadAttr_t notifHandler_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for fetchTelemData */
+osThreadId_t fetchTelemDataHandle;
+const osThreadAttr_t fetchTelemData_attributes = {
+  .name = "fetchTelemData",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -257,6 +264,7 @@ extern void StartSetRTC(void *argument);
 extern void StartGetRTC(void *argument);
 extern void StartBDot(void *argument);
 extern void StartNotifHandler(void *argument);
+extern void StartFetchTelemData(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -450,6 +458,9 @@ int main(void)
 
   /* creation of notifHandler */
   notifHandlerHandle = osThreadNew(StartNotifHandler, NULL, &notifHandler_attributes);
+
+  /* creation of fetchTelemData */
+  fetchTelemDataHandle = osThreadNew(StartFetchTelemData, NULL, &fetchTelemData_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
