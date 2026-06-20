@@ -22,7 +22,7 @@
 // Defines
 //###############################################################################################
 
-#define MAX_NUM_OF_PACKET 2
+#define MAX_NUM_OF_PACKET 2//TODO, might need to change
 #define DATA_SIZE 4
 
 // Telemetry Data Size
