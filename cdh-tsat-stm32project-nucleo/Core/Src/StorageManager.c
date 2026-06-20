@@ -85,28 +85,6 @@ int Storage_Add_SectorNode(DataType dType, uint8_t sType, dhara_sector_t sector,
  * ######################################################################
 */
 
-
-//###############################################
-//##############    SECTOR TYPE    ##############
-//###############################################
-
-
-//
-// HEADER STRUCT
-typedef struct {
-	uint8_t magic;
-
-	uint8_t dataType;
-	uint8_t sectorType;
-
-	// 1 is the first in sequence of sectors
-	uint32_t sequence;
-
-	uint16_t offset;
-
-
-}SectorHeader;
-
 //#####################################################
 //##############    DATA TYPE CONFIGS    ##############
 //#####################################################
