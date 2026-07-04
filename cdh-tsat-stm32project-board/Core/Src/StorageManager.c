@@ -6,7 +6,7 @@
  *
  * CREATED ON: Jan 13, 2026
  */
-
+#ifdef FLASH_INSTALLED
 
 //###############################################################################################
 //Include Directives
@@ -85,28 +85,6 @@ int Storage_Add_SectorNode(DataType dType, uint8_t sType, dhara_sector_t sector,
  * ######################################################################
 */
 
-
-//###############################################
-//##############    SECTOR TYPE    ##############
-//###############################################
-
-
-//
-// HEADER STRUCT
-typedef struct {
-	uint8_t magic;
-
-	uint8_t dataType;
-	uint8_t sectorType;
-
-	// 1 is the first in sequence of sectors
-	uint32_t sequence;
-
-	uint16_t offset;
-
-
-}SectorHeader;
-
 //#####################################################
 //##############    DATA TYPE CONFIGS    ##############
 //#####################################################
@@ -147,9 +125,8 @@ SectorNode* SECTOR_LIST_HEAD[NUM_TYPES][MAX_BACKUPS + 1] = {
 
 int Storage_Init(){
 
-	dhara_sector_t capacity = Dhara_Capacity();
-	// To load faster, shrink capacity size
-	//dhara_sector_t capacity = 100;
+	//dhara_sector_t capacity = Dhara_Capacity();
+	dhara_sector_t capacity = 100;
 
 	for(dhara_sector_t i=0;i<capacity;i++){
 
@@ -775,3 +752,5 @@ int Storage_Unit_Test(uint8_t* data, uint32_t dataSize){
 
 	return 1;
 }
+
+#endif

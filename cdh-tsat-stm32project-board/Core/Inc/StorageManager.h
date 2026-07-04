@@ -17,6 +17,27 @@
 #include <stdint.h>
 #include <dhara/map.h>
 
+//###############################################
+//##############    SECTOR TYPE    ##############
+//###############################################
+
+
+//
+// HEADER STRUCT
+typedef struct {
+	uint8_t magic;
+
+	uint8_t dataType;
+	uint8_t sectorType;
+
+	// 1 is the first in sequence of sectors
+	uint32_t sequence;
+
+	uint16_t offset;
+
+
+}SectorHeader;
+
 
 //###############################################################################################
 //                                          SECTOR NODE
