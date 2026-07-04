@@ -8,6 +8,8 @@
 #ifndef INC_UNIT_TESTS_H_
 #define INC_UNIT_TESTS_H_
 
+#include <dhara/error.h>
+
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
 #include "W25N_driver.h"
@@ -29,5 +31,19 @@ void StartFlashUnitTest(void *argument);
 * @retval None
 */
 void StartMramUnitTest(void *argument);
+
+/**
+* @brief Function implementing the mramUnitTest thread.
+* @param argument: Not used
+* @retval None
+*/
+void StartDharaUnitTest(void *argument);
+
+/**
+* @brief Function implementing the mramUnitTest thread.
+* @param argument: Not used
+* @retval None
+*/
+void StartStorageManagerUnitTest(void *argument);
 
 #endif /* INC_UNIT_TESTS_H_ */

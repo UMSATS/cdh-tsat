@@ -18,6 +18,12 @@ void On_CAN_Message_Ready(const CAN_HandleTypeDef *hcan, const CANMessage *msg)
 	case CMD_CDH_TEST_MRAM:
 		osThreadFlagsSet(mramUnitTestHandle, 0x0001);
 		break;
+	case CMD_CDH_TEST_DHARA:
+		osThreadFlagsSet(dharaUnitTestHandle, 0x0001);
+		break;
+	case CMD_CDH_TEST_STORAGEMANAGER:
+		osThreadFlagsSet(storageUnitTestHandle, 0x0001);
+		break;
 	case CMD_CDH_ENABLE_ANTENNA:
 		osThreadFlagsSet(deployAHandle, 0x0001);
 		break;
