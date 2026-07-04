@@ -233,6 +233,11 @@ osMessageQueueId_t notificationQueueHandle;
 const osMessageQueueAttr_t notificationQueue_attributes = {
   .name = "notificationQueue"
 };
+/* Definitions for telemStorageMutex */
+osMutexId_t telemStorageMutexHandle;
+const osMutexAttr_t telemStorageMutex_attributes = {
+  .name = "telemStorageMutex"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -374,6 +379,9 @@ int main(void)
 
   /* Init scheduler */
   osKernelInitialize();
+  /* Create the mutex(es) */
+  /* creation of telemStorageMutex */
+  telemStorageMutexHandle = osMutexNew(&telemStorageMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
