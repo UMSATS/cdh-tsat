@@ -39,8 +39,10 @@ void StartFetchTelemData(void *argument){
 
 	for(;;){
 
-		// Todo use Thread flags, Storage write and read task (gives better control)
-		//TODO add dhara and Storage manager to test tasks in unit_test.c
+		// Todo use Thread flags, Storage write and read task (gives better control maybe)
+		// fix mutex stuck situation. ideas: copy whole link list and data and then push to backup, put copied data into queue. just believe in the queue being emptied.
+		// copy just the sector numbers (not the data) into a temporary linked list you own, release the mutex, then read from flash using your own list copy and queue the data, then call Send_To_Backup..
+		// could make a storage manager function that maybe pops the link list of something, but this will also need a put function to put the link list into the backup spot.
 
 		// Acquire Storage mutex
 		osMutexAcquire(telemStorageMutexHandle, osWaitForever);
