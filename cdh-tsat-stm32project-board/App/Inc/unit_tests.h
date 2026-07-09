@@ -8,7 +8,9 @@
 #ifndef INC_UNIT_TESTS_H_
 #define INC_UNIT_TESTS_H_
 
-#include <dhara/error.h>
+#include <Dhara_Wrapper.h>
+#include <StorageManager.h>
+#include "Dhara_test.h"
 
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"

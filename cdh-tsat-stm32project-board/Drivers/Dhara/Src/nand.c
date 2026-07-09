@@ -56,20 +56,30 @@ void dhara_nand_mark_bad(const struct dhara_nand *n, dhara_block_t b)
 	status = W25N_Establish_BBM_Link(logical_block, physical_block);
 
 	// If LUT isnt full and BadBlock link was successful
-	if (status != W25N_LUT_FULL&&
-			status == W25N_HAL_OK)
-	{
-		dharaUsedSpareCount++;
-	}else if(status == W25N_LUT_FULL){
-		uint8_t bad_marker = 0x00;
-		uint32_t page = b << n->log2_ppb;
+//	if (status != W25N_LUT_FULL&&
+//			status == W25N_HAL_OK)
+//	{
+//		dharaUsedSpareCount++;
+//	}else if(status == W25N_LUT_FULL){
+//		uint8_t bad_marker = 0x00;
+//		uint32_t page = b << n->log2_ppb;
+//
+//		status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
+//
+//		// Failed to write to NAND
+//		if (status !=W25N_PROGRAM_OK){
+//			//do something
+//		}
+//	}
+	// TODO handle when testing bad block
+	uint8_t bad_marker = 0x00;
+	uint32_t page = b << n->log2_ppb;
 
-		status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
+	status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
 
-		// Failed to write to NAND
-		if (status !=W25N_PROGRAM_OK){
-			//do something
-		}
+	// Failed to write to NAND
+	if (status !=W25N_PROGRAM_OK){
+		//do something
 	}
 }
 
