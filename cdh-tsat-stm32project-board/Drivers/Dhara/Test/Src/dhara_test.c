@@ -794,7 +794,7 @@ dhara_error_t Dhara_Test(){
 	err=Dhara_Test_NAND();
 	if(err!=DHARA_E_NONE) goto error;
 
-	err=Dhara_Test_Wrapper();// TODO BROKEN
+	err=Dhara_Test_Wrapper();
 	if(err!=DHARA_E_NONE) goto error;
 
 	err=Dhara_Test_Simulated_Power_Loss();
