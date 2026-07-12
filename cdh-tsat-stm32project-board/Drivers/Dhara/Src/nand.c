@@ -15,6 +15,7 @@
 //###############################################################################################
 #include <dhara/nand.h>
 #include <Dhara_Wrapper.h>
+#include <dhara_test.h>
 
 #include "W25N_driver.h"
 
@@ -53,33 +54,33 @@ void dhara_nand_mark_bad(const struct dhara_nand *n, dhara_block_t b)
 	uint16_t logical_block = (uint16_t)b;
 	uint16_t physical_block = NAND_NUM_AVAILABLE_BLOCKS+dharaUsedSpareCount;
 
-	status = W25N_Establish_BBM_Link(logical_block, physical_block);
+	status=W25N_Check_LUT_Full();
 
-	// If LUT isnt full and BadBlock link was successful
-//	if (status != W25N_LUT_FULL&&
-//			status == W25N_HAL_OK)
-//	{
-//		dharaUsedSpareCount++;
-//	}else if(status == W25N_LUT_FULL){
-//		uint8_t bad_marker = 0x00;
-//		uint32_t page = b << n->log2_ppb;
-//
-//		status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
-//
-//		// Failed to write to NAND
-//		if (status !=W25N_PROGRAM_OK){
-//			//do something
-//		}
-//	}
-	// TODO handle when testing bad block
-	uint8_t bad_marker = 0x00;
-	uint32_t page = b << n->log2_ppb;
+	// If there is room and test mock is disabled, dharaTestMockBadBlock will be zero at all times except
+	// during testing if DHARA_USE_MOCK_BAD_BLOCKS is 1
+	if(status==W25N_LUT_HAS_ROOM&&!dharaTestMockBadBlocks){
+		status=W25N_HAL_OK;
 
-	status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
+		status = W25N_Establish_BBM_Link(logical_block, physical_block);
 
-	// Failed to write to NAND
-	if (status !=W25N_PROGRAM_OK){
-		//do something
+		if(status==W25N_HAL_OK){
+			dharaUsedSpareCount++;
+		}else{
+			//do something during error case
+		}
+	// If mock bad blocks are used and no error reading LUT, both LUT Full and has room is used here
+	// since they are the only non error outcomes of check lut full and the previous if statement
+	// already checks the status of dharaTestMockBad
+	}else if(status == W25N_LUT_FULL||status == W25N_LUT_HAS_ROOM){
+		uint8_t bad_marker = 0x00;
+		uint32_t page = b << n->log2_ppb;
+
+		status = W25N_Write_Spare_Area(&bad_marker, page, 0, 1);
+
+		// Failed to write to NAND
+		if (status !=W25N_PROGRAM_OK){
+			//do something
+		}
 	}
 }
 

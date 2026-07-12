@@ -34,7 +34,7 @@ void StartDeployB(void *argument)
 
     LTC1154_On();
 
-    osDelay(30000);
+    osDelay(15000);
 
     LTC1154_Off();
     LTC1154_Disable();
