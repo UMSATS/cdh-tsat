@@ -19,8 +19,10 @@
 //Stores a good blocks first page for testing
 uint32_t testPage;
 
+// Determines whether mock blocks are used when testing
 #define DHARA_USE_MOCK_BAD_BLOCKS 1
 
+// This is a switch that allows mock blocks to be used only when testing and spares to be used outside of testing
 uint8_t dharaTestMockBadBlocks=0;
 
 //############################################################################
