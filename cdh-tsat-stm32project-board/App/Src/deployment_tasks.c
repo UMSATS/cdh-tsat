@@ -33,6 +33,12 @@ void StartDeployB(void *argument)
     osThreadFlagsWait(0x0001, osFlagsWaitAny, osWaitForever);
 
     LTC1154_On();
+
+    osDelay(15000);
+
+    LTC1154_Off();
+    LTC1154_Disable();
+
   }
   osThreadExit();
   /* USER CODE END StartDeployB */

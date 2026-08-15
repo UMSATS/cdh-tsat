@@ -10,15 +10,20 @@
 #include <string.h>
 #include <dhara/nand.h>
 #include <dhara/map.h>
+#include <W25N_driver.h>
 
 #include "Dhara_Wrapper.h"
 #include "Dhara_test.h"
-#include "W25N_driver.h"
 
 
 //Stores a good blocks first page for testing
 uint32_t testPage;
 
+// Determines whether mock blocks are used when testing
+#define DHARA_USE_MOCK_BAD_BLOCKS 1
+
+// This is a switch that allows mock blocks to be used only when testing and spares to be used outside of testing
+uint8_t dharaTestMockBadBlocks=0;
 
 //############################################################################
 //########################    NAND.C FUNCTION TEST    ########################
@@ -225,16 +230,31 @@ dhara_error_t Dhara_Test_NAND_Mark_As_Bad(){
 		goto error;
 	}
 
+	uint8_t oldSpareNumber;
+	W25N_BBM_LUT_Size(&oldSpareNumber);
 	dhara_nand_mark_bad(&my_nand, testPage/(1<<NAND_LOG2_PAGE_PER_BLOCK));
 
-	// Checking spare area byte 0 for BadBlock marker
-	status = W25N_Read(&marker, testPage, PAGESIZE, 1);
+	status=W25N_Check_LUT_Full();
 
-	// If read failed or BadBlock marker is not found
-	if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
-			marker != 0x00){
-		err=DHARA_E_TOO_BAD;
-		goto error;
+	if(!DHARA_USE_MOCK_BAD_BLOCKS||status==W25N_LUT_FULL){
+		// Checking spare area byte 0 for BadBlock marker
+		status = W25N_Read(&marker, testPage, PAGESIZE, 1);
+
+		// If read failed or BadBlock marker is not found
+		if ((status!=W25N_ECC_CORRECTION_UNNECESSARY&&status!=W25N_ECC_CORRECTION_OK) ||
+				marker != 0x00){
+			err=DHARA_E_TOO_BAD;
+			goto error;
+		}
+	}else{
+		uint8_t newSpareNumber;
+		W25N_BBM_LUT_Size(&newSpareNumber);
+
+		// If spare number stays the same then error
+		if(oldSpareNumber!=newSpareNumber){
+			err=DHARA_E_TOO_BAD;
+						goto error;
+		}
 	}
 
 	status=W25N_Erase(testPage);
@@ -462,6 +482,10 @@ dhara_error_t Dhara_Test_Wrapper_Read(){
 	if(err!=DHARA_E_NONE) goto error;
 
 	uint8_t readData[PAGESIZE];
+
+	for(int i=0;i<PAGESIZE;i++){
+		readData[i]=-1;
+	}
 
 	Dhara_Read(0, readData, PAGESIZE, &err);
 	if(err!=DHARA_E_NONE) goto error;
@@ -771,6 +795,8 @@ dhara_error_t Dhara_Test_Find_Good_Block(){
 //##########################################################################
 
 dhara_error_t Dhara_Test(){
+	dharaTestMockBadBlocks=DHARA_USE_MOCK_BAD_BLOCKS;
+
 	dhara_error_t err=DHARA_E_NONE;
 	W25N_StatusTypeDef status;
 
@@ -803,6 +829,7 @@ dhara_error_t Dhara_Test(){
 
 
 error:
+	dharaTestMockBadBlocks=0;
 	return err;
 }
 

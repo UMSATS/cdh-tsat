@@ -298,6 +298,17 @@ W25N_StatusTypeDef W25N_Erase(uint16_t page_address);
 W25N_StatusTypeDef W25N_Reset_And_Init();
 
 /*
+ * FUNCTION: W25N_Check_LUT_Full
+ *
+ * DESCRIPTION: Checks if the Bad Block Management (BBM) Look Up Table (LUT) is full.
+ *
+ * W25N_StatusTypeDef SPECIFIC RETURNS:
+ *  W25N_LUT_HAS_ROOM: There is still room to add to the BBM LUT.
+ *  W25N_LUT_FULL: The BBM LUT is full.
+ */
+W25N_StatusTypeDef W25N_Check_LUT_Full();
+
+/*
  * FUNCTION: W25N_BBM_LUT_Size
  *
  * DESCRIPTION: Sets the given variable to the amount of spare management blocks that have been used.

@@ -297,17 +297,6 @@ W25N_StatusTypeDef W25N_Read_Data(uint8_t *p_buffer, uint16_t column_address, ui
 W25N_StatusTypeDef W25N_Wait_Until_Not_Busy();
 
 /*
- * FUNCTION: W25N_Check_LUT_Full
- *
- * DESCRIPTION: Checks if the Bad Block Management (BBM) Look Up Table (LUT) is full.
- * 
- * W25N_StatusTypeDef SPECIFIC RETURNS:
- *  W25N_LUT_HAS_ROOM: There is still room to add to the BBM LUT.
- *  W25N_LUT_FULL: The BBM LUT is full.
- */
-W25N_StatusTypeDef W25N_Check_LUT_Full();
-
-/*
  * FUNCTION: W25N_Check_ECC_Status
  *
  * DESCRIPTION: Check the ECC status of the most recent read operation.

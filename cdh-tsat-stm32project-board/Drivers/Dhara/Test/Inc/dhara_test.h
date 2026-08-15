@@ -11,6 +11,8 @@
 
 #include <dhara/error.h>
 
+extern uint8_t dharaTestMockBadBlocks;
+
 
 //############################################################################
 //########################    NAND.C FUNCTION TEST    ########################
