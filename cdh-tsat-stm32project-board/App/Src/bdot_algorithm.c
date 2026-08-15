@@ -10,6 +10,7 @@ void StartBDot(void *argument){
 
 	for(;;){
 		//B Dot Algorithm Code
+		osDelay(1000);
 	}
 	osThreadExit();
 }

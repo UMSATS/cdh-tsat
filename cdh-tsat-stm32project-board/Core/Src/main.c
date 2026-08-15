@@ -32,8 +32,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <tuk/tuk.h>
+
 #include "W25N_driver.h"
 #include "W25N_driver_test.h"
+#include "Dhara_Wrapper.h"
+#include "Dhara_test.h"
+#include "StorageManager.h"
 #include "AS3001204_driver.h"
 #include "AS3001204_driver_test.h"
 #include "LEDs_driver.h"
@@ -46,7 +51,7 @@
 #include "bdot_algorithm.h"
 #include "deployment_tasks.h"
 #include "command_handling.h"
-#include "tuk/tuk.h"
+#include "notification_handling.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,7 +114,7 @@ const osThreadAttr_t toggleWDI_attributes = {
 osThreadId_t telemHandlerHandle;
 const osThreadAttr_t telemHandler_attributes = {
   .name = "telemHandler",
-  .stack_size = 128 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for timeTagTask */
@@ -189,6 +194,13 @@ const osThreadAttr_t calculateBDot_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
 };
+/* Definitions for notifHandler */
+osThreadId_t notifHandlerHandle;
+const osThreadAttr_t notifHandler_attributes = {
+  .name = "notifHandler",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -208,6 +220,11 @@ const osMessageQueueAttr_t timeTagTaskInitQueue_attributes = {
 osMessageQueueId_t setRTCQueueHandle;
 const osMessageQueueAttr_t setRTCQueue_attributes = {
   .name = "setRTCQueue"
+};
+/* Definitions for notificationQueue */
+osMessageQueueId_t notificationQueueHandle;
+const osMessageQueueAttr_t notificationQueue_attributes = {
+  .name = "notificationQueue"
 };
 /* USER CODE BEGIN PV */
 
@@ -239,6 +256,7 @@ extern void StartTimeTagTaskInit(void *argument);
 extern void StartSetRTC(void *argument);
 extern void StartGetRTC(void *argument);
 extern void StartBDot(void *argument);
+extern void StartNotifHandler(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -317,6 +335,33 @@ int main(void)
   if (as3001204_operation_status != HAL_OK) goto error;
   as3001204_operation_status = AS3001204_Init();
   if (as3001204_operation_status != HAL_OK) goto error;*/
+
+  //###############################################################################################
+    //Library Initialization
+    //###############################################################################################
+
+    //this code initializes the Dhara Library
+    dhara_error_t dhara_status=DHARA_E_NONE;
+    dhara_status=Dhara_Init();
+    if(dhara_status!=DHARA_E_NONE&&dhara_status!=DHARA_E_NOT_FOUND) goto error;
+    dhara_status=DHARA_E_NONE;
+
+    //this code initializes the Storage Manager
+    if(!Storage_Init()) goto error;
+
+    //###############################################################################################
+    //Library Unit Tests
+    //###############################################################################################
+
+    //this code performs the Dhara library tests
+//    dhara_status=Dhara_Test();
+//    if(dhara_status!=DHARA_E_NONE) goto error;
+
+    //this code performs the Storage Manager Test
+//    uint8_t temp[7] = {0};
+//    Storage_Append(TELEM, temp, 7);
+//    if(!Storage_Unit_Test(temp, 7)) goto error;
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -339,13 +384,16 @@ int main(void)
   canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
 
   /* creation of telemQueue */
-  telemQueueHandle = osMessageQueueNew (100, sizeof(TelemetryMessage_t), &telemQueue_attributes);
+  telemQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &telemQueue_attributes);
 
   /* creation of timeTagTaskInitQueue */
   timeTagTaskInitQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &timeTagTaskInitQueue_attributes);
 
   /* creation of setRTCQueue */
   setRTCQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &setRTCQueue_attributes);
+
+  /* creation of notificationQueue */
+  notificationQueueHandle = osMessageQueueNew (10, sizeof(CANMessage), &notificationQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -400,6 +448,9 @@ int main(void)
   /* creation of calculateBDot */
   calculateBDotHandle = osThreadNew(StartBDot, NULL, &calculateBDot_attributes);
 
+  /* creation of notifHandler */
+  notifHandlerHandle = osThreadNew(StartNotifHandler, NULL, &notifHandler_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.
   const CANWrapper_InitTypeDef CAN_WRAPPER_CONFIG = {
@@ -408,6 +459,7 @@ int main(void)
 		  .error_callback = On_CAN_Error
   };
   CANWrapper_Init(&CAN_WRAPPER_CONFIG);
+  CANWrapper_CAN_Start(&hcan1);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 

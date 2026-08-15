@@ -6,6 +6,7 @@
  * AUTHORS:
  *  - Daigh Burgess (daigh.burgess@umsats.ca)
  *  - Rodrigo Alegria (rodrigo.alegria@umsats.ca)
+ *  - Andrew Driver (andrew.driver) (Only stuff related to writing to spare area)
  *
  * CREATED ON: Oct. 30, 2022
  */
@@ -33,6 +34,7 @@
 #define W25N_OPCODE_READ_BBM_LUT                0xA5
 #define W25N_OPCODE_BLOCK_ERASE_128KB           0xD8
 #define W25N_OPCODE_LOAD_PROGRAM_DATA           0x02
+#define W25N_OPCODE_LOAD_PROGRAM_DATA_RANDOM    0x84
 #define W25N_OPCODE_PROGRAM_EXECUTE             0x10
 #define W25N_OPCODE_PAGE_DATA_READ              0x13
 #define W25N_OPCODE_READ_DATA                   0x03
@@ -187,6 +189,25 @@ W25N_StatusTypeDef W25N_Block_Erase_128KB(uint16_t page_address);
  *  num_of_bytes: Number of bytes to load from the buffer into the W25N Data Buffer.
  */
 W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
+
+/*
+ * FUNCTION: W25N_Load_Program_Data_Spare_Area
+ *
+ * DESCRIPTION: Loads data into the W25N Data Buffer from a given buffer. Resets the unused data
+ *              bytes in the W25N Data Buffer to 0xFF.
+ *
+ * NOTES:
+ *  - A Write Enable command must be executed before the device will accept the Load Program Data
+ *    command.
+ *  - The 0th data byte in the buffer will be loaded into the W25N Data Buffer at the given
+ *    column address. The 1st data byte will be loaded at the given column address + 1, etc.
+ *
+ * PARAMETERS:
+ *  p_buffer: Pointer to the buffer which contains the data bytes to load.
+ *  column_address: W25N Data Buffer memory address for the 0th byte to load.
+ *  num_of_bytes: Number of bytes to load from the buffer into the W25N Data Buffer.
+ */
+W25N_StatusTypeDef W25N_Load_Program_Data_Spare_Area(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes);
 
 /*
  * FUNCTION: W25N_Program_Execute
@@ -468,6 +489,26 @@ W25N_StatusTypeDef W25N_Load_Program_Data(uint8_t *p_buffer, uint16_t column_add
 {
     W25N_StatusTypeDef operation_status;
     uint8_t opcode = W25N_OPCODE_LOAD_PROGRAM_DATA;
+
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
+
+    operation_status = HAL_SPI_Transmit(&W25N_SPI, &opcode, 1, W25N_SPI_DELAY);
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = W25N_SPI_Transmit_Word_16Bit(column_address);
+    if (operation_status != W25N_HAL_OK) goto error;
+    operation_status = HAL_SPI_Transmit(&W25N_SPI, p_buffer, num_of_bytes, W25N_SPI_DELAY);
+
+error:
+    HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_RESET);
+    return operation_status;
+}
+
+W25N_StatusTypeDef W25N_Load_Program_Data_Spare_Area(uint8_t *p_buffer, uint16_t column_address, uint16_t num_of_bytes)
+{
+    W25N_StatusTypeDef operation_status;
+    uint8_t opcode = W25N_OPCODE_LOAD_PROGRAM_DATA_RANDOM;
 
     HAL_GPIO_WritePin(W25N_nWP_GPIO, W25N_nWP_PIN, GPIO_PIN_SET);
     HAL_GPIO_WritePin(W25N_nCS_GPIO, W25N_nCS_PIN, GPIO_PIN_RESET);
@@ -781,6 +822,31 @@ error:
 	return operation_status;
 }
 
+W25N_StatusTypeDef W25N_Write_Spare_Area(uint8_t *p_buffer, uint16_t page_address, uint16_t column_address, uint16_t num_of_bytes)
+{
+	W25N_StatusTypeDef operation_status;
+
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Write_Enable();
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Load_Program_Data_Spare_Area(p_buffer, PAGESIZE+column_address, num_of_bytes);
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Program_Execute(page_address);
+	if (operation_status != W25N_HAL_OK) goto error;
+
+	operation_status = W25N_Wait_Until_Not_Busy();
+	if (operation_status != W25N_READY) goto error;
+
+	operation_status = W25N_Check_Program_Failure();
+
+error:
+	return operation_status;
+}
+
 W25N_StatusTypeDef W25N_Erase(uint16_t page_address)
 {
     W25N_StatusTypeDef operation_status;
@@ -827,6 +893,39 @@ W25N_StatusTypeDef W25N_Reset_And_Init()
 
 error:
     return operation_status;
+}
+
+W25N_StatusTypeDef W25N_BBM_LUT_Size(uint8_t *usedSpareCount)
+{
+	W25N_StatusTypeDef operation_status;
+
+	if(W25N_Check_LUT_Full()!=W25N_LUT_FULL){
+		uint8_t lut[W25N_BBM_LUT_NUM_OF_BYTES];
+
+		operation_status = W25N_Wait_Until_Not_Busy();
+		if (operation_status != W25N_READY) goto error;
+
+		operation_status = W25N_Read_BBM_LUT(lut);
+		if (operation_status != W25N_HAL_OK) goto error;
+
+		for(uint16_t i=0;i<W25N_BBM_LUT_NUM_OF_BYTES/4;i++){
+
+			uint8_t* entry=&lut[i*4];
+
+			//LUT flags
+			uint8_t enable  = entry[0] & (1 << 7);
+			uint8_t invalid = entry[0] & (1 << 6);
+
+			if (enable && !invalid) {//Is bit flipped
+				(*usedSpareCount)++;
+			}
+		}
+	}else{
+		(*usedSpareCount)=W25N_BBM_LUT_NUM_OF_BYTES/4;
+	}
+
+error:
+	return operation_status;
 }
 
 //###############################################################################################
