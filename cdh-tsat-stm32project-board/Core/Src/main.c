@@ -215,11 +215,6 @@ const osThreadAttr_t storageUnitTest_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for canQueue */
-osMessageQueueId_t canQueueHandle;
-const osMessageQueueAttr_t canQueue_attributes = {
-  .name = "canQueue"
-};
 /* Definitions for telemQueue */
 osMessageQueueId_t telemQueueHandle;
 const osMessageQueueAttr_t telemQueue_attributes = {
@@ -396,9 +391,6 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of canQueue */
-  canQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &canQueue_attributes);
-
   /* creation of telemQueue */
   telemQueueHandle = osMessageQueueNew (100, sizeof(CANMessage), &telemQueue_attributes);
 
