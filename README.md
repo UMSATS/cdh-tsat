@@ -7,7 +7,7 @@ Contains software for the TSAT6 (2020-2023) Command and Data Handling (CDH) boar
 **cdh-tsat6-stm32project-boardV1** : STM32 Project for the first version of the CDH custom PCB
 
 ## Setup
-To set up the project you must also have the tsat-utilities-kit repository cloned and positioned in the correct directory locations so that the project linker can find the library.
+To set up the project you must also have the [tsat-utilities-kit](https://github.com/UMSATS/tsat-utilities-kit) repository cloned and positioned in the correct directory locations so that the project linker can find the library.
 
 Use the git command `git clone <repository_url>` to clone the CDH and [TUK](https://github.com/UMSATS/tsat-utilities-kit) repos in the desired workspace for UMSATS projects or use the github desktop app UI to achieve the same result.
 
