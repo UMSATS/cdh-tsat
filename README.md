@@ -13,7 +13,7 @@ Use the git command `git clone <repository_url>` to clone the CDH and [TUK](http
 
 The following image gives you the correct project layout needed for the code to function and compile properly.
 
-![Directory Layout](git-repo-layout.PNG)  
+<img width="692" height="225" alt="git-repo-layout" src="https://github.com/user-attachments/assets/c36935b4-4294-469c-8506-855aa20a872c" />
 
 With this directory setup, the main branch of the project should compile and you can begin coding.
 
