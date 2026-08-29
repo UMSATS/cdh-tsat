@@ -201,6 +201,20 @@ const osThreadAttr_t notifHandler_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for dharaUnitTest */
+osThreadId_t dharaUnitTestHandle;
+const osThreadAttr_t dharaUnitTest_attributes = {
+  .name = "dharaUnitTest",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for storageUnitTest */
+osThreadId_t storageUnitTestHandle;
+const osThreadAttr_t storageUnitTest_attributes = {
+  .name = "storageUnitTest",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for canQueue */
 osMessageQueueId_t canQueueHandle;
 const osMessageQueueAttr_t canQueue_attributes = {
@@ -257,6 +271,8 @@ extern void StartSetRTC(void *argument);
 extern void StartGetRTC(void *argument);
 extern void StartBDot(void *argument);
 extern void StartNotifHandler(void *argument);
+extern void StartDharaUnitTest(void *argument);
+extern void StartStorageManagerUnitTest(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -450,6 +466,12 @@ int main(void)
 
   /* creation of notifHandler */
   notifHandlerHandle = osThreadNew(StartNotifHandler, NULL, &notifHandler_attributes);
+
+  /* creation of dharaUnitTest */
+  dharaUnitTestHandle = osThreadNew(StartDharaUnitTest, NULL, &dharaUnitTest_attributes);
+
+  /* creation of storageUnitTest */
+  storageUnitTestHandle = osThreadNew(StartStorageManagerUnitTest, NULL, &storageUnitTest_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   // Initialise CAN Wrapper Module.

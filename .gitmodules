@@ -1,6 +1,0 @@
-[submodule "cdh-tsat-stm32project-board/External/tsat-utilities-kit"]
-	path = cdh-tsat-stm32project-board/External/tsat-utilities-kit
-	url = https://github.com/UMSATS/tsat-utilities-kit
-[submodule "cdh-tsat-stm32project-nucleo/External/tsat-utilities-kit"]
-	path = cdh-tsat-stm32project-nucleo/External/tsat-utilities-kit
-	url = https://github.com/UMSATS/tsat-utilities-kit

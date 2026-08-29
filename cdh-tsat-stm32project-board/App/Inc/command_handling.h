@@ -17,6 +17,8 @@ extern osMessageQueueId_t canQueueHandle;
 extern osThreadId_t stm32ResetHandle;
 extern osThreadId_t flashUnitTestHandle;
 extern osThreadId_t mramUnitTestHandle;
+extern osThreadId_t dharaUnitTestHandle;
+extern osThreadId_t storageUnitTestHandle;
 extern osThreadId_t deployAHandle;
 extern osThreadId_t deployBHandle;
 extern osThreadId_t setRTCQueueHandle;
