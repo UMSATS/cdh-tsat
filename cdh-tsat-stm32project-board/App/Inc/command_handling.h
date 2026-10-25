@@ -13,7 +13,6 @@
 #include "stm32l4xx_hal.h"
 #include "cmsis_os.h"
 
-extern osMessageQueueId_t canQueueHandle;
 extern osThreadId_t stm32ResetHandle;
 extern osThreadId_t flashUnitTestHandle;
 extern osThreadId_t mramUnitTestHandle;
