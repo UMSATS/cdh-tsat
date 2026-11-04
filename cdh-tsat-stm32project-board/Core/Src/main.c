@@ -82,6 +82,8 @@ SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
+UART_HandleTypeDef huart4;
+
 /* Definitions for blinkLED1 */
 osThreadId_t blinkLED1Handle;
 const osThreadAttr_t blinkLED1_attributes = {
@@ -249,6 +251,7 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_CRC_Init(void);
 static void MX_RTC_Init(void);
+static void MX_UART4_Init(void);
 void StartBlinkLED1(void *argument);
 void StartBlinkLED2(void *argument);
 void StartBlinkLED3(void *argument);
@@ -313,6 +316,7 @@ int main(void)
   MX_SPI3_Init();
   MX_CRC_Init();
   MX_RTC_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   //disable the automatically enabled RTC alarm
   HAL_StatusTypeDef rtc_alarm_operation_status;
@@ -896,6 +900,41 @@ static void MX_SPI3_Init(void)
 }
 
 /**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -920,11 +959,14 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, RELEASE_Pin|MRAM_nWP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, UHF_nCS_Pin|FLASH_nCS_Pin|FLASH_nHOLD_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, UHF_SDN_Pin|LED1_Pin|LED2_Pin|LED3_Pin
                           |FLASH_nWP_Pin|WDI_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, FLASH_nCS_Pin|FLASH_nHOLD_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MRAM_nCS_GPIO_Port, MRAM_nCS_Pin, GPIO_PIN_SET);
@@ -939,8 +981,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : UHF_nCS_Pin FLASH_nCS_Pin FLASH_nHOLD_Pin */
-  GPIO_InitStruct.Pin = UHF_nCS_Pin|FLASH_nCS_Pin|FLASH_nHOLD_Pin;
+  /*Configure GPIO pins : PC4 FLASH_nCS_Pin FLASH_nHOLD_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|FLASH_nCS_Pin|FLASH_nHOLD_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
