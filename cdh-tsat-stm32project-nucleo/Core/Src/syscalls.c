@@ -77,6 +77,7 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
   return len;
 }
 
+// NOTE: print.c in the TUK library has a _write that overwrites this definition
 __attribute__((weak)) int _write(int file, char *ptr, int len)
 {
   (void)file;
